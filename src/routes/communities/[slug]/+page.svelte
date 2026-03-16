@@ -178,6 +178,7 @@
 						endTime: proposal.endTime,
 						body: proposal.body ?? undefined
 					}}
+					locked={proposal.visibility === 'community' && !data.membership}
 				/>
 			{/each}
 		</div>

@@ -3,7 +3,7 @@ import type { PageServerLoad, Actions } from './$types';
 import { getProposal, getProposalResults } from '$lib/server/services/proposal-service';
 import { getCommunityById } from '$lib/server/services/community-service';
 import { getMember } from '$lib/server/services/membership-service';
-import { getUserVote, castVote } from '$lib/server/services/vote-service';
+import { getUserVote, castVote, getProposalVoters } from '$lib/server/services/vote-service';
 import { ServiceError } from '$lib/server/services/errors';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
@@ -11,11 +11,12 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
 	try {
 		const proposal = await getProposal(params.id, userId);
-		const [results, community, membership, userVote] = await Promise.all([
+		const [results, community, membership, userVote, voters] = await Promise.all([
 			getProposalResults(params.id, userId),
 			getCommunityById(proposal.communityId, userId),
 			userId ? getMember(proposal.communityId, userId) : Promise.resolve(null),
-			userId ? getUserVote(userId, params.id) : Promise.resolve(null)
+			userId ? getUserVote(userId, params.id) : Promise.resolve(null),
+			getProposalVoters(params.id)
 		]);
 
 		return {
@@ -23,7 +24,8 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 			results,
 			community,
 			membership,
-			userVote
+			userVote,
+			voters
 		};
 	} catch (e) {
 		if (e instanceof ServiceError) {

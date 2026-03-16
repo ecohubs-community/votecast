@@ -1,6 +1,6 @@
-import { eq, and } from 'drizzle-orm';
+import { eq, and, desc } from 'drizzle-orm';
 import { db as defaultDb } from '$lib/server/db';
-import { proposal, proposalChoice, vote } from '$lib/server/db/schema';
+import { proposal, proposalChoice, vote, user } from '$lib/server/db/schema';
 import { ServiceError, ErrorCode } from './errors';
 import { emit } from '../events';
 import { requireMember } from './membership-service';
@@ -132,4 +132,46 @@ export async function getUserVote(
 		.limit(1);
 
 	return found ?? null;
+}
+
+// ─── Voter list ─────────────────────────────────────────────────────────────
+
+export interface VoterRecord {
+	voteId: string;
+	userId: string;
+	displayName: string | null;
+	name: string;
+	choiceId: string;
+	choiceLabel: string;
+	votedAt: Date;
+}
+
+/**
+ * Get all voters for a proposal with their choice labels and timestamps.
+ * Caller must verify access before calling this function.
+ */
+export async function getProposalVoters(
+	proposalId: string,
+	db: Database = defaultDb
+): Promise<VoterRecord[]> {
+	const rows = await db
+		.select({
+			voteId: vote.id,
+			userId: vote.userId,
+			displayName: user.displayName,
+			name: user.name,
+			choiceId: vote.choiceId,
+			choiceLabel: proposalChoice.label,
+			votedAt: vote.createdAt
+		})
+		.from(vote)
+		.innerJoin(user, eq(user.id, vote.userId))
+		.innerJoin(proposalChoice, eq(proposalChoice.id, vote.choiceId))
+		.where(eq(vote.proposalId, proposalId))
+		.orderBy(desc(vote.createdAt));
+
+	return rows.map((r) => ({
+		...r,
+		votedAt: r.votedAt ?? new Date()
+	}));
 }

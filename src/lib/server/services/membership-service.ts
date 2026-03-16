@@ -1,6 +1,6 @@
 import { eq, and, desc, lt, or, count, sql } from 'drizzle-orm';
 import { db as defaultDb } from '$lib/server/db';
-import { community, communityMember, invite, user } from '$lib/server/db/schema';
+import { community, communityMember, invite, proposal, user, vote } from '$lib/server/db/schema';
 import { ServiceError, ErrorCode } from './errors';
 import { emit } from '../events';
 import {

@@ -293,19 +293,50 @@ export async function getUserCommunities(
 	userId: string,
 	pagination: PaginationParams = {},
 	db: Database = defaultDb
-): Promise<PaginatedResult<{ community: typeof community.$inferSelect; role: string }>> {
+): Promise<
+	PaginatedResult<{
+		community: typeof community.$inferSelect;
+		role: string;
+		memberCount: number;
+		voteCount: number;
+	}>
+> {
 	const limit = clampLimit(pagination.limit);
 	const cursor = pagination.cursor ? decodeCursor(pagination.cursor) : null;
+
+	// Subqueries for aggregate counts (same pattern as getPublicCommunities)
+	const memberCountSq = db
+		.select({
+			communityId: communityMember.communityId,
+			memberCount: sql<number>`count(*)`.as('user_mc')
+		})
+		.from(communityMember)
+		.groupBy(communityMember.communityId)
+		.as('umc');
+
+	const voteCountSq = db
+		.select({
+			communityId: proposal.communityId,
+			voteCount: sql<number>`count(${vote.id})`.as('user_vc')
+		})
+		.from(proposal)
+		.leftJoin(vote, eq(vote.proposalId, proposal.id))
+		.groupBy(proposal.communityId)
+		.as('uvc');
 
 	let query = db
 		.select({
 			community: community,
 			role: communityMember.role,
 			joinedAt: communityMember.joinedAt,
-			memberId: communityMember.id
+			memberId: communityMember.id,
+			memberCount: sql<number>`coalesce(${memberCountSq.memberCount}, 0)`,
+			voteCount: sql<number>`coalesce(${voteCountSq.voteCount}, 0)`
 		})
 		.from(communityMember)
 		.innerJoin(community, eq(communityMember.communityId, community.id))
+		.leftJoin(memberCountSq, eq(community.id, memberCountSq.communityId))
+		.leftJoin(voteCountSq, eq(community.id, voteCountSq.communityId))
 		.where(eq(communityMember.userId, userId))
 		.orderBy(desc(communityMember.joinedAt), desc(communityMember.id))
 		.limit(limit + 1)
@@ -336,7 +367,12 @@ export async function getUserCommunities(
 			: null;
 
 	return {
-		items: items.map((r) => ({ community: r.community, role: r.role })),
+		items: items.map((r) => ({
+			community: r.community,
+			role: r.role,
+			memberCount: r.memberCount,
+			voteCount: r.voteCount
+		})),
 		nextCursor
 	};
 }
