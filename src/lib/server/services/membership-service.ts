@@ -193,7 +193,7 @@ export async function leaveCommunity(
 }
 
 /**
- * List members of a community with user profile info.
+ * List members of a community with user profile info and vote count.
  */
 export async function listMembers(
 	communityId: string,
@@ -202,14 +202,29 @@ export async function listMembers(
 ): Promise<
 	PaginatedResult<{
 		userId: string;
+		name: string;
 		displayName: string | null;
+		walletAddress: string | null;
 		avatarUrl: string | null;
 		role: string;
 		joinedAt: Date;
+		voteCount: number;
 	}>
 > {
 	const limit = clampLimit(pagination.limit);
 	const cursor = pagination.cursor ? decodeCursor(pagination.cursor) : null;
+
+	// Subquery: count votes per user within this community
+	const voteCountSq = db
+		.select({
+			userId: vote.userId,
+			voteCount: sql<number>`count(*)`.as('member_vote_count')
+		})
+		.from(vote)
+		.innerJoin(proposal, eq(proposal.id, vote.proposalId))
+		.where(eq(proposal.communityId, communityId))
+		.groupBy(vote.userId)
+		.as('mvc');
 
 	const conditions = [eq(communityMember.communityId, communityId)];
 
@@ -231,11 +246,15 @@ export async function listMembers(
 			userId: communityMember.userId,
 			role: communityMember.role,
 			joinedAt: communityMember.joinedAt,
+			name: user.name,
 			displayName: user.displayName,
-			avatarUrl: user.avatarUrl
+			walletAddress: user.walletAddress,
+			avatarUrl: user.avatarUrl,
+			voteCount: sql<number>`coalesce(${voteCountSq.voteCount}, 0)`
 		})
 		.from(communityMember)
 		.innerJoin(user, eq(communityMember.userId, user.id))
+		.leftJoin(voteCountSq, eq(communityMember.userId, voteCountSq.userId))
 		.where(and(...conditions))
 		.orderBy(desc(communityMember.joinedAt), desc(communityMember.id))
 		.limit(limit + 1);
@@ -251,10 +270,13 @@ export async function listMembers(
 	return {
 		items: items.map((r) => ({
 			userId: r.userId,
+			name: r.name,
 			displayName: r.displayName,
+			walletAddress: r.walletAddress,
 			avatarUrl: r.avatarUrl,
 			role: r.role,
-			joinedAt: r.joinedAt
+			joinedAt: r.joinedAt,
+			voteCount: r.voteCount
 		})),
 		nextCursor
 	};

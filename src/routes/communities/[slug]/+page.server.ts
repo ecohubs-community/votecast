@@ -2,7 +2,7 @@ import { error, fail, redirect } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 import { getCommunityBySlug } from '$lib/server/services/community-service';
 import { listProposals, type ProposalFilters } from '$lib/server/services/proposal-service';
-import { getMember, createInvite } from '$lib/server/services/membership-service';
+import { getMember, createInvite, listMembers } from '$lib/server/services/membership-service';
 import { ServiceError } from '$lib/server/services/errors';
 
 export const load: PageServerLoad = async ({ params, locals, url }) => {
@@ -25,10 +25,16 @@ export const load: PageServerLoad = async ({ params, locals, url }) => {
 			userId ? getMember(community.id, userId) : Promise.resolve(null)
 		]);
 
+		// Only load members list for community members (access control)
+		const members = membership
+			? await listMembers(community.id, { limit: 50 })
+			: null;
+
 		return {
 			community,
 			proposals,
 			membership,
+			members,
 			statusFilter: filters.status ?? null
 		};
 	} catch (e) {

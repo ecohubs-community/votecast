@@ -2,12 +2,14 @@
 	import { enhance } from '$app/forms';
 	import ProposalCard from '$lib/components/ProposalCard.svelte';
 	import EmptyState from '$lib/components/EmptyState.svelte';
+	import { formatRelativeTime } from '$lib/utils/format';
 	import type { PageData, ActionData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
 	let showInviteForm = $state(false);
 	let copied = $state(false);
+	let activeTab = $state<'proposals' | 'members'>('proposals');
 
 	const statuses = [
 		{ label: 'All', value: null },
@@ -20,7 +22,6 @@
 	const defaultExpiry = $derived.by(() => {
 		const d = new Date();
 		d.setDate(d.getDate() + 7);
-		// Format for datetime-local: YYYY-MM-DDTHH:mm
 		return d.toISOString().slice(0, 16);
 	});
 
@@ -30,6 +31,36 @@
 			copied = true;
 			setTimeout(() => (copied = false), 2000);
 		}
+	}
+
+	// Helper: shorten wallet address
+	function shortenWallet(addr: string | null): string | null {
+		if (!addr) return null;
+		return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
+	}
+
+	// Helper: display name for a member
+	function memberDisplayName(m: { displayName: string | null; name: string; walletAddress: string | null }): string {
+		if (m.displayName) return m.displayName;
+		if (m.name && /^0x[0-9a-fA-F]{10,}$/.test(m.name)) {
+			return shortenWallet(m.name) ?? m.name;
+		}
+		return m.name;
+	}
+
+	// Helper: initials for avatar
+	function memberInitials(m: { displayName: string | null; name: string; walletAddress: string | null }): string {
+		if (m.displayName) {
+			const parts = m.displayName.trim().split(/\s+/);
+			if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+			return m.displayName.slice(0, 2).toUpperCase();
+		}
+		if (/^0x[0-9a-fA-F]/.test(m.name)) {
+			return (m.walletAddress ?? m.name).slice(2, 4).toUpperCase();
+		}
+		const parts = m.name.trim().split(/\s+/);
+		if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+		return m.name.slice(0, 2).toUpperCase();
 	}
 </script>
 
@@ -147,59 +178,162 @@
 	</section>
 {/if}
 
-<!-- Status filter tabs -->
-<div class="-mx-4 mt-6 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-	<div class="flex gap-2">
-		{#each statuses as { label, value }}
-			{@const isActive = data.statusFilter === value}
-			<a
-				href="/communities/{data.community.slug}{value ? `?status=${value}` : ''}"
-				class="shrink-0 rounded-md px-3 py-1.5 text-sm font-medium {isActive
-					? 'bg-blue-600 text-white'
-					: 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
-			>
-				{label}
-			</a>
-		{/each}
-	</div>
+<!-- Top-level tab switcher: Proposals / Members -->
+<div class="mt-6 flex gap-1 border-b border-gray-200">
+	<button
+		onclick={() => (activeTab = 'proposals')}
+		class="px-4 py-2.5 text-sm font-medium transition-colors {activeTab === 'proposals'
+			? 'border-b-2 border-blue-600 text-blue-600'
+			: 'text-gray-500 hover:text-gray-700'}"
+	>
+		Proposals
+	</button>
+	{#if data.membership && data.members}
+		<button
+			onclick={() => (activeTab = 'members')}
+			class="px-4 py-2.5 text-sm font-medium transition-colors {activeTab === 'members'
+				? 'border-b-2 border-blue-600 text-blue-600'
+				: 'text-gray-500 hover:text-gray-700'}"
+		>
+			Members ({data.members.items.length}{data.members.nextCursor ? '+' : ''})
+		</button>
+	{/if}
 </div>
 
-<!-- Proposals list -->
-<section class="mt-6">
-	{#if data.proposals.items.length > 0}
-		<div class="space-y-3">
-			{#each data.proposals.items as proposal}
-				<ProposalCard
-					proposal={{
-						id: proposal.id,
-						title: proposal.title,
-						status: proposal.status,
-						startTime: proposal.startTime,
-						endTime: proposal.endTime,
-						body: proposal.body ?? undefined
-					}}
-					locked={proposal.visibility === 'community' && !data.membership}
-				/>
+{#if activeTab === 'proposals'}
+	<!-- Status filter tabs -->
+	<div class="-mx-4 mt-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+		<div class="flex gap-2">
+			{#each statuses as { label, value }}
+				{@const isActive = data.statusFilter === value}
+				<a
+					href="/communities/{data.community.slug}{value ? `?status=${value}` : ''}"
+					class="shrink-0 rounded-md px-3 py-1.5 text-sm font-medium {isActive
+						? 'bg-blue-600 text-white'
+						: 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
+				>
+					{label}
+				</a>
 			{/each}
 		</div>
+	</div>
 
-		{#if data.proposals.nextCursor}
-			<div class="mt-6 text-center">
-				<a
-					href="/communities/{data.community.slug}?cursor={data.proposals
-						.nextCursor}{data.statusFilter ? `&status=${data.statusFilter}` : ''}"
-					class="text-sm font-medium text-blue-600 hover:text-blue-800"
-				>
-					Load more
-				</a>
+	<!-- Proposals list -->
+	<section class="mt-4">
+		{#if data.proposals.items.length > 0}
+			<div class="space-y-3">
+				{#each data.proposals.items as proposal}
+					<ProposalCard
+						proposal={{
+							id: proposal.id,
+							title: proposal.title,
+							status: proposal.status,
+							startTime: proposal.startTime,
+							endTime: proposal.endTime,
+							body: proposal.body ?? undefined
+						}}
+						locked={proposal.visibility === 'community' && !data.membership}
+					/>
+				{/each}
 			</div>
+
+			{#if data.proposals.nextCursor}
+				<div class="mt-6 text-center">
+					<a
+						href="/communities/{data.community.slug}?cursor={data.proposals
+							.nextCursor}{data.statusFilter ? `&status=${data.statusFilter}` : ''}"
+						class="text-sm font-medium text-blue-600 hover:text-blue-800"
+					>
+						Load more
+					</a>
+				</div>
+			{/if}
+		{:else}
+			<EmptyState
+				icon="proposals"
+				message="No proposals yet."
+				actionText={data.membership ? 'Create the first proposal' : undefined}
+				actionHref={data.membership
+					? `/communities/${data.community.slug}/create-proposal`
+					: undefined}
+			/>
 		{/if}
-	{:else}
-		<EmptyState
-			icon="proposals"
-			message="No proposals yet."
-			actionText={data.membership ? 'Create the first proposal' : undefined}
-			actionHref={data.membership ? `/communities/${data.community.slug}/create-proposal` : undefined}
-		/>
-	{/if}
-</section>
+	</section>
+{:else if activeTab === 'members' && data.members}
+	<!-- Members list -->
+	<section class="mt-4">
+		{#if data.members.items.length > 0}
+			<div class="divide-y divide-gray-100">
+				{#each data.members.items as member}
+					{@const name = memberDisplayName(member)}
+					{@const wallet = shortenWallet(member.walletAddress)}
+					<div class="flex items-center gap-4 py-3">
+						<!-- Avatar -->
+						<div
+							class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-semibold text-white"
+						>
+							{memberInitials(member)}
+						</div>
+
+						<!-- Info -->
+						<div class="min-w-0 flex-1">
+							<div class="flex items-center gap-2">
+								<span class="truncate text-sm font-medium text-gray-900">
+									{name}
+								</span>
+								{#if member.role === 'admin'}
+									<span
+										class="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800"
+									>
+										Admin
+									</span>
+								{/if}
+							</div>
+							<div class="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-gray-500">
+								{#if wallet}
+									<span class="flex items-center gap-1">
+										<svg
+											class="h-3 w-3 text-gray-400"
+											fill="none"
+											viewBox="0 0 24 24"
+											stroke="currentColor"
+											stroke-width="2"
+										>
+											<path
+												stroke-linecap="round"
+												stroke-linejoin="round"
+												d="M21 12a2.25 2.25 0 0 0-2.25-2.25H15a3 3 0 1 1-6 0H5.25A2.25 2.25 0 0 0 3 12m18 0v6a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 9m18 0V6a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6v3"
+											/>
+										</svg>
+										{wallet}
+									</span>
+								{/if}
+								<span>Joined {formatRelativeTime(member.joinedAt)}</span>
+							</div>
+						</div>
+
+						<!-- Vote count -->
+						<div class="shrink-0 text-right">
+							<span class="text-sm font-medium text-gray-900">{member.voteCount}</span>
+							<p class="text-xs text-gray-400">
+								{member.voteCount === 1 ? 'vote' : 'votes'}
+							</p>
+						</div>
+					</div>
+				{/each}
+			</div>
+
+			{#if data.members.nextCursor}
+				<div class="mt-6 text-center">
+					<button
+						class="text-sm font-medium text-blue-600 hover:text-blue-800"
+					>
+						Load more
+					</button>
+				</div>
+			{/if}
+		{:else}
+			<EmptyState icon="communities" message="No members yet." />
+		{/if}
+	</section>
+{/if}
