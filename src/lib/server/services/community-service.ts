@@ -4,7 +4,11 @@ import {
 	community,
 	communityMember,
 	proposal,
-	vote
+	proposalChoice,
+	vote,
+	webhook,
+	invite,
+	executionHandler
 } from '$lib/server/db/schema';
 import { ServiceError, ErrorCode } from './errors';
 import { emit } from '../events';
@@ -197,6 +201,63 @@ export async function updateCommunity(
 	}
 
 	return updated;
+}
+
+/**
+ * Delete a community and all related data. Requires admin role.
+ * This is a destructive, irreversible operation.
+ */
+export async function deleteCommunity(
+	userId: string,
+	communityId: string,
+	db: Database = defaultDb
+) {
+	// Verify admin
+	const [member] = await db
+		.select()
+		.from(communityMember)
+		.where(
+			and(
+				eq(communityMember.communityId, communityId),
+				eq(communityMember.userId, userId),
+				eq(communityMember.role, 'admin')
+			)
+		)
+		.limit(1);
+
+	if (!member) {
+		throw new ServiceError(ErrorCode.FORBIDDEN, 'Only community admins can delete a community');
+	}
+
+	// Delete in correct FK order within a synchronous transaction
+	db.transaction((tx) => {
+		// Get all proposal IDs for this community
+		const proposalIds = tx
+			.select({ id: proposal.id })
+			.from(proposal)
+			.where(eq(proposal.communityId, communityId))
+			.all()
+			.map((p) => p.id);
+
+		// Delete votes and choices for each proposal
+		// (proposalChoice and executionHandler cascade from proposal, but votes do not)
+		for (const pid of proposalIds) {
+			tx.delete(vote).where(eq(vote.proposalId, pid)).run();
+		}
+
+		// Delete proposals (cascades to proposalChoice + executionHandler)
+		tx.delete(proposal).where(eq(proposal.communityId, communityId)).run();
+
+		// Delete webhooks, invites, members
+		tx.delete(webhook).where(eq(webhook.communityId, communityId)).run();
+		tx.delete(invite).where(eq(invite.communityId, communityId)).run();
+		tx.delete(communityMember).where(eq(communityMember.communityId, communityId)).run();
+
+		// Delete community
+		tx.delete(community).where(eq(community.id, communityId)).run();
+	});
+
+	emit('community.deleted', { communityId, deletedBy: userId });
 }
 
 /**

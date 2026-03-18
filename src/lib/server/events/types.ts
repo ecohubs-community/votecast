@@ -4,6 +4,7 @@ import type { ProposalResults } from '../services/proposal-service';
 
 export const EventName = {
 	COMMUNITY_CREATED: 'community.created',
+	COMMUNITY_DELETED: 'community.deleted',
 	MEMBER_JOINED: 'member.joined',
 	PROPOSAL_CREATED: 'proposal.created',
 	PROPOSAL_STARTED: 'proposal.started',
@@ -18,6 +19,11 @@ export type EventName = (typeof EventName)[keyof typeof EventName];
 export interface CommunityCreatedData {
 	communityId: string;
 	createdBy: string;
+}
+
+export interface CommunityDeletedData {
+	communityId: string;
+	deletedBy: string;
 }
 
 export interface MemberJoinedData {
@@ -53,6 +59,7 @@ export interface ProposalClosedData {
 
 export type GovernanceEvent =
 	| { event: 'community.created'; timestamp: string; data: CommunityCreatedData }
+	| { event: 'community.deleted'; timestamp: string; data: CommunityDeletedData }
 	| { event: 'member.joined'; timestamp: string; data: MemberJoinedData }
 	| { event: 'proposal.created'; timestamp: string; data: ProposalCreatedData }
 	| { event: 'proposal.started'; timestamp: string; data: ProposalStartedData }
@@ -64,6 +71,7 @@ export type GovernanceEvent =
 /** Maps event names to their data types for type-safe emit/subscribe */
 export interface EventDataMap {
 	'community.created': CommunityCreatedData;
+	'community.deleted': CommunityDeletedData;
 	'member.joined': MemberJoinedData;
 	'proposal.created': ProposalCreatedData;
 	'proposal.started': ProposalStartedData;

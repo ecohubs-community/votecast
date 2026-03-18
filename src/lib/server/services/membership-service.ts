@@ -152,6 +152,66 @@ export async function removeMember(
 }
 
 /**
+ * Admin updates a member's role. Cannot change own role.
+ * Cannot demote the sole admin.
+ */
+export async function updateMemberRole(
+	adminUserId: string,
+	communityId: string,
+	targetUserId: string,
+	newRole: 'admin' | 'member',
+	db: Database = defaultDb
+) {
+	await requireAdmin(communityId, adminUserId, db);
+
+	if (adminUserId === targetUserId) {
+		throw new ServiceError(ErrorCode.FORBIDDEN, 'Cannot change your own role');
+	}
+
+	const target = await getMember(communityId, targetUserId, db);
+	if (!target) {
+		throw new ServiceError(ErrorCode.NOT_FOUND, 'Member not found');
+	}
+
+	if (target.role === newRole) {
+		throw new ServiceError(ErrorCode.INVALID_REQUEST, `Member is already a ${newRole}`);
+	}
+
+	// If demoting an admin, check they are not the sole admin
+	if (target.role === 'admin' && newRole === 'member') {
+		const [{ adminCount }] = await db
+			.select({ adminCount: count() })
+			.from(communityMember)
+			.where(
+				and(
+					eq(communityMember.communityId, communityId),
+					eq(communityMember.role, 'admin')
+				)
+			);
+
+		if (adminCount <= 1) {
+			throw new ServiceError(
+				ErrorCode.SOLE_ADMIN,
+				'Cannot demote the sole admin. Promote another member first.'
+			);
+		}
+	}
+
+	const [updated] = await db
+		.update(communityMember)
+		.set({ role: newRole })
+		.where(
+			and(
+				eq(communityMember.communityId, communityId),
+				eq(communityMember.userId, targetUserId)
+			)
+		)
+		.returning();
+
+	return updated;
+}
+
+/**
  * User leaves a community voluntarily.
  * Sole admins cannot leave — they must transfer admin role first.
  */

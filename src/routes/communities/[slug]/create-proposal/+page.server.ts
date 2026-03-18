@@ -40,6 +40,7 @@ export const actions: Actions = {
 		const choices = formData.getAll('choices').filter((c) => (c as string).trim() !== '') as string[];
 		const startTime = formData.get('startTime') as string;
 		const endTime = formData.get('endTime') as string;
+		const visibility = (formData.get('visibility') as string) || 'public';
 
 		try {
 			const community = await getCommunityBySlug(params.slug, locals.user.id);
@@ -50,13 +51,14 @@ export const actions: Actions = {
 				body,
 				choices,
 				startTime: new Date(startTime),
-				endTime: new Date(endTime)
+				endTime: new Date(endTime),
+				visibility: visibility as 'public' | 'community'
 			});
 
 			redirect(303, `/proposals/${result.id}`);
 		} catch (e) {
 			if (e instanceof ServiceError) {
-				return fail(e.statusCode, { error: e.message, title, body, choices, startTime, endTime });
+				return fail(e.statusCode, { error: e.message, title, body, choices, startTime, endTime, visibility });
 			}
 			throw e;
 		}
