@@ -30,10 +30,10 @@ You MUST use this tool whenever writing Svelte code before sending it to the use
 Generates a Svelte Playground link with the provided code.
 After completing the code, ask the user if they want a playground link. Only call this tool after user confirmation and NEVER if code was written to files in their project.
 
-
 ## Project Specs
 
 Read and understand the project specs in the "specs" root folder:
+
 - /specs/01_product_overview.md
 - /specs/02_architecture.md
 - /specs/03_database_schema.md
@@ -43,3 +43,13 @@ Read and understand the project specs in the "specs" root folder:
 - /specs/07_ui_ux_design.md
 - /specs/08_dev_rules_conventions.md
 - /specs/09_build_instructions_for_ai_agents.md
+
+## Design System
+
+For frontend work please read and understand the design system: 
+/design_files/DESIGN_SYSTEM.md
+
+## Voice and Tone
+
+Please read and understand the voice and tone of the voicecast brand when creating new content: 
+/design_files/VOICE_TONE.md

@@ -26,11 +26,7 @@ export interface CastVoteInput {
  * - choiceId belongs to this proposal
  * - user has not already voted
  */
-export async function castVote(
-	userId: string,
-	input: CastVoteInput,
-	db: Database = defaultDb
-) {
+export async function castVote(userId: string, input: CastVoteInput, db: Database = defaultDb) {
 	// Fetch proposal
 	const [found] = await db
 		.select()
@@ -48,9 +44,7 @@ export async function castVote(
 	if (current.status !== 'active') {
 		throw new ServiceError(
 			ErrorCode.PROPOSAL_NOT_ACTIVE,
-			current.status === 'draft'
-				? 'Voting has not started yet'
-				: 'Voting has ended'
+			current.status === 'draft' ? 'Voting has not started yet' : 'Voting has ended'
 		);
 	}
 
@@ -62,34 +56,23 @@ export async function castVote(
 		.select({ id: proposalChoice.id })
 		.from(proposalChoice)
 		.where(
-			and(
-				eq(proposalChoice.id, input.choiceId),
-				eq(proposalChoice.proposalId, input.proposalId)
-			)
+			and(eq(proposalChoice.id, input.choiceId), eq(proposalChoice.proposalId, input.proposalId))
 		)
 		.limit(1);
 
 	if (!choice) {
-		throw new ServiceError(
-			ErrorCode.INVALID_REQUEST,
-			'Choice does not belong to this proposal'
-		);
+		throw new ServiceError(ErrorCode.INVALID_REQUEST, 'Choice does not belong to this proposal');
 	}
 
 	// Check user hasn't already voted
 	const [existingVote] = await db
 		.select({ id: vote.id })
 		.from(vote)
-		.where(
-			and(eq(vote.proposalId, input.proposalId), eq(vote.userId, userId))
-		)
+		.where(and(eq(vote.proposalId, input.proposalId), eq(vote.userId, userId)))
 		.limit(1);
 
 	if (existingVote) {
-		throw new ServiceError(
-			ErrorCode.ALREADY_VOTED,
-			'You have already voted on this proposal'
-		);
+		throw new ServiceError(ErrorCode.ALREADY_VOTED, 'You have already voted on this proposal');
 	}
 
 	// Determine voting power (1 for onePersonOneVote)
@@ -120,11 +103,7 @@ export async function castVote(
  * Get a user's vote on a specific proposal, if any.
  * Returns the vote record (including choiceId) or null.
  */
-export async function getUserVote(
-	userId: string,
-	proposalId: string,
-	db: Database = defaultDb
-) {
+export async function getUserVote(userId: string, proposalId: string, db: Database = defaultDb) {
 	const [found] = await db
 		.select()
 		.from(vote)

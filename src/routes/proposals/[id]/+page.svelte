@@ -2,6 +2,7 @@
 	import { enhance } from '$app/forms';
 	import StatusBadge from '$lib/components/StatusBadge.svelte';
 	import { formatRelativeTime } from '$lib/utils/format';
+	import { resolve } from '$app/paths';
 	import type { PageData, ActionData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -11,13 +12,9 @@
 	let activeTab = $state<'description' | 'voters'>('description');
 
 	const timeContext = $derived.by(() => {
-		if (data.proposal.status === 'active') {
-			return `Voting ends ${formatRelativeTime(data.proposal.endTime)}`;
-		}
-		if (data.proposal.status === 'closed') {
-			return `Voting ended ${formatRelativeTime(data.proposal.endTime)}`;
-		}
-		return `Voting starts ${formatRelativeTime(data.proposal.startTime)}`;
+		if (data.proposal.status === 'active') return `Voting closes ${formatRelativeTime(data.proposal.endTime)}`;
+		if (data.proposal.status === 'closed') return `Voting closed ${formatRelativeTime(data.proposal.endTime)}`;
+		return `Voting opens ${formatRelativeTime(data.proposal.startTime)}`;
 	});
 
 	const votingState = $derived.by(() => {
@@ -28,14 +25,10 @@
 		return 'can-vote' as const;
 	});
 
-	// Map results by choiceId for quick lookup
 	const resultsByChoice = $derived.by(() => {
 		const map = new Map<string, { votes: number; pct: number }>();
 		for (const r of data.results.results) {
-			const pct =
-				data.results.totalVotes > 0
-					? Math.round((r.votes / data.results.totalVotes) * 100)
-					: 0;
+			const pct = data.results.totalVotes > 0 ? Math.round((r.votes / data.results.totalVotes) * 100) : 0;
 			map.set(r.choiceId, { votes: r.votes, pct });
 		}
 		return map;
@@ -44,316 +37,251 @@
 	const showResults = $derived(
 		data.proposal.status === 'active' || data.proposal.status === 'closed'
 	);
+
+	const userChoiceLabel = $derived(
+		data.proposal.choices.find((c) => c.id === data.userVote?.choiceId)?.label
+	);
 </script>
 
 <svelte:head>
-	<title>{data.proposal.title} — LumiVote</title>
+	<title>{data.proposal.title} — VoteCast</title>
 </svelte:head>
 
-<!-- Breadcrumb -->
-<div class="mb-6">
-	<a href="/communities/{data.community.slug}" class="text-sm text-blue-600 hover:text-blue-800">
-		&larr; Back to {data.community.name}
+<div class="page" style="max-width: 1100px;">
+	<a href={resolve(`/communities/${data.community.slug}`)} class="breadcrumb">
+		{data.community.name}
 	</a>
-</div>
 
-<!-- Header -->
-<section class="border-b border-gray-200 pb-6">
-	<div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+	<header class="page-head">
 		<div>
-			<h1 class="text-2xl font-bold text-gray-900 sm:text-3xl">{data.proposal.title}</h1>
-			<div class="mt-2 flex flex-wrap items-center gap-2">
+			<h1 class="page-title">{data.proposal.title}</h1>
+			<div style="margin-top: 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px;">
 				<StatusBadge status={data.proposal.status as 'draft' | 'active' | 'closed'} />
 				{#if data.proposal.visibility === 'public'}
-					<span class="inline-flex items-center gap-1 rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700">
-						<svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-							<path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5a17.92 17.92 0 0 1-8.716-2.247m0 0A8.966 8.966 0 0 1 3 12c0-1.264.26-2.466.732-3.558" />
+					<span class="meta-pill">
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+							<circle cx="12" cy="12" r="9" />
+							<path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" />
 						</svg>
 						Public
 					</span>
 				{:else}
-					<span class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600">
-						<svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-							<path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+					<span class="meta-pill">
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+							<rect x="4" y="11" width="16" height="10" rx="2" />
+							<path d="M8 11V7a4 4 0 0 1 8 0v4" />
 						</svg>
-						Internal
+						Members only
 					</span>
 				{/if}
-				<span class="text-sm text-gray-500">{timeContext}</span>
+				<span style="color: var(--vc-muted); font-family: var(--vc-font-mono); font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em;">
+					{timeContext}
+				</span>
 			</div>
 		</div>
+	</header>
 
-		{#if data.proposal.status === 'draft' && (data.proposal.createdBy === data.user?.id || data.membership?.role === 'admin')}
-			<span class="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-500">
-				Edit (coming soon)
-			</span>
-		{/if}
-	</div>
-</section>
+	<div class="proposal-detail-grid">
+		<div>
+			<nav class="tabs">
+				<button class="tab" class:active={activeTab === 'description'} onclick={() => (activeTab = 'description')}>
+					Context
+				</button>
+				<button class="tab" class:active={activeTab === 'voters'} onclick={() => (activeTab = 'voters')}>
+					Voters <span style="color: var(--vc-muted);">·</span> {data.results.totalVotes}
+				</button>
+			</nav>
 
-<!-- Two-column layout -->
-<div class="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-3">
-	<!-- Left column: tabs (Description / Voters) -->
-	<div class="lg:col-span-2">
-		<!-- Tab switcher -->
-		<div class="flex gap-1 border-b border-gray-200">
-			<button
-				onclick={() => (activeTab = 'description')}
-				class="px-4 py-2.5 text-sm font-medium transition-colors {activeTab === 'description'
-					? 'border-b-2 border-blue-600 text-blue-600'
-					: 'text-gray-500 hover:text-gray-700'}"
-			>
-				Description
-			</button>
-			<button
-				onclick={() => (activeTab = 'voters')}
-				class="px-4 py-2.5 text-sm font-medium transition-colors {activeTab === 'voters'
-					? 'border-b-2 border-blue-600 text-blue-600'
-					: 'text-gray-500 hover:text-gray-700'}"
-			>
-				Voters ({data.results.totalVotes})
-			</button>
-		</div>
-
-		<!-- Tab content -->
-		{#if activeTab === 'description'}
-			<div class="mt-4 whitespace-pre-wrap text-gray-700">{data.proposal.body}</div>
-		{:else}
-			<!-- Voters list -->
-			{#if data.voters.length === 0}
-				<p class="py-10 text-center text-sm text-gray-500">No votes yet.</p>
+			{#if activeTab === 'description'}
+				<div style="white-space: pre-wrap; font-size: 15px; line-height: 1.65; color: var(--vc-ink-2);">
+					{data.proposal.body}
+				</div>
+			{:else if data.voters.length === 0}
+				<div class="empty">
+					<p>No votes yet — be the first to weigh in.</p>
+				</div>
 			{:else}
-				<div class="mt-4 divide-y divide-gray-100">
-					{#each data.voters as voter}
-						<div class="flex items-center justify-between py-3 text-sm">
-							<span class="font-medium text-gray-900">
-								{voter.displayName || voter.name}
-							</span>
-							<div class="flex items-center gap-4">
-								<span
-									class="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600"
-								>
-									{voter.choiceLabel}
+				<div>
+					{#each data.voters as voter (voter.userId)}
+						<div class="member-row" style="padding: 12px 0;">
+							<div class="member-info">
+								<span class="member-name">
+									<span>{voter.displayName || voter.name}</span>
 								</span>
-								<span class="w-24 text-right text-xs text-gray-400">
-									{formatRelativeTime(voter.votedAt)}
-								</span>
+								<div class="member-meta">
+									<span>{formatRelativeTime(voter.votedAt)}</span>
+								</div>
 							</div>
+							<span class="meta-pill" style="background: var(--vc-bg-2);">{voter.choiceLabel}</span>
 						</div>
 					{/each}
 				</div>
 			{/if}
-		{/if}
-	</div>
+		</div>
 
-	<!-- Right column: Voting + Results merged -->
-	<div>
-		<div class="rounded-lg border border-gray-200 p-5">
-			<h2 class="text-base font-semibold text-gray-900">
-				{votingState === 'can-vote' ? 'Cast your vote' : 'Vote'}
-				{#if showResults}
-					<span class="ml-1.5 text-sm font-normal text-gray-500">
-						· {data.results.totalVotes}
-						{data.results.totalVotes === 1 ? 'vote' : 'votes'}
-					</span>
+		<aside>
+			<div class="vote-card">
+				<div class="vote-card-head">
+					<h2 class="vote-card-title">
+						{votingState === 'can-vote' ? 'Your vote' : 'Result'}
+					</h2>
+					{#if showResults}
+						<span class="vote-card-count">
+							{data.results.totalVotes} {data.results.totalVotes === 1 ? 'vote' : 'votes'}
+						</span>
+					{/if}
+				</div>
+
+				{#if form?.error}
+					<div class="alert alert-error" style="margin-bottom: 16px;">{form.error}</div>
 				{/if}
-			</h2>
 
-			{#if form?.error}
-				<div
-					class="mt-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
-				>
-					{form.error}
-				</div>
-			{/if}
+				{#if form?.success}
+					<div class="alert alert-success" style="margin-bottom: 16px;">Vote recorded.</div>
+				{/if}
 
-			{#if form?.success}
-				<div
-					class="mt-3 rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700"
-				>
-					Your vote has been recorded.
-				</div>
-			{/if}
-
-			{#if votingState === 'can-vote'}
-				<!-- Interactive voting with progress bars -->
-				<form
-					method="POST"
-					action="?/vote"
-					use:enhance={() => {
-						submitting = true;
-						return async ({ update }) => {
-							submitting = false;
-							await update();
-						};
-					}}
-				>
-					<fieldset disabled={submitting} class="mt-4 space-y-2">
-						{#each data.proposal.choices as choice}
-							{@const result = resultsByChoice.get(choice.id)}
-							{@const pct = result?.pct ?? 0}
-							{@const votes = result?.votes ?? 0}
-							{@const isSelected = selectedChoiceId === choice.id}
-							<label
-								class="relative flex cursor-pointer items-center overflow-hidden rounded-lg border px-4 py-3 transition-colors
-									{isSelected
-									? 'border-blue-500 ring-1 ring-blue-500'
-									: 'border-gray-200 hover:border-gray-300'}"
-							>
-								{#if showResults}
-									<div
-										class="absolute inset-y-0 left-0 transition-all duration-500 ease-out {isSelected
-											? 'bg-blue-500/15'
-											: 'bg-gray-500/8'}"
-										style="width: {pct}%"
-									></div>
-								{/if}
-								<div class="relative flex w-full items-center justify-between">
-									<div class="flex items-center gap-3">
+				{#if votingState === 'can-vote'}
+					<form
+						method="POST"
+						action="?/vote"
+						use:enhance={() => {
+							submitting = true;
+							return async ({ update }) => {
+								submitting = false;
+								await update();
+							};
+						}}
+					>
+						<fieldset disabled={submitting} style="border: 0; padding: 0; margin: 0;">
+							{#each data.proposal.choices as choice (choice.id)}
+								{@const result = resultsByChoice.get(choice.id)}
+								{@const pct = result?.pct ?? 0}
+								{@const votes = result?.votes ?? 0}
+								{@const isSelected = selectedChoiceId === choice.id}
+								<label class="choice" class:selected={isSelected}>
+									{#if showResults}
+										<div class="choice-fill" style="width: {pct}%"></div>
+									{/if}
+									<div class="choice-content">
 										<input
 											type="radio"
 											name="choiceId"
 											value={choice.id}
 											bind:group={selectedChoiceId}
-											class="h-4 w-4 text-blue-600 focus:ring-blue-500"
+											style="position: absolute; opacity: 0; width: 1px; height: 1px;"
 										/>
-										<span class="text-sm font-medium text-gray-900">{choice.label}</span>
+										<span class="choice-radio"></span>
+										<span class="choice-label">{choice.label}</span>
+										{#if showResults}
+											<span class="choice-pct">{votes} · {pct}%</span>
+										{/if}
 									</div>
-									{#if showResults}
-										<span class="text-xs text-gray-500">{votes} ({pct}%)</span>
-									{/if}
-								</div>
-							</label>
-						{/each}
-					</fieldset>
+								</label>
+							{/each}
+						</fieldset>
 
-					<button
-						type="submit"
-						disabled={!selectedChoiceId || submitting}
-						class="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-md bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
-					>
-						{#if submitting}
-							<svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
-								<circle
-									class="opacity-25"
-									cx="12"
-									cy="12"
-									r="10"
-									stroke="currentColor"
-									stroke-width="4"
-								/>
-								<path
-									class="opacity-75"
-									fill="currentColor"
-									d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-								/>
-							</svg>
-							Submitting…
-						{:else}
-							Submit Vote
-						{/if}
-					</button>
-				</form>
-			{:else if votingState === 'already-voted'}
-				<!-- Already voted — show choices with results + highlight user's choice -->
-				<div class="mt-4 space-y-2">
-					{#each data.proposal.choices as choice}
-						{@const result = resultsByChoice.get(choice.id)}
-						{@const pct = result?.pct ?? 0}
-						{@const votes = result?.votes ?? 0}
-						{@const isUserChoice = data.userVote?.choiceId === choice.id}
-						<div
-							class="relative overflow-hidden rounded-lg border px-4 py-3
-								{isUserChoice ? 'border-blue-500 ring-1 ring-blue-500' : 'border-gray-200'}"
+						<button
+							type="submit"
+							disabled={!selectedChoiceId || submitting}
+							class="btn btn-accent btn-lg"
+							style="width: 100%; margin-top: 20px;"
 						>
-							{#if showResults}
-								<div
-									class="absolute inset-y-0 left-0 transition-all duration-500 ease-out {isUserChoice
-										? 'bg-blue-500/15'
-										: 'bg-gray-500/8'}"
-									style="width: {pct}%"
-								></div>
+							{#if submitting}
+								<span class="spinner"></span>
+								Casting…
+							{:else}
+								Cast vote
 							{/if}
-							<div class="relative flex items-center justify-between">
-								<div class="flex items-center gap-2">
+						</button>
+					</form>
+				{:else if votingState === 'already-voted'}
+					<div>
+						{#each data.proposal.choices as choice (choice.id)}
+							{@const result = resultsByChoice.get(choice.id)}
+							{@const pct = result?.pct ?? 0}
+							{@const votes = result?.votes ?? 0}
+							{@const isUserChoice = data.userVote?.choiceId === choice.id}
+							<div class="choice" class:user-pick={isUserChoice} style="cursor: default;">
+								{#if showResults}
+									<div class="choice-fill" style="width: {pct}%"></div>
+								{/if}
+								<div class="choice-content">
 									{#if isUserChoice}
-										<svg
-											class="h-4 w-4 shrink-0 text-blue-600"
-											fill="currentColor"
-											viewBox="0 0 20 20"
-										>
-											<path
-												fill-rule="evenodd"
-												d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-												clip-rule="evenodd"
-											/>
+										<svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor" style="flex-shrink: 0; color: var(--vc-accent);">
+											<path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
 										</svg>
+									{:else}
+										<span class="choice-radio"></span>
 									{/if}
-									<span
-										class="text-sm font-medium {isUserChoice
-											? 'text-blue-900'
-											: 'text-gray-900'}">{choice.label}</span
-									>
+									<span class="choice-label">{choice.label}</span>
+									{#if showResults}
+										<span class="choice-pct">{votes} · {pct}%</span>
+									{/if}
 								</div>
-								{#if showResults}
-									<span
-										class="text-xs {isUserChoice
-											? 'font-medium text-blue-700'
-											: 'text-gray-500'}">{votes} ({pct}%)</span
-									>
-								{/if}
 							</div>
-						</div>
-					{/each}
-				</div>
-				<p class="mt-3 text-xs text-green-700">
-					You voted for "{data.proposal.choices.find(
-						(c) => c.id === data.userVote?.choiceId
-					)?.label}". Your vote is locked.
-				</p>
-			{:else}
-				<!-- Not member / not logged in / read-only -->
-				<div class="mt-4 space-y-2">
-					{#each data.proposal.choices as choice}
-						{@const result = resultsByChoice.get(choice.id)}
-						{@const pct = result?.pct ?? 0}
-						{@const votes = result?.votes ?? 0}
-						<div
-							class="relative overflow-hidden rounded-lg border border-gray-200 px-4 py-3"
-						>
-							{#if showResults}
-								<div
-									class="absolute inset-y-0 left-0 bg-gray-500/8 transition-all duration-500 ease-out"
-									style="width: {pct}%"
-								></div>
-							{/if}
-							<div class="relative flex items-center justify-between">
-								<span class="text-sm text-gray-700">{choice.label}</span>
+						{/each}
+					</div>
+					<p style="margin-top: 16px; font-size: 13px; color: var(--vc-accent-ink);">
+						You voted for "{userChoiceLabel}". Your vote is locked in.
+					</p>
+				{:else}
+					<div>
+						{#each data.proposal.choices as choice (choice.id)}
+							{@const result = resultsByChoice.get(choice.id)}
+							{@const pct = result?.pct ?? 0}
+							{@const votes = result?.votes ?? 0}
+							<div class="choice" style="cursor: default;">
 								{#if showResults}
-									<span class="text-xs text-gray-500">{votes} ({pct}%)</span>
+									<div class="choice-fill" style="width: {pct}%"></div>
 								{/if}
+								<div class="choice-content">
+									<span class="choice-radio"></span>
+									<span class="choice-label">{choice.label}</span>
+									{#if showResults}
+										<span class="choice-pct">{votes} · {pct}%</span>
+									{/if}
+								</div>
 							</div>
-						</div>
-					{/each}
-				</div>
+						{/each}
+					</div>
 
-				{#if votingState === 'not-member'}
-					<p class="mt-3 text-xs text-gray-500">
-						You must be a member to vote.
-						<a
-							href="/communities/{data.community.slug}"
-							class="font-medium text-blue-600 hover:text-blue-800"
-						>
-							View community
-						</a>
-					</p>
-				{:else if votingState === 'not-logged-in'}
-					<p class="mt-3 text-xs text-gray-500">
-						<a href="/login" class="font-medium text-blue-600 hover:text-blue-800">Sign in</a>
-						to vote on this proposal.
-					</p>
+					{#if votingState === 'not-member'}
+						<p class="hint" style="margin-top: 16px;">
+							You'll need to join {data.community.name} to vote.
+							<a
+								href={resolve(`/communities/${data.community.slug}`)}
+								style="color: var(--vc-accent-ink); border-bottom: 1px solid var(--vc-line-2); margin-left: 4px;"
+							>
+								Open community
+							</a>
+						</p>
+					{:else if votingState === 'not-logged-in'}
+						<p class="hint" style="margin-top: 16px;">
+							<a
+								href={resolve('/login')}
+								style="color: var(--vc-accent-ink); border-bottom: 1px solid var(--vc-line-2);"
+							>
+								Sign in
+							</a>
+							to weigh in on this one.
+						</p>
+					{/if}
 				{/if}
-			{/if}
-		</div>
+			</div>
+		</aside>
 	</div>
 </div>
+
+<style>
+	.proposal-detail-grid {
+		display: grid;
+		gap: 40px;
+		grid-template-columns: 1fr;
+	}
+	@media (min-width: 960px) {
+		.proposal-detail-grid {
+			grid-template-columns: 1.6fr 1fr;
+			align-items: start;
+		}
+	}
+</style>

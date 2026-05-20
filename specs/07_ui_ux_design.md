@@ -38,7 +38,6 @@ Users should immediately understand:
 - which ones need their vote
 - the current outcome
 
-
 ## 2.2 Community Focus
 
 The system is designed for **human communities**, not purely crypto-native users.
@@ -53,7 +52,6 @@ Prefer:
 - plain language
 - simple explanations
 
-
 ## 2.3 Low Cognitive Load
 
 Voting should require minimal thinking about the interface.
@@ -67,7 +65,6 @@ vote
 ```
 
 in under 30 seconds.
-
 
 ## 2.4 Minimal Visual Design
 

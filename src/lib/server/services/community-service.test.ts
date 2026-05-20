@@ -64,19 +64,15 @@ describe('createCommunity', () => {
 	});
 
 	it('rejects slug that is too short', async () => {
-		await expect(
-			createCommunity(adminUser.id, { name: 'Test', slug: 'a' }, db)
-		).rejects.toThrow(ServiceError);
+		await expect(createCommunity(adminUser.id, { name: 'Test', slug: 'a' }, db)).rejects.toThrow(
+			ServiceError
+		);
 	});
 });
 
 describe('updateCommunity', () => {
 	it('admin can update community name and description', async () => {
-		const comm = await createCommunity(
-			adminUser.id,
-			{ name: 'Original', slug: 'original' },
-			db
-		);
+		const comm = await createCommunity(adminUser.id, { name: 'Original', slug: 'original' }, db);
 
 		const updated = await updateCommunity(
 			adminUser.id,
@@ -90,17 +86,13 @@ describe('updateCommunity', () => {
 	});
 
 	it('non-admin cannot update community', async () => {
-		const comm = await createCommunity(
-			adminUser.id,
-			{ name: 'Test', slug: 'test' },
-			db
-		);
+		const comm = await createCommunity(adminUser.id, { name: 'Test', slug: 'test' }, db);
 
 		const otherUser = await seedUser(db);
 
-		await expect(
-			updateCommunity(otherUser.id, comm.id, { name: 'Hacked' }, db)
-		).rejects.toThrow(ServiceError);
+		await expect(updateCommunity(otherUser.id, comm.id, { name: 'Hacked' }, db)).rejects.toThrow(
+			ServiceError
+		);
 
 		try {
 			await updateCommunity(otherUser.id, comm.id, { name: 'Hacked' }, db);
@@ -110,15 +102,9 @@ describe('updateCommunity', () => {
 	});
 
 	it('rejects empty update', async () => {
-		const comm = await createCommunity(
-			adminUser.id,
-			{ name: 'Test', slug: 'test' },
-			db
-		);
+		const comm = await createCommunity(adminUser.id, { name: 'Test', slug: 'test' }, db);
 
-		await expect(updateCommunity(adminUser.id, comm.id, {}, db)).rejects.toThrow(
-			ServiceError
-		);
+		await expect(updateCommunity(adminUser.id, comm.id, {}, db)).rejects.toThrow(ServiceError);
 	});
 });
 
@@ -152,9 +138,7 @@ describe('getCommunityBySlug', () => {
 			db
 		);
 
-		await expect(getCommunityBySlug('private', undefined, db)).rejects.toThrow(
-			ServiceError
-		);
+		await expect(getCommunityBySlug('private', undefined, db)).rejects.toThrow(ServiceError);
 	});
 
 	it('rejects non-member access to community-visible community', async () => {

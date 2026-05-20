@@ -34,11 +34,7 @@ describe('castVote', () => {
 			choices: ['Yes', 'No']
 		});
 
-		const result = await castVote(
-			voter.id,
-			{ proposalId: prop.id, choiceId: choices[0].id },
-			db
-		);
+		const result = await castVote(voter.id, { proposalId: prop.id, choiceId: choices[0].id }, db);
 
 		expect(result.proposalId).toBe(prop.id);
 		expect(result.userId).toBe(voter.id);
@@ -108,17 +104,12 @@ describe('castVote', () => {
 		});
 
 		// Create another proposal with different choices
-		const { proposal: prop2, choices: choices2 } = await seedProposal(
-			db,
-			comm.id,
-			admin.id,
-			{
-				title: 'Other Proposal',
-				status: 'active',
-				startTime: new Date(Date.now() - 60_000),
-				endTime: new Date(Date.now() + 3_600_000)
-			}
-		);
+		const { proposal: prop2, choices: choices2 } = await seedProposal(db, comm.id, admin.id, {
+			title: 'Other Proposal',
+			status: 'active',
+			startTime: new Date(Date.now() - 60_000),
+			endTime: new Date(Date.now() + 3_600_000)
+		});
 
 		// Try voting on prop2 with a choice from a different proposal
 		const { choices: otherChoices } = await seedProposal(db, comm.id, admin.id, {
@@ -129,11 +120,7 @@ describe('castVote', () => {
 		});
 
 		try {
-			await castVote(
-				admin.id,
-				{ proposalId: prop2.id, choiceId: otherChoices[0].id },
-				db
-			);
+			await castVote(admin.id, { proposalId: prop2.id, choiceId: otherChoices[0].id }, db);
 			expect.unreachable('Should have thrown');
 		} catch (e) {
 			expect((e as ServiceError).code).toBe(ErrorCode.INVALID_REQUEST);

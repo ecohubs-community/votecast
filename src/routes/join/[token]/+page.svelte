@@ -1,65 +1,65 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { resolve } from '$app/paths';
 	import type { PageData, ActionData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 </script>
 
 <svelte:head>
-	<title>Join {data.community.name} — LumiVote</title>
+	<title>Join {data.community.name} — VoteCast</title>
 </svelte:head>
 
-<div class="mx-auto max-w-md py-12">
-	<div class="rounded-lg border border-gray-200 p-6 text-center">
-		<h1 class="text-2xl font-bold text-gray-900">Join {data.community.name}</h1>
+<div class="page-narrow">
+	<div class="vote-card" style="text-align: center; padding: 40px 32px;">
+		<p style="font-family: var(--vc-font-mono); font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--vc-muted); margin: 0 0 16px;">
+			You're invited to
+		</p>
+		<h1 class="page-title" style="font-size: clamp(28px, 4vw, 40px); margin: 0;">
+			{data.community.name}
+		</h1>
 
 		{#if data.community.description}
-			<p class="mt-2 text-sm text-gray-600">{data.community.description}</p>
+			<p style="margin: 16px auto 0; font-size: 15px; color: var(--vc-ink-2); line-height: 1.55; max-width: 40ch;">
+				{data.community.description}
+			</p>
 		{/if}
 
 		{#if form?.error}
-			<div
-				class="mt-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
-			>
-				{form.error}
-			</div>
+			<div class="alert alert-error" style="margin-top: 24px; text-align: left;">{form.error}</div>
 		{/if}
 
 		{#if data.expired}
-			<p class="mt-6 text-sm text-red-600">This invite link has expired.</p>
+			<p style="margin-top: 28px; color: oklch(0.5 0.14 28); font-size: 14px;">
+				This invite link has expired.
+			</p>
 		{:else if data.exhausted}
-			<p class="mt-6 text-sm text-red-600">This invite link has reached its usage limit.</p>
+			<p style="margin-top: 28px; color: oklch(0.5 0.14 28); font-size: 14px;">
+				This invite link is all used up.
+			</p>
 		{:else if data.alreadyMember}
-			<p class="mt-6 text-sm text-gray-600">You're already a member of this community.</p>
-			<a
-				href="/communities/{data.community.slug}"
-				class="mt-4 inline-block rounded-md bg-blue-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-700"
-			>
-				Go to Community
+			<p style="margin-top: 28px; color: var(--vc-muted); font-size: 14px;">
+				You're already part of this community.
+			</p>
+			<a href={resolve(`/communities/${data.community.slug}`)} class="btn btn-accent btn-lg" style="margin-top: 20px;">
+				Open community
 			</a>
 		{:else if data.user}
-			<form method="POST" use:enhance class="mt-6">
-				<button
-					type="submit"
-					class="rounded-md bg-blue-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-700"
-				>
+			<form method="POST" use:enhance style="margin-top: 28px;">
+				<button type="submit" class="btn btn-accent btn-lg">
 					Join {data.community.name}
 				</button>
 			</form>
 		{:else}
-			<p class="mt-6 text-sm text-gray-600">You need an account to join this community.</p>
-			<div class="mt-4 flex items-center justify-center gap-3">
-				<a
-					href="/login?redirect=/join/{data.token}"
-					class="rounded-md bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700"
-				>
-					Sign In
+			<p style="margin-top: 28px; color: var(--vc-muted); font-size: 14px;">
+				Sign in or create an account to accept this invite.
+			</p>
+			<div style="margin-top: 20px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+				<a href={`${resolve('/login')}?redirect=${encodeURIComponent(`/join/${data.token}`)}`} class="btn btn-accent">
+					Sign in
 				</a>
-				<a
-					href="/register?redirect=/join/{data.token}"
-					class="rounded-md border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
-				>
-					Register
+				<a href={`${resolve('/register')}?redirect=${encodeURIComponent(`/join/${data.token}`)}`} class="btn btn-ghost">
+					Create account
 				</a>
 			</div>
 		{/if}

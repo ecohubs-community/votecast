@@ -1,5 +1,11 @@
 import type { RequestHandler } from './$types';
-import { requireAuth, success, handleError, parseBody, parsePagination } from '$lib/server/api-utils';
+import {
+	requireAuth,
+	success,
+	handleError,
+	parseBody,
+	parsePagination
+} from '$lib/server/api-utils';
 import {
 	createCommunity,
 	getUserCommunities,

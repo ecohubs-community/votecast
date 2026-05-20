@@ -49,10 +49,7 @@ export function emit<E extends EventName>(event: E, data: EventDataMap[E]): void
  *
  * Returns an unsubscribe function.
  */
-export function subscribe<E extends EventName>(
-	event: E,
-	handler: EventHandler<E>
-): () => void {
+export function subscribe<E extends EventName>(event: E, handler: EventHandler<E>): () => void {
 	if (!subscribers.has(event)) {
 		subscribers.set(event, new Set());
 	}

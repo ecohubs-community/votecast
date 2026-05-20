@@ -24,17 +24,11 @@ export interface CreateInviteInput {
 /**
  * Look up a membership record. Returns the record or null.
  */
-export async function getMember(
-	communityId: string,
-	userId: string,
-	db: Database = defaultDb
-) {
+export async function getMember(communityId: string, userId: string, db: Database = defaultDb) {
 	const [member] = await db
 		.select()
 		.from(communityMember)
-		.where(
-			and(eq(communityMember.communityId, communityId), eq(communityMember.userId, userId))
-		)
+		.where(and(eq(communityMember.communityId, communityId), eq(communityMember.userId, userId)))
 		.limit(1);
 
 	return member ?? null;
@@ -43,11 +37,7 @@ export async function getMember(
 /**
  * Require that a user is a member of a community. Throws `MEMBERSHIP_REQUIRED` if not.
  */
-export async function requireMember(
-	communityId: string,
-	userId: string,
-	db: Database = defaultDb
-) {
+export async function requireMember(communityId: string, userId: string, db: Database = defaultDb) {
 	const member = await getMember(communityId, userId, db);
 	if (!member) {
 		throw new ServiceError(ErrorCode.MEMBERSHIP_REQUIRED, 'You must be a member of this community');
@@ -58,11 +48,7 @@ export async function requireMember(
 /**
  * Require that a user is an admin of a community. Throws `FORBIDDEN` if not.
  */
-export async function requireAdmin(
-	communityId: string,
-	userId: string,
-	db: Database = defaultDb
-) {
+export async function requireAdmin(communityId: string, userId: string, db: Database = defaultDb) {
 	const member = await getMember(communityId, userId, db);
 	if (!member || member.role !== 'admin') {
 		throw new ServiceError(ErrorCode.FORBIDDEN, 'Admin role required');
@@ -144,10 +130,7 @@ export async function removeMember(
 	await db
 		.delete(communityMember)
 		.where(
-			and(
-				eq(communityMember.communityId, communityId),
-				eq(communityMember.userId, targetUserId)
-			)
+			and(eq(communityMember.communityId, communityId), eq(communityMember.userId, targetUserId))
 		);
 }
 
@@ -182,12 +165,7 @@ export async function updateMemberRole(
 		const [{ adminCount }] = await db
 			.select({ adminCount: count() })
 			.from(communityMember)
-			.where(
-				and(
-					eq(communityMember.communityId, communityId),
-					eq(communityMember.role, 'admin')
-				)
-			);
+			.where(and(eq(communityMember.communityId, communityId), eq(communityMember.role, 'admin')));
 
 		if (adminCount <= 1) {
 			throw new ServiceError(
@@ -201,10 +179,7 @@ export async function updateMemberRole(
 		.update(communityMember)
 		.set({ role: newRole })
 		.where(
-			and(
-				eq(communityMember.communityId, communityId),
-				eq(communityMember.userId, targetUserId)
-			)
+			and(eq(communityMember.communityId, communityId), eq(communityMember.userId, targetUserId))
 		)
 		.returning();
 
@@ -227,12 +202,7 @@ export async function leaveCommunity(
 		const [{ adminCount }] = await db
 			.select({ adminCount: count() })
 			.from(communityMember)
-			.where(
-				and(
-					eq(communityMember.communityId, communityId),
-					eq(communityMember.role, 'admin')
-				)
-			);
+			.where(and(eq(communityMember.communityId, communityId), eq(communityMember.role, 'admin')));
 
 		if (adminCount <= 1) {
 			throw new ServiceError(
@@ -244,12 +214,7 @@ export async function leaveCommunity(
 
 	await db
 		.delete(communityMember)
-		.where(
-			and(
-				eq(communityMember.communityId, communityId),
-				eq(communityMember.userId, userId)
-			)
-		);
+		.where(and(eq(communityMember.communityId, communityId), eq(communityMember.userId, userId)));
 }
 
 /**
@@ -292,10 +257,7 @@ export async function listMembers(
 		conditions.push(
 			or(
 				lt(communityMember.joinedAt, new Date(cursor.ts)),
-				and(
-					eq(communityMember.joinedAt, new Date(cursor.ts)),
-					lt(communityMember.id, cursor.id)
-				)
+				and(eq(communityMember.joinedAt, new Date(cursor.ts)), lt(communityMember.id, cursor.id))
 			)!
 		);
 	}
@@ -425,17 +387,9 @@ export async function createInvite(
 /**
  * Redeem an invite token to join a community.
  */
-export async function redeemInvite(
-	userId: string,
-	token: string,
-	db: Database = defaultDb
-) {
+export async function redeemInvite(userId: string, token: string, db: Database = defaultDb) {
 	// Find invite
-	const [found] = await db
-		.select()
-		.from(invite)
-		.where(eq(invite.token, token))
-		.limit(1);
+	const [found] = await db.select().from(invite).where(eq(invite.token, token)).limit(1);
 
 	if (!found) {
 		throw new ServiceError(ErrorCode.NOT_FOUND, 'Invite not found');
@@ -463,8 +417,7 @@ export async function redeemInvite(
 	// Atomic: increment uses + add member
 	// Note: better-sqlite3 transactions are synchronous — no async/await inside
 	const result = db.transaction((tx) => {
-		tx
-			.update(invite)
+		tx.update(invite)
 			.set({ uses: sql`${invite.uses} + 1` })
 			.where(eq(invite.id, found.id))
 			.run();

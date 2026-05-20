@@ -94,9 +94,7 @@ export const walletAddressTable = sqliteTable(
 		address: text('address').notNull(),
 		chainId: integer('chain_id').notNull(),
 		isPrimary: integer('is_primary', { mode: 'boolean' }).default(false).notNull(),
-		createdAt: integer('created_at', { mode: 'timestamp_ms' })
-			.default(timestampDefault)
-			.notNull()
+		createdAt: integer('created_at', { mode: 'timestamp_ms' }).default(timestampDefault).notNull()
 	},
 	(table) => [index('wallet_address_userId_idx').on(table.userId)]
 );

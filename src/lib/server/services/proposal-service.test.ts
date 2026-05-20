@@ -225,12 +225,7 @@ describe('updateProposal', () => {
 			db
 		);
 
-		const updated = await updateProposal(
-			admin.id,
-			created.id,
-			{ title: 'Admin Override' },
-			db
-		);
+		const updated = await updateProposal(admin.id, created.id, { title: 'Admin Override' }, db);
 
 		expect(updated.title).toBe('Admin Override');
 	});
@@ -269,12 +264,7 @@ describe('updateProposal', () => {
 			db
 		);
 
-		await updateProposal(
-			admin.id,
-			created.id,
-			{ choices: ['X', 'Y', 'Z'] },
-			db
-		);
+		await updateProposal(admin.id, created.id, { choices: ['X', 'Y', 'Z'] }, db);
 
 		// Verify by fetching proposal with choices
 		const fetched = await getProposal(created.id, admin.id, db);

@@ -1,12 +1,6 @@
 import { eq, and, desc, lt, or, count, sql, asc, lte } from 'drizzle-orm';
 import { db as defaultDb } from '$lib/server/db';
-import {
-	community,
-	communityMember,
-	proposal,
-	proposalChoice,
-	vote
-} from '$lib/server/db/schema';
+import { community, communityMember, proposal, proposalChoice, vote } from '$lib/server/db/schema';
 import { ServiceError, ErrorCode } from './errors';
 import { emit } from '../events';
 import { requireMember, requireAdmin } from './membership-service';
@@ -109,10 +103,7 @@ function toDate(value: Date | string): Date {
 
 function validateVisibility(v: unknown): asserts v is 'public' | 'community' {
 	if (v !== 'public' && v !== 'community') {
-		throw new ServiceError(
-			ErrorCode.INVALID_REQUEST,
-			'Visibility must be "public" or "community"'
-		);
+		throw new ServiceError(ErrorCode.INVALID_REQUEST, 'Visibility must be "public" or "community"');
 	}
 }
 
@@ -139,15 +130,15 @@ export async function transitionProposalStatus(
 	if (p.status === 'draft' && p.startTime.getTime() <= now) {
 		newStatus = 'active';
 	}
-	if ((p.status === 'draft' || p.status === 'active' || newStatus === 'active') && p.endTime.getTime() <= now) {
+	if (
+		(p.status === 'draft' || p.status === 'active' || newStatus === 'active') &&
+		p.endTime.getTime() <= now
+	) {
 		newStatus = 'closed';
 	}
 
 	if (newStatus !== originalStatus) {
-		await db
-			.update(proposal)
-			.set({ status: newStatus })
-			.where(eq(proposal.id, p.id));
+		await db.update(proposal).set({ status: newStatus }).where(eq(proposal.id, p.id));
 
 		// Emit events after successful DB write
 		// If draft→active (not skipping to closed), emit proposal.started
@@ -182,7 +173,7 @@ async function batchTransitionStatuses(communityId: string, db: Database = defau
 			and(
 				eq(proposal.communityId, communityId),
 				eq(proposal.status, 'draft'),
-				lte(proposal.startTime, now),
+				lte(proposal.startTime, now)
 				// Only set to active if endTime hasn't passed yet
 				// otherwise the next query will set to closed
 			)
@@ -292,11 +283,7 @@ export async function updateProposal(
 	db: Database = defaultDb
 ) {
 	// Fetch proposal
-	const [found] = await db
-		.select()
-		.from(proposal)
-		.where(eq(proposal.id, proposalId))
-		.limit(1);
+	const [found] = await db.select().from(proposal).where(eq(proposal.id, proposalId)).limit(1);
 
 	if (!found) {
 		throw new ServiceError(ErrorCode.NOT_FOUND, 'Proposal not found');
@@ -306,10 +293,7 @@ export async function updateProposal(
 	const current = await transitionProposalStatus(found, db);
 
 	if (current.status !== 'draft') {
-		throw new ServiceError(
-			ErrorCode.PROPOSAL_NOT_EDITABLE,
-			'Only draft proposals can be edited'
-		);
+		throw new ServiceError(ErrorCode.PROPOSAL_NOT_EDITABLE, 'Only draft proposals can be edited');
 	}
 
 	// Check permission: creator or admin
@@ -386,10 +370,7 @@ export async function updateProposal(
 	return db.transaction((tx) => {
 		if (hasChoiceUpdates) {
 			// Delete existing choices and insert new ones
-			tx
-				.delete(proposalChoice)
-				.where(eq(proposalChoice.proposalId, proposalId))
-				.run();
+			tx.delete(proposalChoice).where(eq(proposalChoice.proposalId, proposalId)).run();
 
 			const choiceValues = input.choices!.map((label, index) => ({
 				proposalId,
@@ -401,20 +382,11 @@ export async function updateProposal(
 		}
 
 		if (hasFieldUpdates) {
-			tx
-				.update(proposal)
-				.set(updates)
-				.where(eq(proposal.id, proposalId))
-				.run();
+			tx.update(proposal).set(updates).where(eq(proposal.id, proposalId)).run();
 		}
 
 		// Return updated proposal
-		const updated = tx
-			.select()
-			.from(proposal)
-			.where(eq(proposal.id, proposalId))
-			.limit(1)
-			.get();
+		const updated = tx.select().from(proposal).where(eq(proposal.id, proposalId)).limit(1).get();
 
 		return updated!;
 	});
@@ -423,16 +395,8 @@ export async function updateProposal(
 /**
  * Get a proposal by ID, including its choices.
  */
-export async function getProposal(
-	proposalId: string,
-	userId?: string,
-	db: Database = defaultDb
-) {
-	const [found] = await db
-		.select()
-		.from(proposal)
-		.where(eq(proposal.id, proposalId))
-		.limit(1);
+export async function getProposal(proposalId: string, userId?: string, db: Database = defaultDb) {
+	const [found] = await db.select().from(proposal).where(eq(proposal.id, proposalId)).limit(1);
 
 	if (!found) {
 		throw new ServiceError(ErrorCode.NOT_FOUND, 'Proposal not found');
@@ -444,10 +408,7 @@ export async function getProposal(
 	// Check visibility
 	if (current.visibility === 'community') {
 		if (!userId) {
-			throw new ServiceError(
-				ErrorCode.FORBIDDEN,
-				'Authentication required to view this proposal'
-			);
+			throw new ServiceError(ErrorCode.FORBIDDEN, 'Authentication required to view this proposal');
 		}
 		await requireMember(current.communityId, userId, db);
 	}
@@ -487,10 +448,7 @@ export async function listProposals(
 		conditions.push(
 			or(
 				lt(proposal.createdAt, new Date(cursor.ts)),
-				and(
-					eq(proposal.createdAt, new Date(cursor.ts)),
-					lt(proposal.id, cursor.id)
-				)
+				and(eq(proposal.createdAt, new Date(cursor.ts)), lt(proposal.id, cursor.id))
 			)!
 		);
 	}
@@ -522,11 +480,7 @@ export async function getProposalResults(
 	db: Database = defaultDb
 ): Promise<ProposalResults> {
 	// Fetch proposal (with status transition and visibility check)
-	const [found] = await db
-		.select()
-		.from(proposal)
-		.where(eq(proposal.id, proposalId))
-		.limit(1);
+	const [found] = await db.select().from(proposal).where(eq(proposal.id, proposalId)).limit(1);
 
 	if (!found) {
 		throw new ServiceError(ErrorCode.NOT_FOUND, 'Proposal not found');
@@ -537,10 +491,7 @@ export async function getProposalResults(
 	// Check visibility
 	if (found.visibility === 'community') {
 		if (!userId) {
-			throw new ServiceError(
-				ErrorCode.FORBIDDEN,
-				'Authentication required to view results'
-			);
+			throw new ServiceError(ErrorCode.FORBIDDEN, 'Authentication required to view results');
 		}
 		await requireMember(found.communityId, userId, db);
 	}

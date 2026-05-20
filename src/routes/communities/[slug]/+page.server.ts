@@ -26,9 +26,7 @@ export const load: PageServerLoad = async ({ params, locals, url }) => {
 		]);
 
 		// Only load members list for community members (access control)
-		const members = membership
-			? await listMembers(community.id, { limit: 50 })
-			: null;
+		const members = membership ? await listMembers(community.id, { limit: 50 }) : null;
 
 		return {
 			community,

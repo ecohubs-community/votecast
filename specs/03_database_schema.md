@@ -104,13 +104,13 @@ Authentication is primarily **wallet-based**.
 
 ### Table: users
 
-| Field | Type | Description |
-|------|------|-------------|
-| id | uuid (string) | Primary key |
-| wallet_address | string | Ethereum wallet address |
-| display_name | string (nullable) | Optional display name |
-| avatar_url | string (nullable) | Optional avatar URL |
-| created_at | timestamp | Account creation time |
+| Field          | Type              | Description             |
+| -------------- | ----------------- | ----------------------- |
+| id             | uuid (string)     | Primary key             |
+| wallet_address | string            | Ethereum wallet address |
+| display_name   | string (nullable) | Optional display name   |
+| avatar_url     | string (nullable) | Optional avatar URL     |
+| created_at     | timestamp         | Account creation time   |
 
 ### Constraints
 
@@ -118,6 +118,7 @@ Authentication is primarily **wallet-based**.
 - wallet_address stored lowercase
 
 ### Indexes
+
 - UNIQUE(wallet_address)
 
 ---
@@ -130,13 +131,13 @@ Not required for MVP functionality but included for extensibility.
 
 ### Table: user_identities
 
-| Field | Type | Description |
-|------|------|-------------|
-| id | uuid | Primary key |
-| user_id | uuid | References users.id |
-| provider | string | identity provider |
-| provider_user_id | string | external user ID |
-| created_at | timestamp | creation time |
+| Field            | Type      | Description         |
+| ---------------- | --------- | ------------------- |
+| id               | uuid      | Primary key         |
+| user_id          | uuid      | References users.id |
+| provider         | string    | identity provider   |
+| provider_user_id | string    | external user ID    |
+| created_at       | timestamp | creation time       |
 
 ### Constraints
 
@@ -155,17 +156,17 @@ Represents a governance space.
 
 ### Table: communities
 
-| Field | Type | Description |
-|------|------|-------------|
-| id | uuid | Primary key |
-| name | string | Community name |
-| slug | string | URL-friendly identifier |
-| description | text | Community description |
-| visibility | string | public or community |
-| verified | boolean | Whether community is verified by platform admins (default: false) |
-| created_by | uuid | creator user ID |
-| created_at | timestamp | creation time |
-| updated_at | timestamp | last update time |
+| Field       | Type      | Description                                                       |
+| ----------- | --------- | ----------------------------------------------------------------- |
+| id          | uuid      | Primary key                                                       |
+| name        | string    | Community name                                                    |
+| slug        | string    | URL-friendly identifier                                           |
+| description | text      | Community description                                             |
+| visibility  | string    | public or community                                               |
+| verified    | boolean   | Whether community is verified by platform admins (default: false) |
+| created_by  | uuid      | creator user ID                                                   |
+| created_at  | timestamp | creation time                                                     |
+| updated_at  | timestamp | last update time                                                  |
 
 ### Constraints
 
@@ -184,13 +185,13 @@ Represents membership within a community.
 
 ### Table: community_members
 
-| Field | Type | Description |
-|------|------|-------------|
-| id | uuid | Primary key |
-| community_id | uuid | references communities |
-| user_id | uuid | references users |
-| role | string | admin or member |
-| joined_at | timestamp | join time |
+| Field        | Type      | Description            |
+| ------------ | --------- | ---------------------- |
+| id           | uuid      | Primary key            |
+| community_id | uuid      | references communities |
+| user_id      | uuid      | references users       |
+| role         | string    | admin or member        |
+| joined_at    | timestamp | join time              |
 
 ### Constraints
 
@@ -211,16 +212,16 @@ Allows users to join communities via invite links.
 
 ### Table: invites
 
-| Field | Type | Description |
-|------|------|-------------|
-| id | uuid | Primary key |
-| community_id | uuid | referenced community |
-| created_by | uuid | user who created the invite |
-| token | string | invite token |
-| max_uses | integer (nullable) | Maximum number of uses (null = unlimited) |
-| uses | integer | Current number of uses (default: 0) |
-| expires_at | timestamp | expiration time |
-| created_at | timestamp | creation time |
+| Field        | Type               | Description                               |
+| ------------ | ------------------ | ----------------------------------------- |
+| id           | uuid               | Primary key                               |
+| community_id | uuid               | referenced community                      |
+| created_by   | uuid               | user who created the invite               |
+| token        | string             | invite token                              |
+| max_uses     | integer (nullable) | Maximum number of uses (null = unlimited) |
+| uses         | integer            | Current number of uses (default: 0)       |
+| expires_at   | timestamp          | expiration time                           |
+| created_at   | timestamp          | creation time                             |
 
 ### Constraints
 
@@ -240,20 +241,20 @@ Represents governance proposals.
 
 ### Table: proposals
 
-| Field | Type | Description |
-|------|------|-------------|
-| id | uuid | Primary key |
-| community_id | uuid | owning community |
-| title | string | proposal title |
-| body | text | proposal description |
-| created_by | uuid | creator user ID |
-| strategy_id | string | voting strategy identifier |
-| visibility | string | public or community |
-| status | string | draft, active, closed |
-| start_time | timestamp | voting start |
-| end_time | timestamp | voting end |
-| created_at | timestamp | creation time |
-| updated_at | timestamp | last update time |
+| Field        | Type      | Description                |
+| ------------ | --------- | -------------------------- |
+| id           | uuid      | Primary key                |
+| community_id | uuid      | owning community           |
+| title        | string    | proposal title             |
+| body         | text      | proposal description       |
+| created_by   | uuid      | creator user ID            |
+| strategy_id  | string    | voting strategy identifier |
+| visibility   | string    | public or community        |
+| status       | string    | draft, active, closed      |
+| start_time   | timestamp | voting start               |
+| end_time     | timestamp | voting end                 |
+| created_at   | timestamp | creation time              |
+| updated_at   | timestamp | last update time           |
 
 ### Constraints
 
@@ -275,12 +276,12 @@ Stores voting options.
 
 ### Table: proposal_choices
 
-| Field | Type | Description |
-|------|------|-------------|
-| id | uuid | Primary key |
-| proposal_id | uuid | referenced proposal |
-| label | string | option label |
-| position | integer | ordering index |
+| Field       | Type    | Description         |
+| ----------- | ------- | ------------------- |
+| id          | uuid    | Primary key         |
+| proposal_id | uuid    | referenced proposal |
+| label       | string  | option label        |
+| position    | integer | ordering index      |
 
 ### Constraints
 
@@ -298,16 +299,16 @@ Stores votes cast by users.
 
 ### Table: votes
 
-| Field | Type | Description |
-|------|------|-------------|
-| id | uuid | Primary key |
-| proposal_id | uuid | referenced proposal |
-| user_id | uuid | voter |
-| choice_id | uuid | selected choice |
-| voting_power | integer | vote weight |
-| metadata_json | json/text | strategy metadata |
-| signature | text | wallet signature |
-| created_at | timestamp | vote time |
+| Field         | Type      | Description         |
+| ------------- | --------- | ------------------- |
+| id            | uuid      | Primary key         |
+| proposal_id   | uuid      | referenced proposal |
+| user_id       | uuid      | voter               |
+| choice_id     | uuid      | selected choice     |
+| voting_power  | integer   | vote weight         |
+| metadata_json | json/text | strategy metadata   |
+| signature     | text      | wallet signature    |
+| created_at    | timestamp | vote time           |
 
 ### Constraints
 
@@ -331,15 +332,15 @@ Allows communities to subscribe to governance events.
 
 ### Table: webhooks
 
-| Field | Type | Description |
-|------|------|-------------|
-| id | uuid | Primary key |
-| community_id | uuid | referenced community |
-| url | string | webhook endpoint |
-| secret | string | shared secret for webhook signature verification |
-| events | text/json | subscribed events |
-| active | boolean | Whether the webhook is active (default: true) |
-| created_at | timestamp | creation time |
+| Field        | Type      | Description                                      |
+| ------------ | --------- | ------------------------------------------------ |
+| id           | uuid      | Primary key                                      |
+| community_id | uuid      | referenced community                             |
+| url          | string    | webhook endpoint                                 |
+| secret       | string    | shared secret for webhook signature verification |
+| events       | text/json | subscribed events                                |
+| active       | boolean   | Whether the webhook is active (default: true)    |
+| created_at   | timestamp | creation time                                    |
 
 ### Constraints
 
@@ -357,13 +358,13 @@ Defines actions triggered when proposals complete.
 
 ### Table: execution_handlers
 
-| Field | Type | Description |
-|------|------|-------------|
-| id | uuid | Primary key |
-| proposal_id | uuid | referenced proposal |
-| type | string | handler type |
+| Field       | Type      | Description           |
+| ----------- | --------- | --------------------- |
+| id          | uuid      | Primary key           |
+| proposal_id | uuid      | referenced proposal   |
+| type        | string    | handler type          |
 | config_json | json/text | handler configuration |
-| created_at | timestamp | creation time |
+| created_at  | timestamp | creation time         |
 
 ### Constraints
 

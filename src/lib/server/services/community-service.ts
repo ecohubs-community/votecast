@@ -75,10 +75,7 @@ function validateDescription(description: unknown): asserts description is strin
 
 function validateVisibility(v: unknown): asserts v is 'public' | 'community' {
 	if (v !== 'public' && v !== 'community') {
-		throw new ServiceError(
-			ErrorCode.INVALID_REQUEST,
-			'Visibility must be "public" or "community"'
-		);
+		throw new ServiceError(ErrorCode.INVALID_REQUEST, 'Visibility must be "public" or "community"');
 	}
 }
 
@@ -129,11 +126,13 @@ export async function createCommunity(
 			.returning()
 			.get();
 
-		tx.insert(communityMember).values({
-			communityId: created.id,
-			userId,
-			role: 'admin'
-		}).run();
+		tx.insert(communityMember)
+			.values({
+				communityId: created.id,
+				userId,
+				role: 'admin'
+			})
+			.run();
 
 		return created;
 	});
@@ -269,11 +268,7 @@ export async function getCommunityById(
 	userId?: string,
 	db: Database = defaultDb
 ) {
-	const [found] = await db
-		.select()
-		.from(community)
-		.where(eq(community.id, communityId))
-		.limit(1);
+	const [found] = await db.select().from(community).where(eq(community.id, communityId)).limit(1);
 
 	if (!found) {
 		throw new ServiceError(ErrorCode.NOT_FOUND, 'Community not found');
@@ -287,12 +282,7 @@ export async function getCommunityById(
 		const [member] = await db
 			.select({ id: communityMember.id })
 			.from(communityMember)
-			.where(
-				and(
-					eq(communityMember.communityId, found.id),
-					eq(communityMember.userId, userId)
-				)
-			)
+			.where(and(eq(communityMember.communityId, found.id), eq(communityMember.userId, userId)))
 			.limit(1);
 
 		if (!member) {
@@ -308,16 +298,8 @@ export async function getCommunityById(
  * Public communities are accessible to anyone.
  * Community-visible communities require membership.
  */
-export async function getCommunityBySlug(
-	slug: string,
-	userId?: string,
-	db: Database = defaultDb
-) {
-	const [found] = await db
-		.select()
-		.from(community)
-		.where(eq(community.slug, slug))
-		.limit(1);
+export async function getCommunityBySlug(slug: string, userId?: string, db: Database = defaultDb) {
+	const [found] = await db.select().from(community).where(eq(community.slug, slug)).limit(1);
 
 	if (!found) {
 		throw new ServiceError(ErrorCode.NOT_FOUND, 'Community not found');
@@ -331,12 +313,7 @@ export async function getCommunityBySlug(
 		const [member] = await db
 			.select({ id: communityMember.id })
 			.from(communityMember)
-			.where(
-				and(
-					eq(communityMember.communityId, found.id),
-					eq(communityMember.userId, userId)
-				)
-			)
+			.where(and(eq(communityMember.communityId, found.id), eq(communityMember.userId, userId)))
 			.limit(1);
 
 		if (!member) {
@@ -409,10 +386,7 @@ export async function getUserCommunities(
 				eq(communityMember.userId, userId),
 				or(
 					lt(communityMember.joinedAt, new Date(cursor.ts)),
-					and(
-						eq(communityMember.joinedAt, new Date(cursor.ts)),
-						lt(communityMember.id, cursor.id)
-					)
+					and(eq(communityMember.joinedAt, new Date(cursor.ts)), lt(communityMember.id, cursor.id))
 				)
 			)
 		);

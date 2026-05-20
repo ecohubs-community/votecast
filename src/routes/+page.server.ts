@@ -1,8 +1,5 @@
 import type { PageServerLoad } from './$types';
-import {
-	getPublicCommunities,
-	getUserCommunities
-} from '$lib/server/services/community-service';
+import { getPublicCommunities, getUserCommunities } from '$lib/server/services/community-service';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	const userId = locals.user?.id;

@@ -159,6 +159,7 @@ The system follows several architectural principles.
 The system must be divided into clearly separated modules.
 
 Modules include:
+
 - auth
 - communities
 - proposals
@@ -306,6 +307,7 @@ Plugin system for governance extensions.
 Plugins can subscribe to events.
 
 Examples:
+
 - proposalTemplates
 - delegation
 - analytics
@@ -414,6 +416,7 @@ Voting logic must be modular.
 Each proposal references a **strategy ID**.
 
 Example strategies:
+
 - onePersonOneVote
 - tokenVoting
 - quadraticVoting
@@ -448,6 +451,7 @@ Example checks:
 Determines vote weight.
 
 Examples:
+
 - token balance
 - reputation score
 - quadratic weighting
@@ -459,6 +463,7 @@ Examples:
 Computes final results.
 
 Example outputs:
+
 - vote totals
 - winning option
 - participation statistics
@@ -484,6 +489,7 @@ Example plugin responsibilities:
 Plugins must expose event handlers.
 
 Example:
+
 - onProposalCreated
 - onVoteCast
 - onProposalClosed
@@ -515,6 +521,7 @@ to react to governance activity.
 ## Core Events
 
 Examples:
+
 - community.created
 - member.joined
 - proposal.created
@@ -559,6 +566,7 @@ Execution hooks trigger actions when proposals finish.
 Execution occurs **after vote results are calculated**.
 
 Possible execution types:
+
 - webhook
 - external_api_call
 - reputation_update
@@ -577,6 +585,7 @@ The system should support external integrations.
 Integrations are implemented as modules inside `/integrations`.
 
 Example integrations:
+
 - offcoin
 - analytics
 - identity providers
@@ -612,6 +621,7 @@ User identity:
 - optional additional identity providers (future)
 
 Authentication responsibilities:
+
 - wallet signature verification
 - session management
 - user creation
@@ -660,6 +670,7 @@ The modular design supports gradual scaling.
 The system must log important governance actions.
 
 Examples:
+
 - proposal creation
 - vote casting
 - proposal closing
@@ -678,6 +689,7 @@ Logs should include:
 # 18. Future Architecture Extensions
 
 The architecture is designed to support future additions such as:
+
 - subgroups
 - governance delegation
 - proposal discussions

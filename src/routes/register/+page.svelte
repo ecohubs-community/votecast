@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { authClient } from '$lib/auth-client';
+	import { resolve } from '$app/paths';
 
 	let { data } = $props();
 	let redirectTo = $derived(data.redirectTo);
@@ -15,26 +16,22 @@
 		error = '';
 
 		if (password.length < 8) {
-			error = 'Password must be at least 8 characters.';
+			error = 'Pick a password with at least 8 characters.';
 			return;
 		}
 
 		loading = true;
 
 		try {
-			const result = await authClient.signUp.email({
-				name,
-				email,
-				password
-			});
+			const result = await authClient.signUp.email({ name, email, password });
 
 			if (result.error) {
-				error = result.error.message ?? 'Registration failed. Please try again.';
+				error = result.error.message ?? "Couldn't create your account. Please try again.";
 			} else {
 				window.location.href = redirectTo;
 			}
-		} catch (err) {
-			error = 'An unexpected error occurred. Please try again.';
+		} catch {
+			error = 'Something went sideways. Please try again.';
 		} finally {
 			loading = false;
 		}
@@ -42,74 +39,83 @@
 </script>
 
 <svelte:head>
-	<title>Register — LumiVote</title>
+	<title>Create your account — VoteCast</title>
 </svelte:head>
 
-<div class="mx-auto mt-12 max-w-md">
-	<h1 class="mb-8 text-center text-2xl font-bold text-gray-900">Create your account</h1>
-
-	{#if error}
-		<div class="mb-6 rounded-md bg-red-50 p-4 text-sm text-red-700" role="alert">
-			{error}
-		</div>
-	{/if}
-
-	<form onsubmit={handleRegister} class="space-y-4">
-		<div>
-			<label for="name" class="block text-sm font-medium text-gray-700">Name</label>
-			<input
-				id="name"
-				type="text"
-				bind:value={name}
-				required
-				autocomplete="name"
-				class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-				placeholder="Your name"
-			/>
-		</div>
-
-		<div>
-			<label for="email" class="block text-sm font-medium text-gray-700">Email</label>
-			<input
-				id="email"
-				type="email"
-				bind:value={email}
-				required
-				autocomplete="email"
-				class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-				placeholder="you@example.com"
-			/>
-		</div>
-
-		<div>
-			<label for="password" class="block text-sm font-medium text-gray-700">Password</label>
-			<input
-				id="password"
-				type="password"
-				bind:value={password}
-				required
-				minlength={8}
-				autocomplete="new-password"
-				class="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-				placeholder="At least 8 characters"
-			/>
-		</div>
-
-		<button
-			type="submit"
-			disabled={loading}
-			class="w-full rounded-md bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
-		>
-			{#if loading}
-				Creating account...
-			{:else}
-				Create account
-			{/if}
-		</button>
-	</form>
-
-	<p class="mt-6 text-center text-sm text-gray-500">
-		Already have an account?
-		<a href="/login{redirectTo !== '/' ? `?redirect=${encodeURIComponent(redirectTo)}` : ''}" class="font-medium text-blue-600 hover:text-blue-500">Sign in</a>
+<div class="page-narrow">
+	<h1 class="page-title" style="text-align: center;">
+		Make space for <em>your people.</em>
+	</h1>
+	<p class="page-sub" style="text-align: center; margin-inline: auto;">
+		A name, an email, and a password — that's all you need to start.
 	</p>
+
+	<div style="margin-top: 40px;">
+		{#if error}
+			<div class="alert alert-error" role="alert" style="margin-bottom: 20px;">
+				{error}
+			</div>
+		{/if}
+
+		<form onsubmit={handleRegister} class="form-stack">
+			<div class="field">
+				<label for="name" class="label">Name</label>
+				<input
+					id="name"
+					type="text"
+					bind:value={name}
+					required
+					autocomplete="name"
+					class="input"
+					placeholder="What should people call you?"
+				/>
+			</div>
+
+			<div class="field">
+				<label for="email" class="label">Email</label>
+				<input
+					id="email"
+					type="email"
+					bind:value={email}
+					required
+					autocomplete="email"
+					class="input"
+					placeholder="you@example.com"
+				/>
+			</div>
+
+			<div class="field">
+				<label for="password" class="label">Password</label>
+				<input
+					id="password"
+					type="password"
+					bind:value={password}
+					required
+					minlength={8}
+					autocomplete="new-password"
+					class="input"
+					placeholder="At least 8 characters"
+				/>
+			</div>
+
+			<button type="submit" disabled={loading} class="btn btn-accent btn-lg" style="width: 100%;">
+				{#if loading}
+					<span class="spinner"></span>
+					Creating your account…
+				{:else}
+					Create account
+				{/if}
+			</button>
+		</form>
+
+		<p style="margin-top: 28px; text-align: center; font-size: 14px; color: var(--vc-muted);">
+			Already have an account?
+			<a
+				href={`${resolve('/login')}${redirectTo !== '/' ? `?redirect=${encodeURIComponent(redirectTo)}` : ''}`}
+				style="color: var(--vc-accent-ink); border-bottom: 1px solid var(--vc-line-2); padding-bottom: 1px;"
+			>
+				Sign in
+			</a>
+		</p>
+	</div>
 </div>

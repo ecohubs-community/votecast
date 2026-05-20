@@ -222,12 +222,7 @@ describe('createInvite', () => {
 		await seedMember(db, comm.id, member.id, 'member');
 
 		try {
-			await createInvite(
-				member.id,
-				comm.id,
-				{ expiresAt: new Date(Date.now() + 86_400_000) },
-				db
-			);
+			await createInvite(member.id, comm.id, { expiresAt: new Date(Date.now() + 86_400_000) }, db);
 			expect.unreachable('Should have thrown');
 		} catch (e) {
 			expect((e as ServiceError).code).toBe(ErrorCode.FORBIDDEN);
@@ -238,12 +233,7 @@ describe('createInvite', () => {
 		const comm = await seedCommunity(db, admin.id);
 
 		try {
-			await createInvite(
-				admin.id,
-				comm.id,
-				{ expiresAt: new Date(Date.now() - 1000) },
-				db
-			);
+			await createInvite(admin.id, comm.id, { expiresAt: new Date(Date.now() - 1000) }, db);
 			expect.unreachable('Should have thrown');
 		} catch (e) {
 			expect((e as ServiceError).code).toBe(ErrorCode.INVALID_REQUEST);

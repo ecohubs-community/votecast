@@ -82,9 +82,7 @@ describe('deliverWebhook', () => {
 	});
 
 	it('returns failure after all retries exhausted', async () => {
-		globalThis.fetch = vi
-			.fn()
-			.mockResolvedValue(new Response('Error', { status: 500 }));
+		globalThis.fetch = vi.fn().mockResolvedValue(new Response('Error', { status: 500 }));
 
 		const result = await deliverWebhook('https://example.com/hook', 'secret', {});
 
@@ -166,11 +164,7 @@ describe('execution-service', () => {
 			});
 
 			await expect(
-				createExecutionHandler(
-					admin.id,
-					{ proposalId: prop.id, type: 'unknown', config: {} },
-					db
-				)
+				createExecutionHandler(admin.id, { proposalId: prop.id, type: 'unknown', config: {} }, db)
 			).rejects.toThrow(ServiceError);
 		});
 	});

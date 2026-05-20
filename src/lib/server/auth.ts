@@ -10,7 +10,7 @@ import * as authSchema from '$lib/server/db/auth.schema';
 
 export const auth = betterAuth({
 	secret: env.BETTER_AUTH_SECRET,
-	baseURL: process.env.BETTER_AUTH_URL || "http://localhost:5930",
+	baseURL: process.env.BETTER_AUTH_URL || 'http://localhost:5930',
 	database: drizzleAdapter(db, {
 		provider: 'sqlite',
 		schema: {

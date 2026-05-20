@@ -37,7 +37,9 @@ export const actions: Actions = {
 
 		const title = formData.get('title') as string;
 		const body = formData.get('body') as string;
-		const choices = formData.getAll('choices').filter((c) => (c as string).trim() !== '') as string[];
+		const choices = formData
+			.getAll('choices')
+			.filter((c) => (c as string).trim() !== '') as string[];
 		const startTime = formData.get('startTime') as string;
 		const endTime = formData.get('endTime') as string;
 		const visibility = (formData.get('visibility') as string) || 'public';
@@ -58,7 +60,15 @@ export const actions: Actions = {
 			redirect(303, `/proposals/${result.id}`);
 		} catch (e) {
 			if (e instanceof ServiceError) {
-				return fail(e.statusCode, { error: e.message, title, body, choices, startTime, endTime, visibility });
+				return fail(e.statusCode, {
+					error: e.message,
+					title,
+					body,
+					choices,
+					startTime,
+					endTime,
+					visibility
+				});
 			}
 			throw e;
 		}

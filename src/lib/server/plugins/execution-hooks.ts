@@ -33,14 +33,10 @@ export const executionHooksPlugin: Plugin = {
 export const webhookDeliveryPlugin: Plugin = {
 	name: 'webhookDelivery',
 	handlers: {
-		'community.created': (event) =>
-			deliverToWebhooks(event.data.communityId, event),
-		'member.joined': (event) =>
-			deliverToWebhooks(event.data.communityId, event),
-		'proposal.created': (event) =>
-			deliverToWebhooks(event.data.communityId, event),
-		'proposal.started': (event) =>
-			deliverToWebhooks(event.data.communityId, event),
+		'community.created': (event) => deliverToWebhooks(event.data.communityId, event),
+		'member.joined': (event) => deliverToWebhooks(event.data.communityId, event),
+		'proposal.created': (event) => deliverToWebhooks(event.data.communityId, event),
+		'proposal.started': (event) => deliverToWebhooks(event.data.communityId, event),
 		'vote.cast': async (event) => {
 			// vote.cast doesn't carry communityId — look up via proposal
 			const communityId = await resolveVoteCommunityId(event.data.proposalId);
@@ -48,8 +44,7 @@ export const webhookDeliveryPlugin: Plugin = {
 				await deliverToWebhooks(communityId, event);
 			}
 		},
-		'proposal.closed': (event) =>
-			deliverToWebhooks(event.data.communityId, event)
+		'proposal.closed': (event) => deliverToWebhooks(event.data.communityId, event)
 	}
 };
 
@@ -59,10 +54,7 @@ export const webhookDeliveryPlugin: Plugin = {
  * Find active webhooks for a community that subscribe to the given event,
  * and deliver the event payload to each.
  */
-async function deliverToWebhooks(
-	communityId: string,
-	event: GovernanceEvent
-): Promise<void> {
+async function deliverToWebhooks(communityId: string, event: GovernanceEvent): Promise<void> {
 	const webhooks = db
 		.select()
 		.from(webhook)

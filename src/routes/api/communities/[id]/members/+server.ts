@@ -7,11 +7,7 @@ import {
 	parseBody,
 	parsePagination
 } from '$lib/server/api-utils';
-import {
-	requireMember,
-	addMember,
-	listMembers
-} from '$lib/server/services/membership-service';
+import { requireMember, addMember, listMembers } from '$lib/server/services/membership-service';
 
 /** GET /api/communities/:id/members — list community members. Requires membership. */
 export const GET: RequestHandler = async ({ locals, params, url }) => {

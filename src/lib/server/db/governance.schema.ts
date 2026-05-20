@@ -18,7 +18,9 @@ export const community = sqliteTable(
 		name: text('name').notNull(),
 		slug: text('slug').notNull().unique(),
 		description: text('description').notNull().default(''),
-		visibility: text('visibility', { enum: ['public', 'community'] }).notNull().default('public'),
+		visibility: text('visibility', { enum: ['public', 'community'] })
+			.notNull()
+			.default('public'),
 		verified: integer('verified', { mode: 'boolean' }).notNull().default(false),
 		createdBy: text('created_by')
 			.notNull()
@@ -48,7 +50,9 @@ export const communityMember = sqliteTable(
 		userId: text('user_id')
 			.notNull()
 			.references(() => user.id),
-		role: text('role', { enum: ['admin', 'member'] }).notNull().default('member'),
+		role: text('role', { enum: ['admin', 'member'] })
+			.notNull()
+			.default('member'),
 		joinedAt: integer('joined_at', { mode: 'timestamp_ms' }).default(timestampDefault).notNull()
 	},
 	(table) => [
@@ -105,8 +109,12 @@ export const proposal = sqliteTable(
 			.notNull()
 			.references(() => user.id),
 		strategyId: text('strategy_id').notNull().default('onePersonOneVote'),
-		visibility: text('visibility', { enum: ['public', 'community'] }).notNull().default('community'),
-		status: text('status', { enum: ['draft', 'active', 'closed'] }).notNull().default('draft'),
+		visibility: text('visibility', { enum: ['public', 'community'] })
+			.notNull()
+			.default('community'),
+		status: text('status', { enum: ['draft', 'active', 'closed'] })
+			.notNull()
+			.default('draft'),
 		startTime: integer('start_time', { mode: 'timestamp_ms' }).notNull(),
 		endTime: integer('end_time', { mode: 'timestamp_ms' }).notNull(),
 		createdAt: integer('created_at', { mode: 'timestamp_ms' }).default(timestampDefault).notNull(),

@@ -153,10 +153,7 @@ export async function seedProposal(
 		position: idx
 	}));
 
-	const createdChoices = await db
-		.insert(schema.proposalChoice)
-		.values(choiceValues)
-		.returning();
+	const createdChoices = await db.insert(schema.proposalChoice).values(choiceValues).returning();
 
 	return { proposal: prop, choices: createdChoices };
 }

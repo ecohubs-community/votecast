@@ -447,12 +447,12 @@ All fields are optional. Only provided fields are updated.
 
 ```json
 {
-  "title": "Updated Title",
-  "body": "Updated description",
-  "choices": ["Option A", "Option B", "Option C"],
-  "start_time": "2026-03-05T00:00:00Z",
-  "end_time": "2026-03-12T00:00:00Z",
-  "visibility": "public"
+	"title": "Updated Title",
+	"body": "Updated description",
+	"choices": ["Option A", "Option B", "Option C"],
+	"start_time": "2026-03-05T00:00:00Z",
+	"end_time": "2026-03-12T00:00:00Z",
+	"visibility": "public"
 }
 ```
 
@@ -462,12 +462,12 @@ When `choices` is provided, **all existing choices are replaced** with the new l
 
 ```json
 {
-  "success": true,
-  "data": {
-    "id": "uuid",
-    "title": "Updated Title",
-    "status": "draft"
-  }
+	"success": true,
+	"data": {
+		"id": "uuid",
+		"title": "Updated Title",
+		"status": "draft"
+	}
 }
 ```
 
@@ -475,11 +475,11 @@ When `choices` is provided, **all existing choices are replaced** with the new l
 
 ```json
 {
-  "success": false,
-  "error": {
-    "code": "PROPOSAL_NOT_EDITABLE",
-    "message": "Only draft proposals can be edited"
-  }
+	"success": false,
+	"error": {
+		"code": "PROPOSAL_NOT_EDITABLE",
+		"message": "Only draft proposals can be edited"
+	}
 }
 ```
 
@@ -696,9 +696,9 @@ Admin required.
 
 ```json
 {
-  "name": "Updated Name",
-  "description": "Updated description",
-  "visibility": "public"
+	"name": "Updated Name",
+	"description": "Updated description",
+	"visibility": "public"
 }
 ```
 
@@ -708,12 +708,12 @@ All fields are optional. Only provided fields are updated.
 
 ```json
 {
-  "success": true,
-  "data": {
-    "id": "uuid",
-    "name": "Updated Name",
-    "slug": "eco-village"
-  }
+	"success": true,
+	"data": {
+		"id": "uuid",
+		"name": "Updated Name",
+		"slug": "eco-village"
+	}
 }
 ```
 
@@ -731,7 +731,7 @@ Admin required. Admins cannot remove themselves.
 
 ```json
 {
-  "success": true
+	"success": true
 }
 ```
 
@@ -749,7 +749,7 @@ Required. Admins cannot leave if they are the only admin.
 
 ```json
 {
-  "success": true
+	"success": true
 }
 ```
 

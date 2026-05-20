@@ -57,9 +57,7 @@ export async function deliverWebhook(
 
 			// Non-retryable client errors (4xx except 429)
 			if (response.status >= 400 && response.status < 500 && response.status !== 429) {
-				console.error(
-					`[webhook] Delivery failed (${response.status}) to ${url} — not retrying`
-				);
+				console.error(`[webhook] Delivery failed (${response.status}) to ${url} — not retrying`);
 				return {
 					success: false,
 					statusCode: response.status,
