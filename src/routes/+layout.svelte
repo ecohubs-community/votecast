@@ -74,7 +74,13 @@
 </script>
 
 <svelte:window onclick={handleClickOutside} />
-<svelte:head><link rel="icon" href={favicon} /></svelte:head>
+<svelte:head>
+	<link rel="icon" href={favicon} />
+	<meta name="theme-color" content="#0f172a" />
+	<meta property="og:site_name" content="VoteCast" />
+	<meta property="og:type" content="website" />
+	<meta name="twitter:card" content="summary_large_image" />
+</svelte:head>
 
 <nav class="nav" class:scrolled>
 	<div class="nav-inner">

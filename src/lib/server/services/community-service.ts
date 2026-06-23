@@ -466,3 +466,26 @@ export async function getPublicCommunities(
 
 	return baseQuery.orderBy(desc(community.createdAt));
 }
+
+/**
+ * Public URL entries for the XML sitemap: every public community and every
+ * public proposal that lives inside a public community. Returns lightweight
+ * rows (slug/id + last-modified timestamp) suitable for `<url>` generation.
+ */
+export async function getSitemapEntries(db: Database = defaultDb) {
+	const [communities, proposals] = await Promise.all([
+		db
+			.select({ slug: community.slug, updatedAt: community.updatedAt })
+			.from(community)
+			.where(eq(community.visibility, 'public'))
+			.orderBy(desc(community.updatedAt)),
+		db
+			.select({ id: proposal.id, updatedAt: proposal.updatedAt })
+			.from(proposal)
+			.innerJoin(community, eq(proposal.communityId, community.id))
+			.where(and(eq(proposal.visibility, 'public'), eq(community.visibility, 'public')))
+			.orderBy(desc(proposal.updatedAt))
+	]);
+
+	return { communities, proposals };
+}

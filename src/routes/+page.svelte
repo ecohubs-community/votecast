@@ -3,8 +3,13 @@
 	import BallotPreview from '$lib/components/BallotPreview.svelte';
 	import type { PageData } from './$types';
 	import { resolve } from '$app/paths';
+	import { page } from '$app/state';
 
 	let { data }: { data: PageData } = $props();
+
+	const canonical = $derived(new URL(page.url.pathname, page.url.origin).href);
+	const metaDescription =
+		'VoteCast is community governance, simplified — create proposals, run transparent votes, and make decisions together in eco villages, cooperatives, and online collectives.';
 
 	const firstName = $derived.by(() => {
 		const name = data.user?.displayName || data.user?.name || '';
@@ -16,6 +21,13 @@
 
 <svelte:head>
 	<title>VoteCast — Community Governance, Simplified</title>
+	<meta name="description" content={metaDescription} />
+	<link rel="canonical" href={canonical} />
+	<meta property="og:title" content="VoteCast — Community Governance, Simplified" />
+	<meta property="og:description" content={metaDescription} />
+	<meta property="og:url" content={canonical} />
+	<meta name="twitter:title" content="VoteCast — Community Governance, Simplified" />
+	<meta name="twitter:description" content={metaDescription} />
 </svelte:head>
 
 <!-- Hero -->

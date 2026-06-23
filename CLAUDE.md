@@ -53,3 +53,21 @@ For frontend work please read and understand the design system:
 
 Please read and understand the voice and tone of the voicecast brand when creating new content: 
 /design_files/VOICE_TONE.md
+
+## OpenSpec
+
+This project uses [OpenSpec](https://github.com/Fission-AI/OpenSpec) for spec-driven development. Before implementing a non-trivial change (new feature, breaking refactor, schema/API change), draft an OpenSpec change first so the spec, design, and tasks are agreed before code is written.
+
+**Folders**
+- `/specs/` — the original product specs (01–09). Treat these as authoritative product context — don't edit them as part of a change.
+- `/openspec/specs/` — living capability specs that OpenSpec maintains. Updated when a change is archived.
+- `/openspec/changes/` — in-flight change proposals (proposal.md, design.md, tasks.md, delta specs).
+
+**Workflow (slash commands, exposed by `.claude/commands/opsx/`)**
+- `/opsx:explore` — think through a problem before committing to a change.
+- `/opsx:propose <name-or-description>` — scaffold a change with all artifacts.
+- `/opsx:apply` — implement the tasks from a change.
+- `/opsx:sync` — fold delta specs into the main `openspec/specs/`.
+- `/opsx:archive <name>` — finalize a completed change.
+
+**CLI**: invoke via `pnpm dlx @fission-ai/openspec@latest <command>` (e.g. `list`, `view`, `validate`).
