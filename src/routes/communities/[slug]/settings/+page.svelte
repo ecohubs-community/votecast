@@ -144,7 +144,7 @@
 	<title>Settings — {data.community.name}</title>
 </svelte:head>
 
-<div class="page" style="max-width: 880px;">
+<div class="page">
 	<a href={resolve(`/communities/${data.community.slug}`)} class="breadcrumb">{data.community.name}</a>
 
 	<header class="page-head">
