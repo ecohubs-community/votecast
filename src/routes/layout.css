@@ -1052,6 +1052,7 @@ body {
 	gap: 4px;
 	border-bottom: 1px solid var(--vc-line);
 	overflow-x: auto;
+	overflow-y: hidden;
 	margin-bottom: var(--vc-space-6);
 }
 .tab {
