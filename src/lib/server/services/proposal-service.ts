@@ -4,7 +4,14 @@ import { community, communityMember, proposal, proposalChoice } from '$lib/serve
 import { ServiceError, ErrorCode } from './errors';
 import { emit } from '../events';
 import { requireMember } from './membership-service';
-import { DEFAULT_METHOD, validateMethodBinding, type MethodBinding } from '$lib/server/voting';
+import {
+	DEFAULT_METHOD,
+	validateMethodBinding,
+	canSeeHiddenTally,
+	type MethodBinding,
+	type CommunityRole,
+	type ResultSet
+} from '$lib/server/voting';
 import {
 	validateTitle,
 	validateBody,
@@ -13,8 +20,8 @@ import {
 	validateVisibility
 } from './proposal-validation';
 import { transitionProposalStatus, batchTransitionStatuses } from './proposal-lifecycle';
-import { getTypeVersionForCommunity } from './proposal-type-service';
-import { aggregateResults, type ProposalResults } from './proposal-results';
+import { aggregateResults, tallyProposal, type ProposalResults } from './proposal-results';
+import { getTypeVersionForCommunity, resolveMethodContext } from './proposal-type-service';
 import {
 	type PaginationParams,
 	type PaginatedResult,
@@ -375,6 +382,52 @@ export async function getProposalResults(
 	}
 
 	return aggregateResults(proposalId, db);
+}
+
+/** Whether the aggregate tally may be revealed to this viewer now (visibility axis / tasks 6.2, 7.4). */
+function canRevealTally(
+	reveal: 'live' | 'on-close' | 'hidden-forever',
+	phase: string,
+	viewerRole: CommunityRole
+): boolean {
+	if (canSeeHiddenTally(viewerRole)) return true; // a facilitator always sees it
+	if (reveal === 'hidden-forever') return false;
+	if (reveal === 'live') return true;
+	return phase === 'objection-window' || phase === 'finalized'; // on-close: only once voting has closed
+}
+
+export interface ProposalOutcome {
+	revealed: boolean;
+	result?: ResultSet;
+}
+
+/**
+ * Access-checked rich outcome via the voting library (task 7.4), gated by the method's tally-reveal
+ * timing (task 6.2): `live` always; `on-close` only once voting has closed; `hidden-forever` only to
+ * a facilitator. Returns `{ revealed: false }` when the tally must stay hidden.
+ */
+export async function getProposalOutcome(
+	proposalId: string,
+	userId?: string,
+	db: Database = defaultDb,
+	viewerRole: CommunityRole = 'member'
+): Promise<ProposalOutcome> {
+	const [found] = await db.select().from(proposal).where(eq(proposal.id, proposalId)).limit(1);
+	if (!found) throw new ServiceError(ErrorCode.NOT_FOUND, 'Proposal not found');
+
+	const current = await transitionProposalStatus(found, db);
+
+	if (current.visibility === 'community') {
+		if (!userId)
+			throw new ServiceError(ErrorCode.FORBIDDEN, 'Authentication required to view results');
+		await requireMember(current.communityId, userId, db);
+	}
+
+	const { snapshot } = await resolveMethodContext(current, db);
+	if (!canRevealTally(snapshot.visibility.tallyReveal, current.phase, viewerRole)) {
+		return { revealed: false };
+	}
+	return { revealed: true, result: await tallyProposal(proposalId, db) };
 }
 
 // ─── Private helpers ─────────────────────────────────────────────────────────

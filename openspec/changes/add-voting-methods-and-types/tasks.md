@@ -56,7 +56,7 @@
 > proposals are pinned to a type version). Sequence: 4.4/4.5 → 6.1 → 6.2/6.3 → 6.4/6.5/6.6 → 4.6.
 
 - [x] 6.1 Phase engine (`proposal-phase.ts`: `computePhase` + `resolveProposalPhase` + `isVotingOpen`) **wired into the live `transitionProposalStatus`** (dual-writes `phase` alongside legacy `status`; emits `deliberation.started`/`proposal.finalized`). Tests: 5 pure boundary + 1 DB-backed full-lifecycle. Also split `proposal-service.ts` (573→397) into validation/results/lifecycle (SRP). One read shared via `resolveMethodContext`
-- [ ] 6.2 Implement transition/stop conditions (stop on Nth objection / threshold / quorum / never) and the visibility axis (live / on-close / hidden-forever)
+- [~] 6.2 **Visibility axis enforced at the read layer**: `getProposalOutcome` gates the tally by `tallyReveal` (live always / on-close once voting closed / hidden-forever facilitator-only). Stop-on-Nth-objection early termination still pending (needs the consent-ballot flow)
 - [~] 6.3 Lifecycle event catalog **types** added (D13: deliberation.started, subquestion.added, objection.raised, voting.closing-soon, outcome.decided, proposal.finalized). Emitting them from real phase transitions stages with 6.1
 - [x] 6.4 `getProposalVoters` enforces voter-identity visibility: secret-ballot individual votes are exposed only to a facilitator (admin); others get FORBIDDEN. Aggregate tally unaffected
 - [x] 6.5 In-app notification sink: `notifications` table (migration 0003, applied to local.db), `notification-service` (create/list/markRead, broadcast + direct), `notificationsPlugin` writing link-only broadcasts on lifecycle events (no tally leak). 3 tests
@@ -69,7 +69,7 @@
 - [ ] 7.1 Type management UI (create/edit/retire, view versions) for community admins
 - [ ] 7.2 Read-only process flow diagram rendering the configured method (form-authored, not a node editor)
 - [~] 7.3 Proposal creation: **type picker wired** end-to-end — `listProposalTypes` + `createProposal` pins a validated `typeVersionId`; create-proposal form has a Method `<select>` (passed svelte-autofixer). 4 backend tests. The "Advanced" per-proposal override UI is still pending
-- [ ] 7.4 Per-module ballot components and results components
+- [~] 7.4 Results: proposal page surfaces the rich `tallyProposal` **outcome** (passed/failed/blocked/tie/…) via `getProposalOutcome`, with an outcome badge (svelte-autofixer-clean). Per-module **ballot** components (consent/multi-question input) still pending — they need a multi-ballot create flow
 - [ ] 7.5 Unified "Extensions" surface presenting method modules + event-plugins
 
 ## 8. Verification

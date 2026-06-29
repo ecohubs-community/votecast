@@ -1,6 +1,10 @@
 import { error, fail, redirect } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
-import { getProposal, getProposalResults } from '$lib/server/services/proposal-service';
+import {
+	getProposal,
+	getProposalResults,
+	getProposalOutcome
+} from '$lib/server/services/proposal-service';
 import { getCommunityById } from '$lib/server/services/community-service';
 import { getMember } from '$lib/server/services/membership-service';
 import { getUserVote, castVote, getProposalVoters } from '$lib/server/services/vote-service';
@@ -11,17 +15,22 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
 	try {
 		const proposal = await getProposal(params.id, userId);
-		const [results, community, membership, userVote, voters] = await Promise.all([
+		const membership = userId ? await getMember(proposal.communityId, userId) : null;
+		const role = membership?.role ?? 'member';
+
+		const [results, outcome, community, userVote, voters] = await Promise.all([
 			getProposalResults(params.id, userId),
+			getProposalOutcome(params.id, userId, undefined, role),
 			getCommunityById(proposal.communityId, userId),
-			userId ? getMember(proposal.communityId, userId) : Promise.resolve(null),
 			userId ? getUserVote(userId, params.id) : Promise.resolve(null),
-			getProposalVoters(params.id)
+			// Secret ballots hide the voter list from non-facilitators — degrade to an empty list.
+			getProposalVoters(params.id, undefined, role).catch(() => [])
 		]);
 
 		return {
 			proposal,
 			results,
+			outcome,
 			community,
 			membership,
 			userVote,

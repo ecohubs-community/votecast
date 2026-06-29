@@ -11,6 +11,8 @@ import {
 import { voteSelection } from '$lib/server/db/schema';
 import { castVote } from './vote-service';
 import { tallyProposal, aggregateResults } from './proposal-results';
+import { getProposalOutcome } from './proposal-service';
+import { seedPresetTypesSync } from './proposal-type-service';
 
 let db: TestDb;
 let adminId: string;
@@ -70,6 +72,39 @@ describe('vote/results flip: castVote → vote_selection → tallyProposal', () 
 			expect(rs.entries.find((e) => e.key === r.choiceId)?.tallyForWeight).toBe(r.votingPower);
 		}
 		expect(rs.outcome).toBe('tie'); // 1 vs 1
+	});
+
+	it('getProposalOutcome reveals a live tally with the resolved outcome', async () => {
+		const { proposal: p, choices } = await openProposal(); // legacy method = live reveal
+		await castVote(adminId, { proposalId: p.id, choiceId: choices[0].id }, db);
+		const out = await getProposalOutcome(p.id, adminId, db, 'member');
+		expect(out.revealed).toBe(true);
+		expect(out.result?.outcome).toBe('passed');
+	});
+
+	it('on-close visibility hides the tally from members until voting closes, but a facilitator sees it', async () => {
+		const map = seedPresetTypesSync(db, communityId, adminId); // Operational = on-close
+		const { proposal: open } = await seedProposal(db, communityId, adminId, {
+			status: 'active',
+			startTime: new Date(Date.now() - 1000),
+			endTime: new Date(Date.now() + 3_600_000),
+			typeVersionId: map['Operational'],
+			choices: ['Yes', 'No']
+		});
+		// Member: hidden while open
+		expect((await getProposalOutcome(open.id, adminId, db, 'member')).revealed).toBe(false);
+		// Facilitator (admin role): always visible
+		expect((await getProposalOutcome(open.id, adminId, db, 'admin')).revealed).toBe(true);
+
+		const { proposal: closed } = await seedProposal(db, communityId, adminId, {
+			status: 'closed',
+			startTime: new Date(Date.now() - 7_200_000),
+			endTime: new Date(Date.now() - 3_600_000),
+			typeVersionId: map['Operational'],
+			choices: ['Yes', 'No']
+		});
+		// Member: visible once voting has closed
+		expect((await getProposalOutcome(closed.id, adminId, db, 'member')).revealed).toBe(true);
 	});
 
 	it('rejects a vote once the voting phase is over', async () => {

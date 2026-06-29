@@ -55,6 +55,22 @@
 		data.proposal.status === 'active' || data.proposal.status === 'closed'
 	);
 
+	const OUTCOME_LABELS: Record<string, string> = {
+		passed: 'Passed',
+		failed: 'Failed',
+		blocked: 'Blocked',
+		tie: 'Tie',
+		'quorum-not-met': 'No quorum',
+		indeterminate: 'No result',
+		provisional: 'Pending',
+		recorded: 'Recorded'
+	};
+	const outcomeLabel = $derived(
+		data.outcome?.revealed && data.outcome.result
+			? (OUTCOME_LABELS[data.outcome.result.outcome] ?? data.outcome.result.outcome)
+			: null
+	);
+
 	const userChoiceLabel = $derived(
 		data.proposal.choices.find((c) => c.id === data.userVote?.choiceId)?.label
 	);
@@ -188,6 +204,12 @@
 						</span>
 					{/if}
 				</div>
+
+				{#if outcomeLabel}
+					<div class="outcome-badge" data-outcome={data.outcome?.result?.outcome}>
+						Outcome: <strong>{outcomeLabel}</strong>
+					</div>
+				{/if}
 
 				{#if form?.error}
 					<div class="alert alert-error" style="margin-bottom: 16px;">{form.error}</div>
@@ -350,5 +372,22 @@
 			grid-template-columns: 1.6fr 1fr;
 			align-items: start;
 		}
+	}
+	.outcome-badge {
+		margin-bottom: 16px;
+		padding: 8px 12px;
+		border-radius: var(--vc-radius-sm, 8px);
+		background: var(--vc-surface-2, rgba(0, 0, 0, 0.04));
+		font-size: 14px;
+		color: var(--vc-ink-2);
+	}
+	.outcome-badge[data-outcome='passed'] {
+		background: var(--vc-success-soft, rgba(34, 160, 100, 0.12));
+		color: var(--vc-success-ink, #1a7f53);
+	}
+	.outcome-badge[data-outcome='failed'],
+	.outcome-badge[data-outcome='blocked'] {
+		background: var(--vc-error-soft, rgba(200, 60, 60, 0.12));
+		color: var(--vc-error-ink, #b23b3b);
 	}
 </style>
