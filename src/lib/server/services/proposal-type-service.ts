@@ -1,6 +1,13 @@
-import { eq, and, isNull } from 'drizzle-orm';
+import { eq, and, isNull, isNotNull } from 'drizzle-orm';
 import { db as defaultDb } from '$lib/server/db';
-import { community, proposal, proposalType, proposalTypeVersion } from '$lib/server/db/schema';
+import {
+	community,
+	proposal,
+	proposalType,
+	proposalTypeVersion,
+	vote,
+	voteSelection
+} from '$lib/server/db/schema';
 import { PRESET_TYPES, LEGACY_SNAPSHOT, type MethodSnapshot } from '$lib/server/voting';
 import type { Database } from './types';
 
@@ -177,4 +184,33 @@ export async function backfillVotingMethods(db: Database = defaultDb): Promise<{
 	}
 
 	return { communitiesSeeded, proposalsPinned, proposalsSkipped };
+}
+
+/**
+ * Idempotent back-fill of `vote_selection` rows from legacy `vote.choiceId` (task 4.6 prep), so the
+ * voting-library tally over `vote_selection` sees historical single-choice votes.
+ */
+export async function backfillVoteSelections(
+	db: Database = defaultDb
+): Promise<{ selectionsCreated: number }> {
+	const votes = await db
+		.select({ proposalId: vote.proposalId, userId: vote.userId, choiceId: vote.choiceId })
+		.from(vote)
+		.where(isNotNull(vote.choiceId));
+
+	let selectionsCreated = 0;
+	for (const v of votes) {
+		if (!v.choiceId) continue;
+		const [existing] = await db
+			.select({ id: voteSelection.id })
+			.from(voteSelection)
+			.where(and(eq(voteSelection.proposalId, v.proposalId), eq(voteSelection.userId, v.userId)))
+			.limit(1);
+		if (existing) continue;
+		await db
+			.insert(voteSelection)
+			.values({ proposalId: v.proposalId, userId: v.userId, choiceId: v.choiceId });
+		selectionsCreated++;
+	}
+	return { selectionsCreated };
 }

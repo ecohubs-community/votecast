@@ -1,10 +1,13 @@
 import { eq, and, desc } from 'drizzle-orm';
 import { db as defaultDb } from '$lib/server/db';
-import { proposal, proposalChoice, vote, user } from '$lib/server/db/schema';
+import { proposal, proposalChoice, vote, voteSelection, user } from '$lib/server/db/schema';
 import { ServiceError, ErrorCode } from './errors';
 import { emit } from '../events';
 import { requireMember } from './membership-service';
 import { transitionProposalStatus } from './proposal-service';
+import { resolveMethodContext } from './proposal-type-service';
+import { isVotingOpen } from './proposal-phase';
+import { isEligible, resolveVotingPower } from '$lib/server/voting';
 import type { Database } from './types';
 
 // ─── Input types ─────────────────────────────────────────────────────────────
@@ -38,18 +41,25 @@ export async function castVote(userId: string, input: CastVoteInput, db: Databas
 		throw new ServiceError(ErrorCode.NOT_FOUND, 'Proposal not found');
 	}
 
-	// Transition status to ensure it's current
+	// Transition to ensure phase/status are current, then gate on the voting phase.
 	const current = await transitionProposalStatus(found, db);
 
-	if (current.status !== 'active') {
+	if (!isVotingOpen(current.phase)) {
 		throw new ServiceError(
 			ErrorCode.PROPOSAL_NOT_ACTIVE,
-			current.status === 'draft' ? 'Voting has not started yet' : 'Voting has ended'
+			current.phase === 'draft' || current.phase === 'deliberation'
+				? 'Voting has not started yet'
+				: 'Voting has ended'
 		);
 	}
 
-	// Verify user is a community member
+	// Verify membership, then the method's eligibility axis (all-members = membership; trained etc.
+	// fail closed until their data sources land).
 	await requireMember(current.communityId, userId, db);
+	const { snapshot } = await resolveMethodContext(current, db);
+	if (!isEligible(snapshot.eligibility, { isMember: true })) {
+		throw new ServiceError(ErrorCode.FORBIDDEN, 'You are not eligible to vote on this proposal');
+	}
 
 	// Verify choice belongs to this proposal
 	const [choice] = await db
@@ -75,19 +85,28 @@ export async function castVote(userId: string, input: CastVoteInput, db: Databas
 		throw new ServiceError(ErrorCode.ALREADY_VOTED, 'You have already voted on this proposal');
 	}
 
-	// Determine voting power (1 for onePersonOneVote)
-	const votingPower = 1;
+	// Voting power from the weight axis (1 for one-person-one-vote).
+	const votingPower = resolveVotingPower(snapshot.weight, {});
 
-	const [created] = await db
-		.insert(vote)
-		.values({
-			proposalId: input.proposalId,
-			userId,
-			choiceId: input.choiceId,
-			votingPower,
-			signature: input.signature ?? null
-		})
-		.returning();
+	// Atomic: write the vote envelope + its selection. choiceId is dual-written on the envelope until
+	// the legacy column is dropped (task 4.6); the tally reads vote_selection.
+	const created = db.transaction((tx) => {
+		const v = tx
+			.insert(vote)
+			.values({
+				proposalId: input.proposalId,
+				userId,
+				choiceId: input.choiceId,
+				votingPower,
+				signature: input.signature ?? null
+			})
+			.returning()
+			.get();
+		tx.insert(voteSelection)
+			.values({ proposalId: input.proposalId, userId, choiceId: input.choiceId })
+			.run();
+		return v;
+	});
 
 	emit('vote.cast', {
 		voteId: created.id,

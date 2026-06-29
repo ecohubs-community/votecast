@@ -117,7 +117,7 @@ export interface BallotRecord<TSelection = unknown> {
 
 export interface VoteContext {
 	proposalId: string;
-	phase: 'deliberation' | 'voting' | 'objection-window' | 'finalized';
+	phase: 'draft' | 'deliberation' | 'voting' | 'objection-window' | 'finalized';
 	voterEligible: boolean; // engine-resolved (eligibility axis)
 	frozenOptions: Array<{ optionId: string; group?: string }>; // ballot frozen at voting-open (D10)
 	existingBallotAt?: number; // for mutability checks
