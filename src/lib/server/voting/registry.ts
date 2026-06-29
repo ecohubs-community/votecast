@@ -60,6 +60,13 @@ export function validateMethodBinding(binding: MethodBinding): BindingValidation
 		if (rule && !rule.honoredKnobs.includes('fallbackRule')) {
 			errors.push(`Decision rule '${rule.id}' does not support a fallback.`);
 		}
+		// A consent-family rule adapts its tally to `count` before escalating, so the fallback must
+		// accept `count` tallies (cross-axis validity — task 6.8).
+		if (rule && fallback && rule.accepts === 'consent' && fallback.accepts !== 'count') {
+			errors.push(
+				`Fallback '${fallback.id}' must accept 'count' tallies to escalate from consent (got '${fallback.accepts}').`
+			);
+		}
 	}
 
 	// Every configured knob must be honored by the ballot module or the decision rule.

@@ -4,3 +4,4 @@ export * from './registry';
 export * from './dispatch';
 export * from './eligibility';
 export * from './weight';
+export * from './facilitator';

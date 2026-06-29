@@ -51,14 +51,18 @@
 
 ## 6. Process, events & side-effects
 
-- [ ] 6.1 Implement process phases & timing (deliberation → voting → optional async objection window)
+> **Backbone first:** 6.1/6.2/6.4/6.6 are a coupled rewrite of the live proposal lifecycle + vote
+> path, and need the **4.4/4.5 back-fill** done first (the phase engine has no method to read until
+> proposals are pinned to a type version). Sequence: 4.4/4.5 → 6.1 → 6.2/6.3 → 6.4/6.5/6.6 → 4.6.
+
+- [ ] 6.1 Implement process phases & timing (deliberation → voting → optional async objection window) — needs 4.4/4.5
 - [ ] 6.2 Implement transition/stop conditions (stop on Nth objection / threshold / quorum / never) and the visibility axis (live / on-close / hidden-forever)
-- [ ] 6.3 Emit the Gate-3 lifecycle events from process transitions
+- [~] 6.3 Lifecycle event catalog **types** added (D13: deliberation.started, subquestion.added, objection.raised, voting.closing-soon, outcome.decided, proposal.finalized). Emitting them from real phase transitions stages with 6.1
 - [ ] 6.4 Enforce voter-identity visibility (open vs. secret ballot) at the read/query layer, distinct from tally-reveal timing
 - [ ] 6.5 Build a minimal in-app notification sink and wire notifications to events (respecting visibility policy); rich delivery channels deferred
 - [ ] 6.6 Wire webhook/execution-handler pipelines (ordered) and the external-resolver boundary with fallback + secret-ballot data-minimization
-- [ ] 6.7 Map facilitator powers to `admin` for objection-handling under hidden/early-stop methods
-- [ ] 6.8 Enforce cross-axis validity rules (e.g. hidden-forever vs. member-visible early stop)
+- [x] 6.7 `canFacilitate`/`canSeeHiddenTally` map facilitator powers to `admin` (`voting/facilitator.ts`)
+- [x] 6.8 Cross-axis validity in `validateMethodBinding`: hidden-forever vs. member-visible early stop (group 5) + consent-fallback must accept `count` tallies (new); grows over time per `deferred.md` §5
 
 ## 7. UI
 

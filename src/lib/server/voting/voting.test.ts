@@ -6,6 +6,7 @@ import { consentModule } from './ballot-modules/consent';
 import { mqOptionId } from './ballot-modules/multi-question';
 import { isEligible } from './eligibility';
 import { resolveVotingPower } from './weight';
+import { canFacilitate } from './facilitator';
 
 function ballot(voterId: string, selections: unknown[], votingPower = 1): BallotRecord {
 	return { voterId, votingPower, selections, submittedAt: 0 };
@@ -234,5 +235,31 @@ describe('mutability + eligibility + weight', () => {
 	});
 	it('one-person-one-vote weight is 1', () => {
 		expect(resolveVotingPower({ kind: 'one-person-one-vote' })).toBe(1);
+	});
+});
+
+describe('facilitator + fallback compatibility (group 6)', () => {
+	it('facilitator powers map to admin', () => {
+		expect(canFacilitate('admin')).toBe(true);
+		expect(canFacilitate('member')).toBe(false);
+	});
+	it('accepts a consent→count fallback', () => {
+		expect(
+			validateMethodBinding({
+				ballotModuleId: 'consent',
+				decisionRuleId: 'consensus',
+				fallbackRuleId: 'super-majority',
+				config: {}
+			}).ok
+		).toBe(true);
+	});
+	it('rejects a consent fallback that cannot consume a count tally', () => {
+		const r = validateMethodBinding({
+			ballotModuleId: 'consent',
+			decisionRuleId: 'consensus',
+			fallbackRuleId: 'multi-question',
+			config: {}
+		});
+		expect(r.ok).toBe(false);
 	});
 });
