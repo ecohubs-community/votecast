@@ -68,7 +68,7 @@
 
 - [ ] 7.1 Type management UI (create/edit/retire, view versions) for community admins
 - [ ] 7.2 Read-only process flow diagram rendering the configured method (form-authored, not a node editor)
-- [ ] 7.3 Proposal creation: pick a Type (pre-filled) + "Advanced" per-proposal override
+- [~] 7.3 Proposal creation: **type picker wired** end-to-end — `listProposalTypes` + `createProposal` pins a validated `typeVersionId`; create-proposal form has a Method `<select>` (passed svelte-autofixer). 4 backend tests. The "Advanced" per-proposal override UI is still pending
 - [ ] 7.4 Per-module ballot components and results components
 - [ ] 7.5 Unified "Extensions" surface presenting method modules + event-plugins
 

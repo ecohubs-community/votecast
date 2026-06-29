@@ -13,6 +13,7 @@ import {
 	validateVisibility
 } from './proposal-validation';
 import { transitionProposalStatus, batchTransitionStatuses } from './proposal-lifecycle';
+import { getTypeVersionForCommunity } from './proposal-type-service';
 import { aggregateResults, type ProposalResults } from './proposal-results';
 import {
 	type PaginationParams,
@@ -38,7 +39,8 @@ export interface CreateProposalInput {
 	endTime: Date | string;
 	visibility?: 'public' | 'community';
 	strategyId?: string; // legacy; retained for back-compat until the column is dropped (task 4.6)
-	method?: MethodBinding; // new: ballot module + decision rule (+ config). Defaults to onePersonOneVote.
+	typeVersionId?: string; // pin the proposal to a community type version (the proposer's type pick)
+	method?: MethodBinding; // ad-hoc per-proposal override (ballot + rule + config); supersedes the type
 }
 
 export interface UpdateProposalInput {
@@ -96,6 +98,15 @@ export async function createProposal(
 	}
 	const strategyId = input.strategyId ?? 'onePersonOneVote'; // legacy column, kept until task 4.6
 
+	// Pin the chosen type version (the proposer's type pick), validating it belongs to the community.
+	let typeVersionId: string | null = null;
+	if (input.typeVersionId) {
+		typeVersionId = await getTypeVersionForCommunity(input.typeVersionId, input.communityId, db);
+		if (!typeVersionId) {
+			throw new ServiceError(ErrorCode.INVALID_REQUEST, 'Unknown proposal type for this community');
+		}
+	}
+
 	// Check unverified community proposal limit
 	await checkProposalLimit(input.communityId, db);
 
@@ -110,6 +121,7 @@ export async function createProposal(
 				body,
 				createdBy: userId,
 				strategyId,
+				typeVersionId,
 				methodOverrideJson: input.method ? JSON.stringify(input.method) : null,
 				visibility: input.visibility ?? 'community',
 				status: 'draft',

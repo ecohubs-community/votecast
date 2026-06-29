@@ -5,8 +5,11 @@ import { proposal, proposalType, proposalTypeVersion } from '$lib/server/db/sche
 import {
 	seedPresetTypesSync,
 	resolveMethodSnapshot,
-	backfillVotingMethods
+	backfillVotingMethods,
+	listProposalTypes,
+	getTypeVersionForCommunity
 } from './proposal-type-service';
+import { createProposal } from './proposal-service';
 import { resolveProposalPhase } from './proposal-phase';
 import { PRESET_TYPES, LEGACY_SNAPSHOT } from '$lib/server/voting';
 
@@ -109,6 +112,67 @@ describe('backfillVotingMethods', () => {
 		const second = await backfillVotingMethods(db);
 		expect(second.communitiesSeeded).toBe(0);
 		expect(second.proposalsPinned).toBe(0);
+	});
+});
+
+describe('type picker support (task 7.3)', () => {
+	it('listProposalTypes returns active types with a method summary', async () => {
+		const comm = await seedCommunity(db, userId);
+		seedPresetTypesSync(db, comm.id, userId);
+		const list = await listProposalTypes(comm.id, db);
+		expect(list.map((t) => t.name).sort()).toEqual(PRESET_TYPES.map((p) => p.name).sort());
+		const constitutional = list.find((t) => t.name === 'Constitutional')!;
+		expect(constitutional.ballotModuleId).toBe('consent');
+		expect(constitutional.currentVersionId).toBeTruthy();
+	});
+
+	it('getTypeVersionForCommunity rejects a version from another community', async () => {
+		const a = await seedCommunity(db, userId, { slug: 'a' });
+		const b = await seedCommunity(db, userId, { slug: 'b' });
+		const mapA = seedPresetTypesSync(db, a.id, userId);
+		expect(await getTypeVersionForCommunity(mapA['Quick poll'], a.id, db)).toBeTruthy();
+		expect(await getTypeVersionForCommunity(mapA['Quick poll'], b.id, db)).toBeNull();
+	});
+
+	it('createProposal pins a chosen type version', async () => {
+		const comm = await seedCommunity(db, userId);
+		const map = seedPresetTypesSync(db, comm.id, userId);
+		const created = await createProposal(
+			userId,
+			{
+				communityId: comm.id,
+				title: 'Pinned proposal',
+				body: 'Body text',
+				choices: ['Yes', 'No'],
+				startTime: new Date(Date.now() + 60_000),
+				endTime: new Date(Date.now() + 3_600_000),
+				typeVersionId: map['Operational']
+			},
+			db
+		);
+		const [row] = await db.select().from(proposal).where(eq(proposal.id, created.id));
+		expect(row.typeVersionId).toBe(map['Operational']);
+	});
+
+	it('createProposal rejects a type version from another community', async () => {
+		const a = await seedCommunity(db, userId, { slug: 'aa' });
+		const b = await seedCommunity(db, userId, { slug: 'bb' });
+		const mapB = seedPresetTypesSync(db, b.id, userId);
+		await expect(
+			createProposal(
+				userId,
+				{
+					communityId: a.id,
+					title: 'X',
+					body: 'Body text',
+					choices: ['Yes', 'No'],
+					startTime: new Date(Date.now() + 60_000),
+					endTime: new Date(Date.now() + 3_600_000),
+					typeVersionId: mapB['Quick poll']
+				},
+				db
+			)
+		).rejects.toThrow();
 	});
 });
 

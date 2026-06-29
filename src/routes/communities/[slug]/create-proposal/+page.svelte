@@ -7,6 +7,9 @@
 
 	let choices = $state<string[]>(['', '']);
 	let visibility = $state<'public' | 'community'>('public');
+	let typeVersionId = $state<string>('');
+
+	const selectedType = $derived(data.types.find((t) => t.currentVersionId === typeVersionId));
 
 	const nowIso = new Date(Date.now() - new Date().getSeconds() * 1000).toISOString().slice(0, 16);
 	const defaultEndTime = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16);
@@ -17,6 +20,9 @@
 		}
 		if (form?.visibility === 'public' || form?.visibility === 'community') {
 			visibility = form.visibility;
+		}
+		if (!typeVersionId) {
+			typeVersionId = form?.typeVersionId ?? data.types[0]?.currentVersionId ?? '';
 		}
 	});
 
@@ -84,6 +90,20 @@
 			</div>
 
 			<div class="form-stack">
+				{#if data.types.length > 0}
+					<div class="field">
+						<label for="type" class="label">Method</label>
+						<select id="type" name="typeVersionId" bind:value={typeVersionId} class="input">
+							{#each data.types as t (t.currentVersionId)}
+								<option value={t.currentVersionId}>{t.name}</option>
+							{/each}
+						</select>
+						{#if selectedType}
+							<p class="hint">{selectedType.description}</p>
+						{/if}
+					</div>
+				{/if}
+
 				<div class="field">
 					<span class="label">Who can see it</span>
 					<div class="toggle-group">

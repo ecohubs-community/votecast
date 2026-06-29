@@ -1,4 +1,4 @@
-import { eq, and, isNull, isNotNull } from 'drizzle-orm';
+import { eq, and, isNull, isNotNull, inArray } from 'drizzle-orm';
 import { db as defaultDb } from '$lib/server/db';
 import {
 	community,
@@ -108,6 +108,82 @@ export async function resolveMethodContext(
 		}
 	}
 	return { snapshot: LEGACY_SNAPSHOT, deliberationSeconds: 0 };
+}
+
+export interface ProposalTypeSummary {
+	typeId: string;
+	name: string;
+	description: string;
+	currentVersionId: string;
+	deliberationSeconds: number;
+	ballotModuleId: string;
+	decisionRuleId: string;
+}
+
+/**
+ * List a community's active (non-retired) proposal types with their current version + a method
+ * summary — for the proposer's type picker (task 7.3).
+ */
+export async function listProposalTypes(
+	communityId: string,
+	db: Database = defaultDb
+): Promise<ProposalTypeSummary[]> {
+	const types = await db
+		.select()
+		.from(proposalType)
+		.where(and(eq(proposalType.communityId, communityId), isNull(proposalType.retiredAt)));
+	if (types.length === 0) return [];
+
+	const versions = await db
+		.select()
+		.from(proposalTypeVersion)
+		.where(
+			inArray(
+				proposalTypeVersion.typeId,
+				types.map((t) => t.id)
+			)
+		);
+
+	// Pick the highest-version row per type.
+	const latestByType = new Map<string, (typeof versions)[number]>();
+	for (const v of versions) {
+		const cur = latestByType.get(v.typeId);
+		if (!cur || v.version > cur.version) latestByType.set(v.typeId, v);
+	}
+
+	const summaries: ProposalTypeSummary[] = [];
+	for (const t of types) {
+		const v = latestByType.get(t.id);
+		if (!v) continue;
+		const snap = parseSnapshot(v.methodSnapshotJson, `type version ${v.id}`) ?? LEGACY_SNAPSHOT;
+		summaries.push({
+			typeId: t.id,
+			name: t.name,
+			description: t.description,
+			currentVersionId: v.id,
+			deliberationSeconds: v.deliberationSeconds,
+			ballotModuleId: snap.ballotModuleId,
+			decisionRuleId: snap.decisionRuleId
+		});
+	}
+	return summaries;
+}
+
+/** Verify a type version exists and belongs to the given community. Returns its id or null. */
+export async function getTypeVersionForCommunity(
+	typeVersionId: string,
+	communityId: string,
+	db: Database = defaultDb
+): Promise<string | null> {
+	const [row] = await db
+		.select({ id: proposalTypeVersion.id })
+		.from(proposalTypeVersion)
+		.innerJoin(proposalType, eq(proposalType.id, proposalTypeVersion.typeId))
+		.where(
+			and(eq(proposalTypeVersion.id, typeVersionId), eq(proposalType.communityId, communityId))
+		)
+		.limit(1);
+	return row?.id ?? null;
 }
 
 /** Resolve just the effective method snapshot (override → pinned version → legacy). */

@@ -3,6 +3,7 @@ import type { PageServerLoad, Actions } from './$types';
 import { getCommunityBySlug } from '$lib/server/services/community-service';
 import { createProposal } from '$lib/server/services/proposal-service';
 import { getMember } from '$lib/server/services/membership-service';
+import { listProposalTypes } from '$lib/server/services/proposal-type-service';
 import { ServiceError } from '$lib/server/services/errors';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
@@ -18,7 +19,9 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 			error(403, 'You must be a member to create proposals');
 		}
 
-		return { community };
+		const types = await listProposalTypes(community.id);
+
+		return { community, types };
 	} catch (e) {
 		if (e instanceof ServiceError) {
 			error(e.statusCode, e.message);
@@ -43,6 +46,7 @@ export const actions: Actions = {
 		const startTime = formData.get('startTime') as string;
 		const endTime = formData.get('endTime') as string;
 		const visibility = (formData.get('visibility') as string) || 'public';
+		const typeVersionId = (formData.get('typeVersionId') as string) || undefined;
 
 		try {
 			const community = await getCommunityBySlug(params.slug, locals.user.id);
@@ -54,7 +58,8 @@ export const actions: Actions = {
 				choices,
 				startTime: new Date(startTime),
 				endTime: new Date(endTime),
-				visibility: visibility as 'public' | 'community'
+				visibility: visibility as 'public' | 'community',
+				typeVersionId
 			});
 
 			redirect(303, `/proposals/${result.id}`);
@@ -67,7 +72,8 @@ export const actions: Actions = {
 					choices,
 					startTime,
 					endTime,
-					visibility
+					visibility,
+					typeVersionId
 				});
 			}
 			throw e;
