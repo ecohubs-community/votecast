@@ -11,6 +11,7 @@ import {
 	executionHandler
 } from '$lib/server/db/schema';
 import { ServiceError, ErrorCode } from './errors';
+import { seedPresetTypesSync } from './proposal-type-service';
 import { emit } from '../events';
 import {
 	type PaginationParams,
@@ -133,6 +134,9 @@ export async function createCommunity(
 				role: 'admin'
 			})
 			.run();
+
+		// Seed the preset proposal types (+ v1 versions) so proposing works immediately.
+		seedPresetTypesSync(tx, created.id, userId);
 
 		return created;
 	});

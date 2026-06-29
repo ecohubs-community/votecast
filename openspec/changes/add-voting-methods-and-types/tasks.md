@@ -33,8 +33,8 @@
 - [x] 4.1 **(first build step, gated on Gate 1)** Generalized ballot storage per D11: added `ballot_question` + `vote_selection`, extended `proposal_choice` with `questionId`; `vote` is now the envelope (kept legacy `choice_id` nullable for the transition); `uniqueIndex(proposalId, userId)` retained
 - [x] 4.2 Added `proposal_type` + `proposal_type_version` tables (method is a JSON snapshot, not a table — D12) to `governance.schema.ts`
 - [~] 4.3 Phase + outcome **columns** added to `proposals` (legacy `status` kept for transition). The status→phase/outcome **data back-fill** stages with group 6 (needs phase logic) — pending
-- [ ] 4.4 Seed 1–3 preset types per community (and at community-creation time) — stages with group 5 (needs module ids for the default method snapshot)
-- [ ] 4.5 Back-fill existing communities/proposals to a default type version; pin every proposal's `typeVersionId` — stages with 4.4
+- [x] 4.4 Preset types (`voting/presets.ts`: Quick poll / Operational / Constitutional) seeded on community creation via `seedPresetTypesSync` (wired into `createCommunity`); `resolveMethodSnapshot` reads override → version → legacy
+- [~] 4.5 `backfillVotingMethods` (idempotent: seed presets, pin proposals to Quick poll v1, map status→phase/outcome) built + tested (6 tests). Executing it on `local.db` runs at the vote-path switch (needs SvelteKit `$env`); not required until then since nothing reads `typeVersionId` yet
 - [~] 4.6 Migration `0002` **APPLIED to local.db** (baselined drizzle's migration journal first — DB was built via `push`, so `0000`/`0001` weren't recorded; data preserved: 5 votes / 4 proposals intact). Still TODO in 4.6: remove legacy `proposal.strategyId`/`status` and `vote.choice_id`/`metadata_json` AFTER dispatch (group 5) + back-fill verify
 
 ## 5. Method Module registry & first modules
