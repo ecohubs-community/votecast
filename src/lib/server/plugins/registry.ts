@@ -3,6 +3,7 @@ import type { EventName, EventHandler } from '../events';
 import type { Plugin } from './types';
 import { votingAnalyticsPlugin } from './voting-analytics';
 import { executionHooksPlugin, webhookDeliveryPlugin } from './execution-hooks';
+import { notificationsPlugin } from './notifications';
 
 // ─── Internal state ─────────────────────────────────────────────────────────
 
@@ -46,6 +47,7 @@ export function initPlugins(): void {
 	registerPlugin(votingAnalyticsPlugin);
 	registerPlugin(executionHooksPlugin);
 	registerPlugin(webhookDeliveryPlugin);
+	registerPlugin(notificationsPlugin);
 }
 
 /**

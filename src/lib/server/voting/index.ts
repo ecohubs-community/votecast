@@ -6,3 +6,4 @@ export * from './eligibility';
 export * from './weight';
 export * from './facilitator';
 export * from './presets';
+export * from './external-resolver';

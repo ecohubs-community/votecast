@@ -376,3 +376,31 @@ export const executionHandler = sqliteTable(
 	},
 	(table) => [index('execution_handler_proposal_idx').on(table.proposalId)]
 );
+
+// =============================================================================
+// NOTIFICATIONS  (minimal in-app sink — design D13; rich delivery channels deferred)
+// =============================================================================
+
+export const notification = sqliteTable(
+	'notifications',
+	{
+		id: text('id')
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		communityId: text('community_id')
+			.notNull()
+			.references(() => community.id),
+		// null userId = a community-wide broadcast (visible to every member); else a direct notification.
+		userId: text('user_id').references(() => user.id),
+		proposalId: text('proposal_id').references(() => proposal.id, { onDelete: 'cascade' }),
+		event: text('event').notNull(), // the lifecycle event name that produced it
+		title: text('title').notNull(),
+		body: text('body').notNull().default(''),
+		readAt: integer('read_at', { mode: 'timestamp_ms' }),
+		createdAt: integer('created_at', { mode: 'timestamp_ms' }).default(timestampDefault).notNull()
+	},
+	(table) => [
+		index('notification_community_idx').on(table.communityId),
+		index('notification_user_idx').on(table.userId)
+	]
+);

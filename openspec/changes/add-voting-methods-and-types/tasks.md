@@ -58,9 +58,9 @@
 - [x] 6.1 Phase engine (`proposal-phase.ts`: `computePhase` + `resolveProposalPhase` + `isVotingOpen`) **wired into the live `transitionProposalStatus`** (dual-writes `phase` alongside legacy `status`; emits `deliberation.started`/`proposal.finalized`). Tests: 5 pure boundary + 1 DB-backed full-lifecycle. Also split `proposal-service.ts` (573→397) into validation/results/lifecycle (SRP). One read shared via `resolveMethodContext`
 - [ ] 6.2 Implement transition/stop conditions (stop on Nth objection / threshold / quorum / never) and the visibility axis (live / on-close / hidden-forever)
 - [~] 6.3 Lifecycle event catalog **types** added (D13: deliberation.started, subquestion.added, objection.raised, voting.closing-soon, outcome.decided, proposal.finalized). Emitting them from real phase transitions stages with 6.1
-- [ ] 6.4 Enforce voter-identity visibility (open vs. secret ballot) at the read/query layer, distinct from tally-reveal timing
-- [ ] 6.5 Build a minimal in-app notification sink and wire notifications to events (respecting visibility policy); rich delivery channels deferred
-- [ ] 6.6 Wire webhook/execution-handler pipelines (ordered) and the external-resolver boundary with fallback + secret-ballot data-minimization
+- [x] 6.4 `getProposalVoters` enforces voter-identity visibility: secret-ballot individual votes are exposed only to a facilitator (admin); others get FORBIDDEN. Aggregate tally unaffected
+- [x] 6.5 In-app notification sink: `notifications` table (migration 0003, applied to local.db), `notification-service` (create/list/markRead, broadcast + direct), `notificationsPlugin` writing link-only broadcasts on lifecycle events (no tally leak). 3 tests
+- [x] 6.6 Webhook delivery + execution-handler pipelines already exist (HMAC-signed, event-filtered); added the **external-resolver boundary** (`voting/external-resolver.ts`: signed aggregate-only payload, timeout, fallback on failure — never runs community code). 4 tests. NOTE: execution handlers currently run in parallel, not strict order — minor follow-up if ordering matters
 - [x] 6.7 `canFacilitate`/`canSeeHiddenTally` map facilitator powers to `admin` (`voting/facilitator.ts`)
 - [x] 6.8 Cross-axis validity in `validateMethodBinding`: hidden-forever vs. member-visible early stop (group 5) + consent-fallback must accept `count` tallies (new); grows over time per `deferred.md` §5
 

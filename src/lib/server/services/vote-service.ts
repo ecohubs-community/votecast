@@ -7,7 +7,12 @@ import { requireMember } from './membership-service';
 import { transitionProposalStatus } from './proposal-service';
 import { resolveMethodContext } from './proposal-type-service';
 import { isVotingOpen } from './proposal-phase';
-import { isEligible, resolveVotingPower } from '$lib/server/voting';
+import {
+	isEligible,
+	resolveVotingPower,
+	canSeeHiddenTally,
+	type CommunityRole
+} from '$lib/server/voting';
 import type { Database } from './types';
 
 // ─── Input types ─────────────────────────────────────────────────────────────
@@ -146,12 +151,32 @@ export interface VoterRecord {
 
 /**
  * Get all voters for a proposal with their choice labels and timestamps.
- * Caller must verify access before calling this function.
+ * Caller must verify community access before calling this function.
+ *
+ * Voter-identity visibility (axis 6 / task 6.4): for a secret ballot, individual votes are exposed
+ * only to a facilitator (admin); other viewers get a FORBIDDEN error. The aggregate tally is
+ * unaffected — see `tallyProposal`.
  */
 export async function getProposalVoters(
 	proposalId: string,
-	db: Database = defaultDb
+	db: Database = defaultDb,
+	viewerRole: CommunityRole = 'member'
 ): Promise<VoterRecord[]> {
+	const [p] = await db
+		.select({
+			methodOverrideJson: proposal.methodOverrideJson,
+			typeVersionId: proposal.typeVersionId
+		})
+		.from(proposal)
+		.where(eq(proposal.id, proposalId))
+		.limit(1);
+	if (p) {
+		const { snapshot } = await resolveMethodContext(p, db);
+		if (snapshot.visibility.secretBallot && !canSeeHiddenTally(viewerRole)) {
+			throw new ServiceError(ErrorCode.FORBIDDEN, 'Individual votes are secret for this proposal');
+		}
+	}
+
 	const rows = await db
 		.select({
 			voteId: vote.id,
