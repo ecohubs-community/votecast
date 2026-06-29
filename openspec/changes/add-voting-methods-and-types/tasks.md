@@ -1,26 +1,26 @@
 ## 1. Gate: Method Module contract pressure-test
 
-- [ ] 1.1 Draft the Method Module interface (`ballotSchema`, `validateVote`, `tallyVotes`, ballot/results UI contract)
-- [ ] 1.2 Run the interface on paper against async-window consensus (silence = consent, reasoned paramount objection, 2-week window)
-- [ ] 1.3 Run it against Common Ground as `multi-question` (per-aspect tally; clustering confirmed deferred per D10)
-- [ ] 1.4 Run it against sociocracy with a 2/3 fallback (decision-rule escalation)
-- [ ] 1.5 Run it against a result-SET method (ranked/IRV or multi-winner) to confirm the tally output shape from D9 holds
-- [ ] 1.6 GATE: update design.md (D1/D2/D9), the proposal, and `specs/voting-methods` to match the proven interface before any module is built
+- [x] 1.1 Draft the Method Module interface (`ballotSchema`, `validateVote`, `tallyVotes`, ballot/results UI contract) → `src/lib/server/voting/contracts.ts`
+- [x] 1.2 Run the interface on paper against async-window consensus (silence = consent, reasoned paramount objection, 2-week window)
+- [x] 1.3 Run it against Common Ground as `multi-question` (per-aspect tally; clustering confirmed deferred per D10)
+- [x] 1.4 Run it against sociocracy with a 2/3 fallback (decision-rule escalation)
+- [x] 1.5 Run it against a result-SET method (ranked/IRV or multi-winner) to confirm the tally output shape from D9 holds
+- [x] 1.6 GATE: update design.md (D2 split + D9 outcome states/knobs) and `specs/voting-methods` to match the proven interface before any module is built
 
 ## 2. Gate: Data model sketch
 
-- [ ] 2.1 Model Type → TypeVersion (immutable, whole-method snapshot) → method config (6 axes + deliberation time)
-- [ ] 2.2 Model proposal version pinning (`typeVersionId`) and module-varying ballot storage (build on `vote.metadataJson`)
-- [ ] 2.3 Decide the freeze boundary: what a TypeVersion captures vs. community-level side-effect wiring (resolve `deferred.md` §3)
-- [ ] 2.4 Plan the `strategyId` → method-composition migration + preset/default back-fill
-- [ ] 2.5 GATE: update design.md (D4, Impact/schema), the proposal Impact, and `specs/proposal-types` to match the agreed model
+- [x] 2.1 Model Type → TypeVersion (immutable, whole-method JSON snapshot) → method config (D12)
+- [x] 2.2 Model proposal version pinning (`typeVersionId`) + ad-hoc override snapshot, and `vote_selection` ballot storage (D11/D12)
+- [x] 2.3 Decide the freeze boundary: TypeVersion freezes the method; side-effect wiring is community-level by `typeId` (resolves `deferred.md` §3)
+- [x] 2.4 Plan the `strategyId` → method-composition migration + preset/default back-fill + status→phase/outcome mapping (D12)
+- [x] 2.5 GATE: updated design.md (D12) and proposal Impact to match the agreed model (`specs/proposal-types` already covers versioning/override/retire)
 
 ## 3. Gate: Event catalog
 
-- [ ] 3.1 Enumerate lifecycle events (deliberation.started, voting.started, objection.raised, voting.closing-soon, voting.closed, outcome.decided, …) with payloads
-- [ ] 3.2 Define how notifications and webhook/execution-handler pipelines subscribe (build on `webhook` + `executionHandler` tables)
-- [ ] 3.3 Define the external-resolver call contract (signed payload, timeout, fallback when unreachable)
-- [ ] 3.4 GATE: update design.md (D3), the proposal, and `specs/governance-events` to match the catalog
+- [x] 3.1 Enumerate lifecycle events with envelope/payloads (D13)
+- [x] 3.2 Define how notifications and webhook/execution-handler pipelines subscribe — one dispatcher, both are subscribers (D13)
+- [x] 3.3 Define the external-resolver call contract (signed HMAC payload, ~10s timeout, fallback rule when unreachable, secret-ballot data minimization) (D13)
+- [x] 3.4 GATE: updated design.md (D13); `specs/governance-events` already covers the catalog/subscription/resolver requirements
 
 > Gates 1–3 must close (and their artifact updates land) before any task below begins.
 

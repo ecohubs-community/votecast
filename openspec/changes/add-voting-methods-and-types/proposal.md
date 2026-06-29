@@ -80,10 +80,11 @@ finalizing event-wiring-vs-versioning boundary.
 ## Impact
 
 - **Schema** (`src/lib/server/db/governance.schema.ts`): replace `proposal.strategyId` with a
-  method composition; new tables for proposal types, type versions, and method config;
-  **generalize ballot storage to multiple selections per voter** (new `ballot_question` +
-  `vote_selection`, extend `proposal_choice`; D11) — the *first* migration step, gated on the module
-  contract; expand `proposal.status` (currently `draft/active/closed`) into phase + outcome states.
+  method composition; new tables `proposal_type` + `proposal_type_version` (the method is a JSON
+  snapshot on the version, not a normalized table — D12); **generalize ballot storage to multiple
+  selections per voter** (new `ballot_question` + `vote_selection`, extend `proposal_choice`; D11) —
+  the *first* migration step, gated on the module contract; expand `proposal.status` (currently
+  `draft/active/closed`) into phase + outcome states.
 - **Services** (`src/lib/server/services/proposal-service.ts`): the hard-coded
   `onePersonOneVote`-only guard is replaced by method-module dispatch (validate/tally).
 - **Plugins/events** (`src/lib/server/plugins/`, `specs/05_events_plugins_hooks.md`): event catalog

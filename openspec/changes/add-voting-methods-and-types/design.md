@@ -62,10 +62,11 @@ method → rejected; explodes combinatorially and duplicates logic.
 
 ```
 Registry A: METHOD MODULES (core, first-party, versioned)   Registry B: EVENT PLUGINS (safe)
-  ballotSchema + validateVote + tallyVotes                    subscribe to lifecycle events
-  + BallotComponent + ResultsComponent                        notifications, webhooks, git export,
-  e.g. single-choice, consent, ranked, multi-question         analytics, external-resolver call
-  → CHANGES core governance rules                             → MUST NOT change governance rules
+  BallotModule  (shape + validateVote + aggregate)            subscribe to lifecycle events
+  DecisionRule  (CanonicalTally → ResultSet, + fallback)      notifications, webhooks, git export,
+  + Ballot/Results UI components                              analytics, external-resolver call
+  e.g. single-choice, consent, ranked, multi-question         → MUST NOT change governance rules
+  → CHANGES core governance rules
 ```
 
 Common Ground (multi-question) and consent change the ballot model + tally + UI, which is a *core governance rule* — the
@@ -76,6 +77,23 @@ both registries under one unified "Extensions" surface so it *feels* like instal
 the architecture keeps two registries with different trust/capability profiles.
 **Alternative considered:** make Common Ground a plugin by letting plugins register ballots+UI → rejected;
 blurs the "no core changes" rule and re-opens the untrusted-code security problem.
+
+**Gate-1 refinement — a method module is itself two contracts.** Pressure-testing "sociocracy with a
+2/3 fallback" showed a single `tallyVotes` was doing two of D1's axes at once (ballot *and* decision
+rule), which would have killed composability. So Registry A's method modules split into:
+
+```
+BallotModule   id · tallyFamily · validateVote(submission,ctx) · aggregate(ballots,ctx) → CanonicalTally
+DecisionRule   id · accepts(family) · resolve(CanonicalTally, ctx, fallback?) → ResultSet
+   CanonicalTally is a tagged-union bridge (count │ multiQuestion │ scored │ ranked │ consent);
+   a rule declares the family it accepts, so incompatible ballot×rule pairings fail at compile time.
+A METHOD binds { ballotModuleId, decisionRuleId, fallbackRuleId?, config }.
+```
+
+Now "sociocracy + 2/3 fallback" = `consent` ballot + `consensus` rule with a `super-majority`
+fallback — a config, not new code; ranked/IRV and multi-winner/STV drop in the same way. The engine
+(not the module) still owns eligibility, weight, phase transitions, and visibility (D1 axes 1/3/5/6);
+modules see only resolved facts. Contract lives in `src/lib/server/voting/contracts.ts`.
 
 ### D3 — Process decomposes into phases, stop conditions, visibility, and event wiring
 
@@ -196,6 +214,14 @@ Result shape is modeled as a **result-set**, not a single winner, so multi-winne
 ranked methods fit later without reshaping storage. **Alternative considered:** model only what
 ships now → rejected; we'd bake single-winner assumptions into the schema and pay to undo them.
 
+**Gate-1 additions to outcome states & knobs.** The cases extended the outcome set with
+`provisional` (passed a phase but an async objection window is still open — the consensus bylaw) and
+`recorded` (informational ballots with no single pass/fail — multi-question/sensemaking, where each
+`ResultEntry` carries the meaning). They also added the `absenceMeaning` knob (silence = consent vs.
+ignored), which the consensus bylaw needs and which is why `TallyContext` carries `eligibleVoterCount`.
+`ResultEntry` resolves an outcome **per entry** so multi-question proposals report a status per
+sub-question.
+
 ### D10 — "Common Ground" name, neutral code ids, and the no-pol.is-dependency verdict
 
 The pol.is software is **AGPL-3.0** and a multi-language stack (JS/Python/TS/**Clojure** math engine);
@@ -261,6 +287,68 @@ contract-dependent and would re-migrate. (b) ship it as a standalone precursor c
 incremental merges, but it has no consumer to verify against, so we keep it as task group 4 here.
 **Migration:** existing single-choice votes map to one `vote_selection` row each; the back-fill in
 the migration plan above runs in the same step.
+
+### D12 — Concrete data model (Gate 2)
+
+Concretizes D4 + D11. The **method itself is JSON** (a snapshot), not normalized tables — there is no
+separate "method-config" table; the snapshot holds the binding + all axis config.
+
+```
+proposal_type            id · communityId · name · description · overridesAllowed(bool) · retiredAt? · createdAt
+proposal_type_version    id · typeId · version(int) · methodSnapshotJson · deliberationSeconds · createdBy · createdAt
+                         └ IMMUTABLE. methodSnapshotJson = { ballotModuleId, decisionRuleId, fallbackRuleId?,
+                           eligibility, weight, process, visibility, knobs }  (freezes the whole method — D4)
+
+proposal   (modified)    + typeVersionId(FK) · + methodOverrideJson?(ad-hoc snapshot, D4) ·
+                         phase(enum: draft|deliberation|voting|objection-window|finalized) ·
+                         outcome(enum?: passed|failed|blocked|tie|quorum-not-met|indeterminate|provisional|recorded) ·
+                         − strategyId (dropped after back-fill) · − status (replaced by phase+outcome)
+
+ballot_question          id · proposalId · prompt · position          (implicit single question when absent)
+proposal_choice (mod)    + questionId(FK?, null → the implicit question)
+vote (modified)          ENVELOPE only: id · proposalId · userId · votingPower · secret(bool) · signature? ·
+                         createdAt · updatedAt   (− choiceId)   uniqueIndex(proposalId,userId) = one ballot/voter
+vote_selection (NEW)     id · proposalId · userId · questionId? · choiceId? ·
+                         rank? · score? · credits? · consentPosition?(consent|stand-aside|object) · reason?
+                         └ one row per selection: approval = many; ranked = ranks; multi-question = one/question
+```
+
+**Freeze boundary (2.3, resolves deferred §3):** `methodSnapshotJson` freezes the whole method;
+side-effect *wiring* (webhook/notification subscriptions) is community-level and references `typeId`
+(not a version), so retargeting a webhook does not fork history.
+
+**Migration (2.4):** add tables → seed presets per community → create a default type + v1 snapshot
+capturing today's `onePersonOneVote` + simple-majority → pin every proposal's `typeVersionId` →
+migrate each existing `vote.choiceId` to one `vote_selection` row → map status (`draft`→draft,
+`active`→voting, `closed`→finalized; historical `closed` outcome recomputed by simple majority, else
+`recorded`) → drop `strategyId`/`status` once dispatch + back-fill verify.
+
+### D13 — Lifecycle event catalog, subscription model & resolver contract (Gate 3)
+
+Concretizes D3. One dispatcher emits a flat event stream; notifications and side-effect pipelines are
+both just subscribers, reusing the existing `webhook` (events column) and `executionHandler` tables.
+
+```
+EVENT CATALOG (envelope: { event, proposalId, communityId, typeVersionId, phase, at, data })
+  proposal.created · deliberation.started · subquestion.added · voting.started(ballot frozen) ·
+  vote.cast · vote.changed · objection.raised · stop-condition.met · voting.closing-soon(lead time) ·
+  voting.closed · objection-window.started · objection-window.closed · outcome.decided · proposal.finalized
+
+SUBSCRIBERS
+  notifications   community-level subscription { event, audience: members|eligible|admins }, filtered
+                  by typeId; writes to the minimal in-app sink (D-risk); respects visibility policy
+  pipelines       ordered executionHandlers + webhooks bound to an event (e.g. voting.closed →
+                  export proposal text to git by outcome → call follow-up webhook)
+
+EXTERNAL RESOLVER (D5) — a decision rule that delegates
+  request   POST { proposalId, tally, config, nonce, issuedAt }   header: HMAC-sign(community secret)
+            secret ballots send AGGREGATES only unless opted in (data minimization)
+  response  { outcome: OutcomeState, rationale?, entries? }   timeout ~10s, retry w/ backoff
+  on fail   apply the method's defined fallback rule; if none → outcome = indeterminate (never run code)
+```
+
+Events are emitted by the engine at phase transitions and vote actions, so a subscriber never reaches
+into governance logic — it only reacts (preserves the D2 "plugins must not change core rules" rule).
 
 ## Risks / Trade-offs
 

@@ -17,20 +17,30 @@ be configurable independently of the others, subject to documented cross-axis va
 - **WHEN** a method is defined with ballot=consent and weight=reputation
 - **THEN** the system SHALL accept the combination so long as it violates no cross-axis validity rule
 
-### Requirement: Method Module registry and contract
+### Requirement: Method Module registry — split ballot module and decision rule
 
-The system SHALL provide a first-party Method Module registry. Each module SHALL supply a ballot
-schema, a `validateVote` operation, a `tallyVotes` operation, and ballot and results UI. Modules
-that change the ballot model, tally, or results UI SHALL be Method Modules and SHALL NOT be modeled
-as event-plugins.
+The system SHALL provide a first-party Method Module registry composed of two contracts: a
+**ballot module** (which validates a vote submission and aggregates ballots into a canonical tally)
+and a **decision rule** (which resolves a canonical tally into a result-set, optionally delegating to
+a fallback rule). A method SHALL bind one ballot module to one decision rule, and the decision rule's
+accepted tally family MUST match the ballot module's tally family. Both contracts change core
+governance rules and SHALL NOT be modeled as event-plugins.
 
-#### Scenario: Module validates a vote
-- **WHEN** a vote is cast against a proposal whose method uses a given module
-- **THEN** the module's `validateVote` SHALL determine whether the vote is accepted or rejected with a reason
+#### Scenario: Ballot module validates and aggregates
+- **WHEN** a vote is cast against a proposal whose method uses a given ballot module
+- **THEN** the ballot module SHALL accept or reject the submission with a reason, and SHALL aggregate accepted ballots into a canonical tally
 
-#### Scenario: Module tallies an outcome
+#### Scenario: Decision rule resolves an outcome
 - **WHEN** a proposal reaches a tally point
-- **THEN** the module's `tallyVotes` SHALL compute the outcome and participation statistics for that method
+- **THEN** the bound decision rule SHALL resolve the canonical tally into a result-set with participation statistics
+
+#### Scenario: Fallback escalation is composition, not new code
+- **WHEN** a method binds a consent ballot to a consensus rule with a super-majority fallback and the consensus rule is blocked
+- **THEN** the decision rule SHALL evaluate the fallback rule against the same canonical tally without requiring a bespoke method implementation
+
+#### Scenario: Incompatible binding rejected
+- **WHEN** a method binds a ballot module to a decision rule whose accepted tally family differs from the ballot module's tally family
+- **THEN** the system SHALL reject the binding
 
 ### Requirement: Decision rules support consensus, majority, and fallback escalation
 
@@ -74,9 +84,11 @@ does not consent but does not block), which the tally SHALL count as non-blockin
 
 ### Requirement: Explicit outcome states
 
-The tally SHALL resolve a proposal to exactly one outcome state from: passed, failed, blocked,
-tie, quorum-not-met, and indeterminate. The system SHALL NOT collapse these into a single "closed"
-result, because different outcomes drive different notifications and pipelines.
+The tally SHALL resolve a proposal to exactly one top-level outcome state from: passed, failed,
+blocked, tie, quorum-not-met, indeterminate, provisional, and recorded. The system SHALL NOT
+collapse these into a single "closed" result, because different outcomes drive different
+notifications and pipelines. For multi-outcome ballots the top-level outcome MAY be `recorded` while
+each result entry resolves its own outcome.
 
 #### Scenario: Quorum not met
 - **WHEN** a proposal closes and the method's quorum requirement is not satisfied
