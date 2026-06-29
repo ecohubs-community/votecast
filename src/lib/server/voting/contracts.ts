@@ -108,7 +108,7 @@ export type KnobId =
 // power, phase transitions, and visibility (D1 axes 1/3/5/6). The module only sees resolved facts.
 // ---------------------------------------------------------------------------
 
-export interface BallotRecord<TSelection> {
+export interface BallotRecord<TSelection = unknown> {
 	voterId: string;
 	votingPower: number; // already resolved by the weight axis
 	selections: TSelection[]; // one submission may carry many selections (approval, ranked, multi-question)
@@ -127,6 +127,7 @@ export interface TallyContext {
 	config: Record<string, unknown>; // the method-config snapshot for this proposal/version
 	phase: VoteContext['phase'];
 	eligibleVoterCount: number; // needed for quorum AND absence-as-consent
+	options: Array<{ optionId: string; group?: string; label?: string }>; // the frozen ballot options
 	now: number;
 }
 

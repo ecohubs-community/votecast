@@ -4,6 +4,7 @@ import { community, communityMember, proposal, proposalChoice, vote } from '$lib
 import { ServiceError, ErrorCode } from './errors';
 import { emit } from '../events';
 import { requireMember, requireAdmin } from './membership-service';
+import { DEFAULT_METHOD, validateMethodBinding, type MethodBinding } from '$lib/server/voting';
 import {
 	type PaginationParams,
 	type PaginatedResult,
@@ -23,7 +24,8 @@ export interface CreateProposalInput {
 	startTime: Date | string;
 	endTime: Date | string;
 	visibility?: 'public' | 'community';
-	strategyId?: string;
+	strategyId?: string; // legacy; retained for back-compat until the column is dropped (task 4.6)
+	method?: MethodBinding; // new: ballot module + decision rule (+ config). Defaults to onePersonOneVote.
 }
 
 export interface UpdateProposalInput {
@@ -223,13 +225,16 @@ export async function createProposal(
 		validateVisibility(input.visibility);
 	}
 
-	const strategyId = input.strategyId ?? 'onePersonOneVote';
-	if (strategyId !== 'onePersonOneVote') {
+	// Resolve + validate the voting method via the registry (replaces the onePersonOneVote-only guard).
+	const method = input.method ?? DEFAULT_METHOD;
+	const bindingCheck = validateMethodBinding(method);
+	if (!bindingCheck.ok) {
 		throw new ServiceError(
 			ErrorCode.INVALID_REQUEST,
-			'Only "onePersonOneVote" strategy is supported'
+			`Invalid voting method: ${bindingCheck.errors.join(' ')}`
 		);
 	}
+	const strategyId = input.strategyId ?? 'onePersonOneVote'; // legacy column, kept until task 4.6
 
 	// Check unverified community proposal limit
 	await checkProposalLimit(input.communityId, db);
@@ -245,6 +250,7 @@ export async function createProposal(
 				body,
 				createdBy: userId,
 				strategyId,
+				methodOverrideJson: input.method ? JSON.stringify(input.method) : null,
 				visibility: input.visibility ?? 'community',
 				status: 'draft',
 				startTime,

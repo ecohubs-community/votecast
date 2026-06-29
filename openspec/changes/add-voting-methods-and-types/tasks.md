@@ -39,15 +39,15 @@
 
 ## 5. Method Module registry & first modules
 
-- [ ] 5.1 Implement the Method Module registry and the contract from Gate 1
-- [ ] 5.2 Replace the `onePersonOneVote`-only guard in `proposal-service.ts` with module dispatch (validate/tally)
-- [ ] 5.3 Implement core modules: single-choice (simple/absolute/super-majority), consent (consensus / consensus-minus-N / fallback)
-- [ ] 5.4 Implement eligibility gates (all-members, trained/quiz) and weight axes wiring (1p1v first)
-- [ ] 5.5 Implement the `multi-question` (Common Ground) module: per-aspect tally + configurable sub-question contribution (who/when), question-set frozen at voting-open
-- [ ] 5.6 Implement stand-aside (non-blocking) and per-method vote mutability (change/retract while phase open)
-- [ ] 5.7 Model the tally as a result-set (single-winner / pass-fail / per-sub-question) and resolve explicit outcome states (tie / quorum-not-met / blocked / indeterminate)
-- [ ] 5.8 Enforce "methods declare honored knobs": reject unsupported or contradictory config combinations
-- [ ] 5.9 Unit-test each module's `validateVote`/`tallyVotes` against its hard case (incl. each outcome state)
+- [x] 5.1 Implemented the registry (`registry.ts`) for ballot modules + decision rules and the split contract from Gate 1
+- [x] 5.2 Replaced the `onePersonOneVote`-only guard in `proposal-service.ts` with registry-validated method binding; dispatch (`dispatch.ts`: `validateSubmission`/`tallyBallots` + `DEFAULT_METHOD`)
+- [x] 5.3 Core modules: single-choice ballot + simple/absolute/super-majority rules; consent ballot + consensus / consensus-minus-1 / consent rules incl. the 2/3-fallback adaptation
+- [x] 5.4 Eligibility (`eligibility.ts`: all-members + trained concrete; token/reputation typed stubs) and weight (`weight.ts`: 1p1v concrete; rest stubbed). NOTE: enforcement in the live vote path wires in group 6
+- [x] 5.5 `multi-question` (Common Ground) module: per-question tally + frozen-question validation. NOTE: the who/when contribution config is enforced in group 6 (process), schema already supports it
+- [x] 5.6 Stand-aside (non-blocking) in the consent rule; per-method vote mutability in `validateSubmission`
+- [x] 5.7 Tally returns a result-set with per-entry outcomes; explicit outcome states (passed/failed/blocked/tie/quorum-not-met/indeterminate/recorded) resolved
+- [x] 5.8 `validateMethodBinding`: rejects unknown module/rule, family mismatch, unsupported knobs, unsupported fallback, and the hidden-forever vs. early-stop contradiction
+- [x] 5.9 Unit tests (`voting.test.ts`, 18 tests) cover each module/rule incl. the four Gate-1 hard cases and binding validation — all green; full suite 123/123
 
 ## 6. Process, events & side-effects
 
