@@ -62,7 +62,12 @@ export interface OptionAggregate {
 
 export type CanonicalTally =
 	| { family: 'count'; eligibleCount: number; ballotsCast: number; options: OptionAggregate[] }
-	| { family: 'multiQuestion'; eligibleCount: number; ballotsCast: number; options: OptionAggregate[] }
+	| {
+			family: 'multiQuestion';
+			eligibleCount: number;
+			ballotsCast: number;
+			options: OptionAggregate[];
+	  }
 	| { family: 'scored'; eligibleCount: number; ballotsCast: number; options: OptionAggregate[] }
 	| {
 			family: 'ranked';

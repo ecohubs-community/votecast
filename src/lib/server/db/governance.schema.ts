@@ -91,6 +91,66 @@ export const invite = sqliteTable(
 );
 
 // =============================================================================
+// PROPOSAL TYPES  (per-community, user-maintainable — design D4)
+// =============================================================================
+
+export const proposalType = sqliteTable(
+	'proposal_types',
+	{
+		id: text('id')
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		communityId: text('community_id')
+			.notNull()
+			.references(() => community.id),
+		name: text('name').notNull(),
+		description: text('description').notNull().default(''),
+		// When false, proposers cannot override method axes per-proposal (D4).
+		overridesAllowed: integer('overrides_allowed', { mode: 'boolean' }).notNull().default(true),
+		// Retiring a type blocks new proposals while pinned proposals keep running (proposal-types spec).
+		retiredAt: integer('retired_at', { mode: 'timestamp_ms' }),
+		createdBy: text('created_by')
+			.notNull()
+			.references(() => user.id),
+		createdAt: integer('created_at', { mode: 'timestamp_ms' }).default(timestampDefault).notNull(),
+		updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
+			.default(timestampDefault)
+			.$onUpdate(() => new Date())
+			.notNull()
+	},
+	(table) => [index('proposal_type_community_idx').on(table.communityId)]
+);
+
+// =============================================================================
+// PROPOSAL TYPE VERSIONS  (immutable whole-method snapshot — design D4/D12)
+// =============================================================================
+
+export const proposalTypeVersion = sqliteTable(
+	'proposal_type_versions',
+	{
+		id: text('id')
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		typeId: text('type_id')
+			.notNull()
+			.references(() => proposalType.id, { onDelete: 'cascade' }),
+		version: integer('version').notNull(),
+		// Frozen method: { ballotModuleId, decisionRuleId, fallbackRuleId?, eligibility, weight,
+		// process, visibility, knobs } — the whole method, never mutated once written (D4/D12).
+		methodSnapshotJson: text('method_snapshot_json').notNull(),
+		deliberationSeconds: integer('deliberation_seconds').notNull().default(0),
+		createdBy: text('created_by')
+			.notNull()
+			.references(() => user.id),
+		createdAt: integer('created_at', { mode: 'timestamp_ms' }).default(timestampDefault).notNull()
+	},
+	(table) => [
+		uniqueIndex('proposal_type_version_unique_idx').on(table.typeId, table.version),
+		index('proposal_type_version_type_idx').on(table.typeId)
+	]
+);
+
+// =============================================================================
 // PROPOSALS
 // =============================================================================
 
@@ -108,13 +168,39 @@ export const proposal = sqliteTable(
 		createdBy: text('created_by')
 			.notNull()
 			.references(() => user.id),
+		// LEGACY (D12 transition): kept until task 4.6 drops it once method dispatch is migrated.
 		strategyId: text('strategy_id').notNull().default('onePersonOneVote'),
-		visibility: text('visibility', { enum: ['public', 'community'] })
-			.notNull()
-			.default('community'),
+		// LEGACY (D12 transition): superseded by `phase`+`outcome`; dropped in 4.6 after back-fill.
 		status: text('status', { enum: ['draft', 'active', 'closed'] })
 			.notNull()
 			.default('draft'),
+		// Pinned method version (D4). Nullable only to allow back-fill of pre-existing rows; the
+		// service layer requires it on all new proposals.
+		typeVersionId: text('type_version_id').references(() => proposalTypeVersion.id),
+		// Ad-hoc per-proposal override snapshot; when present it supersedes the pinned version (D4).
+		methodOverrideJson: text('method_override_json'),
+		visibility: text('visibility', { enum: ['public', 'community'] })
+			.notNull()
+			.default('community'),
+		// Lifecycle PHASE (where in the process) — design D7.
+		phase: text('phase', {
+			enum: ['draft', 'deliberation', 'voting', 'objection-window', 'finalized']
+		})
+			.notNull()
+			.default('draft'),
+		// OUTCOME state (the result) — null until decided; design D7/D9.
+		outcome: text('outcome', {
+			enum: [
+				'passed',
+				'failed',
+				'blocked',
+				'tie',
+				'quorum-not-met',
+				'indeterminate',
+				'provisional',
+				'recorded'
+			]
+		}),
 		startTime: integer('start_time', { mode: 'timestamp_ms' }).notNull(),
 		endTime: integer('end_time', { mode: 'timestamp_ms' }).notNull(),
 		createdAt: integer('created_at', { mode: 'timestamp_ms' }).default(timestampDefault).notNull(),
@@ -125,10 +211,31 @@ export const proposal = sqliteTable(
 	},
 	(table) => [
 		index('proposal_community_idx').on(table.communityId),
-		index('proposal_status_idx').on(table.status),
+		index('proposal_status_idx').on(table.status), // LEGACY, dropped with the column in 4.6
+		index('proposal_phase_idx').on(table.phase),
+		index('proposal_type_version_idx').on(table.typeVersionId),
 		index('proposal_start_time_idx').on(table.startTime),
 		index('proposal_end_time_idx').on(table.endTime)
 	]
+);
+
+// =============================================================================
+// BALLOT QUESTIONS  (multi-question / Common Ground — design D11)
+// =============================================================================
+
+export const ballotQuestion = sqliteTable(
+	'ballot_questions',
+	{
+		id: text('id')
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		proposalId: text('proposal_id')
+			.notNull()
+			.references(() => proposal.id, { onDelete: 'cascade' }),
+		prompt: text('prompt').notNull(),
+		position: integer('position').notNull()
+	},
+	(table) => [index('ballot_question_proposal_idx').on(table.proposalId)]
 );
 
 // =============================================================================
@@ -144,14 +251,19 @@ export const proposalChoice = sqliteTable(
 		proposalId: text('proposal_id')
 			.notNull()
 			.references(() => proposal.id, { onDelete: 'cascade' }),
+		// A choice belongs to a question; null = the implicit single question (D11).
+		questionId: text('question_id').references(() => ballotQuestion.id, { onDelete: 'cascade' }),
 		label: text('label').notNull(),
 		position: integer('position').notNull()
 	},
-	(table) => [index('proposal_choice_proposal_idx').on(table.proposalId)]
+	(table) => [
+		index('proposal_choice_proposal_idx').on(table.proposalId),
+		index('proposal_choice_question_idx').on(table.questionId)
+	]
 );
 
 // =============================================================================
-// VOTES
+// VOTES  (the per-(proposal,user) ENVELOPE — design D11/D12)
 // =============================================================================
 
 export const vote = sqliteTable(
@@ -166,18 +278,58 @@ export const vote = sqliteTable(
 		userId: text('user_id')
 			.notNull()
 			.references(() => user.id),
-		choiceId: text('choice_id')
-			.notNull()
-			.references(() => proposalChoice.id),
+		// LEGACY (D11/D12 transition): single-choice link, kept until task 4.6 migrates the vote path
+		// to `vote_selection`. Stays here so existing vote-service code keeps compiling/working.
+		choiceId: text('choice_id').references(() => proposalChoice.id),
 		votingPower: integer('voting_power').notNull().default(1),
-		metadataJson: text('metadata_json'), // nullable — strategy-specific metadata as JSON string
+		// Secret ballot: identity is stored for eligibility/mutability but never exposed (visibility axis).
+		secret: integer('secret', { mode: 'boolean' }).notNull().default(false),
+		metadataJson: text('metadata_json'), // LEGACY — strategy-specific metadata; superseded by vote_selection
 		signature: text('signature'), // nullable — wallet signature for vote verification (future)
+		createdAt: integer('created_at', { mode: 'timestamp_ms' }).default(timestampDefault).notNull(),
+		updatedAt: integer('updated_at', { mode: 'timestamp_ms' })
+			.default(timestampDefault)
+			.$onUpdate(() => new Date())
+			.notNull()
+	},
+	(table) => [
+		uniqueIndex('vote_unique_idx').on(table.proposalId, table.userId), // one ballot per voter
+		index('vote_proposal_idx').on(table.proposalId),
+		index('vote_user_idx').on(table.userId)
+	]
+);
+
+// =============================================================================
+// VOTE SELECTIONS  (one row per selection — supports approval/ranked/score/consent/multi-question; D11)
+// =============================================================================
+
+export const voteSelection = sqliteTable(
+	'vote_selections',
+	{
+		id: text('id')
+			.primaryKey()
+			.$defaultFn(() => crypto.randomUUID()),
+		proposalId: text('proposal_id')
+			.notNull()
+			.references(() => proposal.id, { onDelete: 'cascade' }),
+		userId: text('user_id')
+			.notNull()
+			.references(() => user.id),
+		// For multi-question ballots: which question this selection answers (null = single question).
+		questionId: text('question_id').references(() => ballotQuestion.id, { onDelete: 'cascade' }),
+		// The chosen option, when the ballot family references choices (null for pure consent ballots).
+		choiceId: text('choice_id').references(() => proposalChoice.id, { onDelete: 'cascade' }),
+		rank: integer('rank'), // ranked / IRV / STV
+		score: integer('score'), // score / STAR
+		credits: integer('credits'), // cumulative / quadratic
+		consentPosition: text('consent_position', { enum: ['consent', 'stand-aside', 'object'] }),
+		reason: text('reason'), // structured justification for an objection (consent ballots)
 		createdAt: integer('created_at', { mode: 'timestamp_ms' }).default(timestampDefault).notNull()
 	},
 	(table) => [
-		uniqueIndex('vote_unique_idx').on(table.proposalId, table.userId),
-		index('vote_proposal_idx').on(table.proposalId),
-		index('vote_user_idx').on(table.userId)
+		index('vote_selection_proposal_idx').on(table.proposalId),
+		index('vote_selection_user_idx').on(table.userId),
+		index('vote_selection_proposal_user_idx').on(table.proposalId, table.userId)
 	]
 );
 

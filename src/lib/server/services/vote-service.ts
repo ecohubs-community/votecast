@@ -151,6 +151,7 @@ export async function getProposalVoters(
 
 	return rows.map((r) => ({
 		...r,
+		choiceId: r.choiceId as string, // innerJoin on proposalChoice guarantees non-null (legacy path)
 		votedAt: r.votedAt ?? new Date()
 	}));
 }

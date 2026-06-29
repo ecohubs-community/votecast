@@ -30,12 +30,12 @@
 > any module is built, because the column shape (rank/score/credits, question grouping) is decided by
 > the Method Module contract. Do not start 4.1 until Gate 1 (tasks 1.x) has closed. (Design D11.)
 
-- [ ] 4.1 **(first build step, gated on Gate 1)** Generalize ballot storage per D11: add `ballot_question` + `vote_selection`, extend `proposal_choice` with `questionId`; migrate each existing single-choice vote to one `vote_selection` row; keep `uniqueIndex(proposalId, userId)` as the one-ballot-per-voter guard
-- [ ] 4.2 Add proposal-type, type-version, and method-config tables to `governance.schema.ts`
-- [ ] 4.3 Replace `proposal.status` (`draft/active/closed`) with phase states (deliberation/voting/objection-window/finalized) + outcome states (passed/failed/blocked/tie/quorum-not-met/indeterminate); migrate existing rows
-- [ ] 4.4 Seed 1–3 preset types per community (and at community-creation time)
-- [ ] 4.5 Back-fill existing communities/proposals to a default type version; pin every proposal's `typeVersionId`
-- [ ] 4.6 Generate and run the Drizzle migration; remove `proposal.strategyId` after dispatch + back-fill verify
+- [x] 4.1 **(first build step, gated on Gate 1)** Generalized ballot storage per D11: added `ballot_question` + `vote_selection`, extended `proposal_choice` with `questionId`; `vote` is now the envelope (kept legacy `choice_id` nullable for the transition); `uniqueIndex(proposalId, userId)` retained
+- [x] 4.2 Added `proposal_type` + `proposal_type_version` tables (method is a JSON snapshot, not a table — D12) to `governance.schema.ts`
+- [~] 4.3 Phase + outcome **columns** added to `proposals` (legacy `status` kept for transition). The status→phase/outcome **data back-fill** stages with group 6 (needs phase logic) — pending
+- [ ] 4.4 Seed 1–3 preset types per community (and at community-creation time) — stages with group 5 (needs module ids for the default method snapshot)
+- [ ] 4.5 Back-fill existing communities/proposals to a default type version; pin every proposal's `typeVersionId` — stages with 4.4
+- [ ] 4.6 Run migration `0002` + remove legacy `proposal.strategyId`/`status` and `vote.choice_id`/`metadata_json` AFTER dispatch (group 5) + back-fill verify. Structural migration generated, hand-fixed (drizzle votes-rebuild bug), and validated: applies cleanly across `0000→0002` and preserves existing vote data
 
 ## 5. Method Module registry & first modules
 
