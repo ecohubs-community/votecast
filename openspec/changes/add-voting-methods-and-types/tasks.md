@@ -35,7 +35,7 @@
 - [~] 4.3 Phase + outcome **columns** added to `proposals` (legacy `status` kept for transition). The status→phase/outcome **data back-fill** stages with group 6 (needs phase logic) — pending
 - [ ] 4.4 Seed 1–3 preset types per community (and at community-creation time) — stages with group 5 (needs module ids for the default method snapshot)
 - [ ] 4.5 Back-fill existing communities/proposals to a default type version; pin every proposal's `typeVersionId` — stages with 4.4
-- [ ] 4.6 Run migration `0002` + remove legacy `proposal.strategyId`/`status` and `vote.choice_id`/`metadata_json` AFTER dispatch (group 5) + back-fill verify. Structural migration generated, hand-fixed (drizzle votes-rebuild bug), and validated: applies cleanly across `0000→0002` and preserves existing vote data
+- [~] 4.6 Migration `0002` **APPLIED to local.db** (baselined drizzle's migration journal first — DB was built via `push`, so `0000`/`0001` weren't recorded; data preserved: 5 votes / 4 proposals intact). Still TODO in 4.6: remove legacy `proposal.strategyId`/`status` and `vote.choice_id`/`metadata_json` AFTER dispatch (group 5) + back-fill verify
 
 ## 5. Method Module registry & first modules
 
