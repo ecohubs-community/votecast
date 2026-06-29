@@ -44,6 +44,14 @@ be evaluated under that pinned version regardless of later edits to the type.
 - **WHEN** a proposer creates a proposal and selects a type
 - **THEN** the method and deliberation time SHALL be pre-filled from the type's current version, with an advanced override available per proposal
 
+#### Scenario: Advanced override stores an ad-hoc snapshot, not a new type version
+- **WHEN** a proposer overrides method axes for a single proposal
+- **THEN** the proposal SHALL store its own method snapshot and SHALL still record the originating type version as provenance, without creating a new version of the shared type
+
+#### Scenario: Override disabled by the type
+- **WHEN** a community has disabled overrides on a type and a proposer attempts to override an axis
+- **THEN** the system SHALL reject the override and use the pinned type version's method
+
 ### Requirement: Retiring a type preserves in-flight proposals
 
 Retiring a type SHALL prevent new proposals from being created under it while leaving existing

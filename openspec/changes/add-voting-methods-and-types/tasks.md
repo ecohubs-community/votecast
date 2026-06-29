@@ -2,9 +2,10 @@
 
 - [ ] 1.1 Draft the Method Module interface (`ballotSchema`, `validateVote`, `tallyVotes`, ballot/results UI contract)
 - [ ] 1.2 Run the interface on paper against async-window consensus (silence = consent, reasoned paramount objection, 2-week window)
-- [ ] 1.3 Run it against pol.is — and DECIDE: real opinion clustering/sensemaking vs. multiple sub-questions (settles its data model)
+- [ ] 1.3 Run it against Common Ground as `multi-question` (per-aspect tally; clustering confirmed deferred per D10)
 - [ ] 1.4 Run it against sociocracy with a 2/3 fallback (decision-rule escalation)
-- [ ] 1.5 GATE: update design.md (D1/D2), the proposal, and `specs/voting-methods` to match the proven interface before any module is built
+- [ ] 1.5 Run it against a result-SET method (ranked/IRV or multi-winner) to confirm the tally output shape from D9 holds
+- [ ] 1.6 GATE: update design.md (D1/D2/D9), the proposal, and `specs/voting-methods` to match the proven interface before any module is built
 
 ## 2. Gate: Data model sketch
 
@@ -25,11 +26,15 @@
 
 ## 4. Schema & migration
 
-- [ ] 4.1 Add proposal-type, type-version, and method-config tables to `governance.schema.ts`
-- [ ] 4.2 Add/adjust ballot storage for module-varying votes
-- [ ] 4.3 Seed 1–3 preset types per community (and at community-creation time)
-- [ ] 4.4 Back-fill existing communities/proposals to a default type version; pin every proposal's `typeVersionId`
-- [ ] 4.5 Replace `proposal.status` (`draft/active/closed`) with phase states (deliberation/voting/objection-window/finalized) + outcome states (passed/failed/blocked/tie/quorum-not-met/indeterminate); migrate existing rows
+> **First build step = 4.1, and it is gated on Gate 1.** Ballot storage must be generalized before
+> any module is built, because the column shape (rank/score/credits, question grouping) is decided by
+> the Method Module contract. Do not start 4.1 until Gate 1 (tasks 1.x) has closed. (Design D11.)
+
+- [ ] 4.1 **(first build step, gated on Gate 1)** Generalize ballot storage per D11: add `ballot_question` + `vote_selection`, extend `proposal_choice` with `questionId`; migrate each existing single-choice vote to one `vote_selection` row; keep `uniqueIndex(proposalId, userId)` as the one-ballot-per-voter guard
+- [ ] 4.2 Add proposal-type, type-version, and method-config tables to `governance.schema.ts`
+- [ ] 4.3 Replace `proposal.status` (`draft/active/closed`) with phase states (deliberation/voting/objection-window/finalized) + outcome states (passed/failed/blocked/tie/quorum-not-met/indeterminate); migrate existing rows
+- [ ] 4.4 Seed 1–3 preset types per community (and at community-creation time)
+- [ ] 4.5 Back-fill existing communities/proposals to a default type version; pin every proposal's `typeVersionId`
 - [ ] 4.6 Generate and run the Drizzle migration; remove `proposal.strategyId` after dispatch + back-fill verify
 
 ## 5. Method Module registry & first modules
@@ -38,10 +43,11 @@
 - [ ] 5.2 Replace the `onePersonOneVote`-only guard in `proposal-service.ts` with module dispatch (validate/tally)
 - [ ] 5.3 Implement core modules: single-choice (simple/absolute/super-majority), consent (consensus / consensus-minus-N / fallback)
 - [ ] 5.4 Implement eligibility gates (all-members, trained/quiz) and weight axes wiring (1p1v first)
-- [ ] 5.5 Implement the pol.is module per the Gate-1 decision
+- [ ] 5.5 Implement the `multi-question` (Common Ground) module: per-aspect tally + configurable sub-question contribution (who/when), question-set frozen at voting-open
 - [ ] 5.6 Implement stand-aside (non-blocking) and per-method vote mutability (change/retract while phase open)
-- [ ] 5.7 Resolve tallies to explicit outcome states incl. tie / quorum-not-met / blocked / indeterminate
-- [ ] 5.8 Unit-test each module's `validateVote`/`tallyVotes` against its hard case (incl. each outcome state)
+- [ ] 5.7 Model the tally as a result-set (single-winner / pass-fail / per-sub-question) and resolve explicit outcome states (tie / quorum-not-met / blocked / indeterminate)
+- [ ] 5.8 Enforce "methods declare honored knobs": reject unsupported or contradictory config combinations
+- [ ] 5.9 Unit-test each module's `validateVote`/`tallyVotes` against its hard case (incl. each outcome state)
 
 ## 6. Process, events & side-effects
 

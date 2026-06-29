@@ -24,7 +24,7 @@ and the schema already carries useful seams: `vote.metadataJson`, the `webhook` 
 - Ship working **presets** so a community gets sensible methods with zero configuration, adjustable
   where needed (progressive disclosure).
 - Support consensus, consensus-minus-N, consent/sociocracy (with majority fallback),
-  simple/absolute/super-majority, and pol.is sensemaking under one model.
+  simple/absolute/super-majority, and Common Ground sensemaking under one model.
 - Per-community **Proposal Types** that bundle a method + deliberation time, with **immutable
   versioning** so proposals pin the exact method they were created under.
 - Reuse the event/plugin system for **process side-effects** (notifications, webhooks, git export)
@@ -45,7 +45,7 @@ and the schema already carries useful seams: `vote.metadataJson`, the `webhook` 
 ```
 METHOD = eligibility · ballot · weight · decisionRule · process · visibility
   1 eligibility   all-members │ trained(quiz) │ token-holders │ reputation≥N
-  2 ballot        single │ approval │ ranked │ score │ consent │ polis
+  2 ballot        single │ approval │ ranked │ score │ consent │ multi-question (Common Ground)
   3 weight        1p1v │ token │ quadratic │ reputation        (= today's strategyId)
   4 decisionRule  simple/absolute/super-majority │ consensus │ consensus-minus-N │
                   consent(no-paramount-objection) │ + optional fallback escalation
@@ -64,17 +64,17 @@ method → rejected; explodes combinatorially and duplicates logic.
 Registry A: METHOD MODULES (core, first-party, versioned)   Registry B: EVENT PLUGINS (safe)
   ballotSchema + validateVote + tallyVotes                    subscribe to lifecycle events
   + BallotComponent + ResultsComponent                        notifications, webhooks, git export,
-  e.g. single-choice, consent, ranked, polis                  analytics, external-resolver call
+  e.g. single-choice, consent, ranked, multi-question         analytics, external-resolver call
   → CHANGES core governance rules                             → MUST NOT change governance rules
 ```
 
-pol.is and consent change the ballot model + tally + UI, which is a *core governance rule* — the
+Common Ground (multi-question) and consent change the ballot model + tally + UI, which is a *core governance rule* — the
 spec forbids plugins from touching those ([05_events_plugins_hooks.md:247](../../../specs/05_events_plugins_hooks.md)).
 So they are **Method Modules**, not event-plugins. The existing plugin system
 (`voting-analytics.ts`) is the right home for the *process side-effects* only. The UI may present
 both registries under one unified "Extensions" surface so it *feels* like installing plugins, while
 the architecture keeps two registries with different trust/capability profiles.
-**Alternative considered:** make pol.is a plugin by letting plugins register ballots+UI → rejected;
+**Alternative considered:** make Common Ground a plugin by letting plugins register ballots+UI → rejected;
 blurs the "no core changes" rule and re-opens the untrusted-code security problem.
 
 ### D3 — Process decomposes into phases, stop conditions, visibility, and event wiring
@@ -103,6 +103,12 @@ ProposalType "Constitutional" (community-scoped)
 
 A `TypeVersion` freezes the **whole method** (all 6 axes + deliberation time). Every proposal stores
 its `typeVersionId`. 1–3 presets are seeded at community creation so proposing works immediately.
+
+**Per-proposal "Advanced" override:** when a proposer overrides axes for a single proposal, the
+effective method differs from the type version. We do **not** fork the type. Instead the proposal
+stores its own **ad-hoc method snapshot**, and still records the originating `typeVersionId` as
+provenance. So a proposal's effective method = its override snapshot if present, else its pinned type
+version. (A community MAY disable overrides on a type to enforce its method.)
 **Decision to finalize later (D-open):** generic side-effect *wiring* (webhook URLs, notification
 toggles) is modeled as community-level subscriptions that filter by type, **not** versioned — so an
 admin can retarget a webhook without forking type history. See `deferred.md` §3.
@@ -157,6 +163,105 @@ exposure (open ballot vs. secret ballot). Consensus is typically open (you see w
 sensitive vote may be secret with an on-close tally. Both are stored, enforced at the read/query
 layer, and frozen into the TypeVersion.
 
+### D9 — A method/config catalog the axes must express (built-now is a small subset)
+
+The whole point of D1 is that adding a method should be a *configuration*, not new code. So the
+design commits to a **catalog** the model must be able to express, while only a small subset ships
+in this change. If a listed method can't be expressed by the axes, the axis model is wrong — these
+double as Gate-1 pressure-test cases.
+
+```
+DECISION RULES / TALLIES (ballot in parens)
+  built now ▶ simple majority · absolute majority · super-majority(N%) · consensus ·
+              consensus-minus-N · consent(no paramount objection, w/ optional fallback) ·
+              multi-question / Common Ground (per-aspect tally)
+  expressible, later ▶ ranked / instant-runoff(IRV) · STAR(score-then-runoff) · Condorcet ·
+              Borda · approval · score/range · cumulative · single-transferable-vote(STV) ·
+              proportional/multi-winner · double-majority (e.g. members AND households) ·
+              rough consensus · conviction voting (weight accrues over time) · sortition (by lot)
+
+CONFIG KNOBS (cross-cutting; each method declares which it honors)
+  built now ▶ quorum(count|%) · pass threshold(%) · deliberation time · voting window ·
+              vote mutability · secret/open ballot · tally-reveal timing · stop-on-Nth-objection ·
+              sub-question contribution (who/when, frozen at voting-open — D10)
+  expressible, later ▶ abstain handling (counts toward quorum/denominator?) ·
+              tie-break policy (fail|random|extend|chair-casting-vote) ·
+              early closure (when outcome is mathematically settled) · auto-extension if no quorum ·
+              sponsorship/seconding threshold (N co-sponsors before a proposal reaches the ballot) ·
+              eligibility snapshot timing (at create | voting-open) · minimum membership tenure ·
+              min/max selections (approval) · write-in options · re-proposal cooldown · admin/council veto
+```
+
+Result shape is modeled as a **result-set**, not a single winner, so multi-winner/proportional and
+ranked methods fit later without reshaping storage. **Alternative considered:** model only what
+ships now → rejected; we'd bake single-winner assumptions into the schema and pay to undo them.
+
+### D10 — "Common Ground" name, neutral code ids, and the no-pol.is-dependency verdict
+
+The pol.is software is **AGPL-3.0** and a multi-language stack (JS/Python/TS/**Clojure** math engine);
+its only embedding story is an **iframe to their hosted service** (their UI, their data) — there is
+no clean headless API to drive our own UI. Therefore:
+
+- We will **not** take a pol.is runtime dependency. The sensemaking/clustering capability is
+  **reimplemented as our own code** from the published method (PCA → k-means with silhouette-chosen
+  k → representative statements via comparative z-scores) on standard ML libraries. Methods aren't
+  copyrightable; only their code is, and we write fresh code → no AGPL entanglement.
+- User-facing brand name: **Common Ground**. **Code identifiers stay neutral and decoupled** from
+  the brand: `multi-question` (ships now), `sensemaking`/`opinion-map` (clustering, later). Never
+  `polis` anywhere.
+- **Sub-question contribution** (the `multi-question` module): configurable `contributors`
+  (`proposer` | `members`) × `contributionPhase` (`creation` | `deliberation`), default
+  `proposer`/`creation`. **The ballot question-set freezes when voting opens** — member
+  contributions are only accepted during deliberation, which keeps every question tallied on equal
+  exposure (and gives the deliberation phase a concrete job).
+
+**Alternative considered:** self-host the full pol.is stack and build our UI on it → rejected; AGPL
+ambiguity + Clojure/Postgres ops + a backend not designed to be headless. Optional research-only
+spike: run self-hosted pol.is once as a reference oracle to validate our reimplementation.
+
+### D11 — Generalize ballot storage to multiple selections (first build step, gated on the contract)
+
+Today `vote` holds a single `choiceId` (notNull) under `uniqueIndex(proposalId, userId)` — one choice
+per voter. That assumption is broken by something **in scope now**: the `multi-question` (Common
+Ground) module has a voter answer N sub-questions, and the later ranked/approval/score/cumulative
+family all need several selections (with a rank/score/credit) per voter. So this is not a future
+concern — it is load-bearing for this change.
+
+Feasibility of the catalog against today's schema (the honest split):
+
+```
+CONFIG KNOBS                          ✅ mostly free — live in the versioned method-config JSON, or
+  quorum, threshold, tie-break,          are queryable from existing rows; no schema change
+  abstain, early-close, auto-extend,
+  tenure, cooldown                     ⚠️ sponsorship threshold / eligibility snapshot need a small
+                                          additive table + a pre-voting lifecycle state
+BALLOTS needing many selections        ❌ NOT supported today — single choiceId + unique index
+  approval, ranked/IRV, STAR, Borda,      blocks them; multi-question (in scope) hits this now
+  Condorcet, score, cumulative
+BIGGER FEATURES                        ➕ additive (new tables), not blocked — except conviction
+  delegation, multi-winner/STV,           voting, which breaks the notNull start/end-time model
+  sortition, conviction voting
+```
+
+Provisional shape (exact columns are decided by Gate 1 — that is why the migration follows the
+contract, not precedes it):
+
+```
+ballot_question   id, proposalId, prompt, position     (null/implicit for single-question ballots)
+proposal_choice   + questionId                         (a choice belongs to a question)
+vote_selection    NEW — id, proposalId, userId, questionId?, choiceId, rank?, score?, credits?, position
+vote              stays the per-(proposal,user) ENVELOPE: votingPower, secrecy, signature, timestamps;
+                  drop the single choiceId; keep uniqueIndex(proposalId,userId) = "one ballot per voter"
+```
+
+**Sequencing:** pin the Method Module contract (Gate 1) → land this migration as the **first build
+step**, immediately exercised by the consent + multi-question modules → then everything else.
+**Alternatives considered:** (a) build the migration cold before Gate 1 → rejected; column shape is
+contract-dependent and would re-migrate. (b) ship it as a standalone precursor change → workable for
+incremental merges, but it has no consumer to verify against, so we keep it as task group 4 here.
+**Migration:** existing single-choice votes map to one `vote_selection` row each; the back-fill in
+the migration plan above runs in the same step.
+
 ## Risks / Trade-offs
 
 - **Interface churn** → Tasks 1–3 are explicit gates that may rewrite the schema/specs; we accept a
@@ -167,8 +272,13 @@ layer, and frozen into the TypeVersion.
 - **Cross-axis invalid combinations** → a method config could be internally contradictory (e.g.
   hidden-forever + member-visible early stop). (Mitigation: a validity-rules layer, grown over time;
   see `deferred.md` §5.)
-- **pol.is scope creep** → real opinion-clustering is a meaningfully larger build than "multiple
-  sub-questions." (Mitigation: Task 1 must decide pol.is's true data model before committing UI.)
+- **Common Ground scope creep** → real opinion-clustering is a meaningfully larger build than
+  "multiple sub-questions." (Mitigation: this change ships only `multi-question`; clustering is a
+  later module — D10.)
+- **Delegation / multi-winner change core assumptions** → liquid democracy lets one identity hold
+  many votes, and proportional elections return a *set* of winners, not a pass/fail. (Mitigation:
+  the tally result is modeled as a result-set from the start (D9); the delegation/multi-winner
+  *modules* are deferred but the data shapes do not preclude them.)
 - **External resolver reliability/security** → network calls in the decision path. (Mitigation:
   signed payloads, timeouts, retries, and a defined fallback when the resolver is unreachable.)
 - **Versioning storage growth** → frozen snapshots per edit. (Mitigation: acceptable; snapshots are
@@ -200,7 +310,7 @@ The first three tasks are **gates**. Each may revise this design, the proposal, 
 downstream work starts:
 
 1. **Method Module contract pressure-test** — write the `validateVote` / `tallyVotes` / ballot-schema
-   interface and run it (on paper) against three hard cases: async-window consensus, pol.is
+   interface and run it (on paper) against three hard cases: async-window consensus, Common Ground
    sensemaking, sociocracy-with-2/3-fallback. *Outcome must update D1/D2 and the `voting-methods`
    spec before any module is built.*
 2. **Data model sketch** — Type → TypeVersion → method config, proposal version pinning, and
@@ -213,8 +323,8 @@ proceed.
 
 ## Open Questions
 
-- Is pol.is "real clustering/sensemaking" or "multiple sub-questions on one proposal"? (Decided in
-  Task 1.)
+- ~~Is Common Ground "real clustering" or "multiple sub-questions"?~~ **Decided (D10):** ships as
+  `multi-question`; clustering deferred to its own module. (Confirmed in Task 1.)
 - Exact boundary of what a `TypeVersion` freezes vs. community-level wiring (D4 / `deferred.md` §3).
 - Default fallback behavior when an external resolver is unreachable.
 - Minimum facilitator-visibility needed to support early-stop under `hidden-forever`.

@@ -11,7 +11,7 @@ A future change can grow it into a real discussion surface:
 
 - Threaded comments / Q&A on the proposal during deliberation.
 - Proposal **amendments** (proposer edits in response to feedback, with history).
-- Sensemaking / clustering of comments (overlaps with pol.is data model).
+- Sensemaking / clustering of comments (overlaps with Common Ground clustering — §5c).
 - Community-level toggle: a community decides whether deliberation is "just a timer" or
   "a timer + discussion surface."
 - Candidate for a **paid tier** — it is additive and gated cleanly.
@@ -62,14 +62,21 @@ there is no email/push/Discord transport today. A future change should add real 
 (email first, then push/Discord), per-member preferences, digesting, and retry/backoff. The event
 catalog (Task 3) is designed so adding channels later requires no changes to event emission.
 
-## 5c. Real pol.is opinion-clustering
+## 5c. Common Ground — real opinion-clustering (our own code, not pol.is)
 
-This change scopes pol.is to **multiple sub-questions** (a fixed multi-part ballot, tallied per
-aspect). A future change can add true opinion-clustering as a separate Method Module: participant-
-submitted statements, an agree/disagree/pass vote matrix, PCA + k-means clustering, a live opinion-
-group/consensus visualization, and statement moderation. It is sensemaking (no pass/fail outcome),
-so it interacts differently with the decision-rule axis — likely feeding a later decision rather
-than producing one.
+This change scopes **Common Ground** to **multiple sub-questions** (module `multi-question`: a
+multi-part ballot, tallied per aspect). A future change adds true opinion-clustering as a separate
+module (`sensemaking`/`opinion-map`).
+
+Integration verdict (decided, see design D10): we will **not** depend on the pol.is software. It is
+**AGPL-3.0**, a multi-language stack (JS/Python/TS/Clojure), and only embeddable via an iframe to
+their hosted service (their UI + data) — there is no headless API for our own UI. Instead we
+**reimplement the published method as our own code**: participant-submitted statements →
+agree/disagree/pass vote matrix → PCA → k-means (k chosen by silhouette) → representative statements
+per group via comparative z-scores, on standard ML libraries. Methods aren't copyrightable, so a
+fresh implementation carries no AGPL obligation. Optional research-only spike: run self-hosted pol.is
+once as a reference oracle to validate our output. Note: clustering is *sensemaking* (no intrinsic
+pass/fail), so it feeds a later decision rather than producing one.
 
 ## 5d. Distinct facilitator / moderator / observer roles
 
@@ -77,6 +84,37 @@ This change maps facilitator powers onto `admin`. [06_auth_identity.md](../../..
 lists `moderator`, `facilitator`, `observer` as future roles. A later change can introduce a real
 facilitator role (can see/judge objections under hidden tallies without full admin rights) and an
 observer role (can watch but not vote).
+
+## 5e. Liquid democracy / delegation
+
+Let a member delegate their vote to a trusted delegate, optionally per topic/type/category, with
+transitive delegation and the ability to override on a specific proposal. This is cross-cutting: it
+changes the voting-power model (one identity may carry many delegated votes) and interacts with
+quorum, secret ballot (delegation chains are usually public), and eligibility snapshots. Big enough
+to be its own change; the result-set/voting-power shapes in D9 are designed not to preclude it.
+
+## 5f. Multi-winner / proportional elections
+
+Electing a council/board needs methods that return a *set* of winners: single-transferable-vote
+(STV), proportional approval, cumulative voting. The tally already returns a result-set (D9), so the
+storage shape is ready; the modules + a seat-count config + results UI are the deferred work.
+
+## 5g. Advanced config knobs (expressible by the axes, built later)
+
+Recognized in design D9 but not built in this change. Each becomes a small follow-up once demand
+appears: abstain handling (counts toward quorum/denominator?), tie-break policy
+(fail/random/extend/chair-casting-vote), early closure when an outcome is mathematically settled,
+auto-extension when quorum is unmet, **sponsorship/seconding threshold** (N co-sponsors before a
+proposal reaches the ballot — adds a pre-voting lifecycle state), eligibility snapshot timing,
+minimum membership tenure, min/max selections (approval), write-in options, re-proposal cooldown,
+and admin/council veto.
+
+## 5h. Conviction voting & sortition
+
+Two further methods the axis model should accommodate but that are out of scope here: **conviction
+voting** (a vote's weight accrues the longer it is held — good for continuous funding decisions with
+no hard deadline; needs a time-integral tally and a continuous, deadline-less process) and
+**sortition** (selection by lot — used in citizen assemblies). Both are expressible later as modules.
 
 ## 5. Cross-axis validity rules (grows over time)
 

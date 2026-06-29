@@ -117,3 +117,51 @@ stored server-side for eligibility and mutability but SHALL NOT be exposed to ot
 #### Scenario: Hidden-forever tally
 - **WHEN** a method is configured hidden-forever
 - **THEN** the aggregate tally SHALL NOT be revealed to members at any point, while remaining available to a facilitator as required to run the method
+
+### Requirement: Multi-question (Common Ground) ballots with configurable contribution
+
+The `multi-question` ballot SHALL present several sub-questions, each tallied independently. The
+method SHALL configure who may contribute sub-questions (proposer, or members) and in which phase
+(at creation, or during deliberation). The sub-question set SHALL be frozen when the voting phase
+opens, so that every counted question received equal exposure.
+
+#### Scenario: Member contributes a sub-question during deliberation
+- **WHEN** a method allows member contribution during deliberation and a member adds a sub-question before voting opens
+- **THEN** the sub-question SHALL be included in the ballot for all voters
+
+#### Scenario: Contribution rejected after voting opens
+- **WHEN** a member attempts to add a sub-question after the voting phase has opened
+- **THEN** the system SHALL reject it and the ballot question-set SHALL remain unchanged
+
+#### Scenario: Each sub-question tallied independently
+- **WHEN** a multi-question proposal closes
+- **THEN** the result SHALL report a per-sub-question tally rather than a single combined winner
+
+### Requirement: Tally produces a result-set, not a single winner
+
+A module's tally output SHALL be modeled as a result-set so that single-winner, pass/fail,
+per-sub-question, and (in future) multi-winner/proportional outcomes are all representable without
+changing the storage shape.
+
+#### Scenario: Single-winner result
+- **WHEN** a single-choice proposal closes
+- **THEN** the result-set SHALL contain the one winning choice and its supporting statistics
+
+#### Scenario: Multi-outcome result
+- **WHEN** a multi-question proposal closes
+- **THEN** the result-set SHALL contain one entry per sub-question
+
+### Requirement: Methods declare honored configuration knobs
+
+Each method SHALL declare which configuration knobs it honors (e.g. quorum, pass threshold,
+deliberation time, voting window, vote mutability, ballot secrecy, tally-reveal timing,
+stop conditions). The system SHALL reject a proposal configured with a knob the chosen method does
+not honor, or with an internally contradictory combination.
+
+#### Scenario: Unsupported knob rejected
+- **WHEN** a method that does not support quorum is configured with a quorum requirement
+- **THEN** the system SHALL reject the configuration with an explanatory error
+
+#### Scenario: Quorum honored
+- **WHEN** a method that supports quorum is configured with a 50% quorum and participation is below 50% at close
+- **THEN** the outcome SHALL be `quorum-not-met`
