@@ -157,6 +157,9 @@
 			<h1 class="page-title">Settings</h1>
 			<p class="page-sub">{data.community.name}</p>
 		</div>
+		<a href={resolve(`/communities/${data.community.slug}/types`)} class="btn btn-ghost">
+			Proposal types
+		</a>
 	</header>
 
 	<nav class="tabs">
