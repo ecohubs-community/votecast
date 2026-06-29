@@ -7,6 +7,7 @@ import {
 	resolveMethodSnapshot,
 	backfillVotingMethods
 } from './proposal-type-service';
+import { resolveProposalPhase } from './proposal-phase';
 import { PRESET_TYPES, LEGACY_SNAPSHOT } from '$lib/server/voting';
 
 let db: TestDb;
@@ -108,5 +109,26 @@ describe('backfillVotingMethods', () => {
 		const second = await backfillVotingMethods(db);
 		expect(second.communitiesSeeded).toBe(0);
 		expect(second.proposalsPinned).toBe(0);
+	});
+});
+
+describe('resolveProposalPhase (method timing → phase, DB-backed)', () => {
+	const DAY = 86_400_000;
+	it('uses the Constitutional method window to resolve the full lifecycle', async () => {
+		const comm = await seedCommunity(db, userId);
+		const map = seedPresetTypesSync(db, comm.id, userId); // Constitutional: 7d delib, 14d objection window
+		// Voting window: day 10 → day 11.
+		const { proposal: p } = await seedProposal(db, comm.id, userId, {
+			typeVersionId: map['Constitutional'],
+			startTime: new Date(10 * DAY),
+			endTime: new Date(11 * DAY)
+		});
+		const at = (n: number) => resolveProposalPhase({ ...p }, n * DAY, db);
+
+		expect(await at(2)).toBe('draft'); // before deliberation (starts day 3)
+		expect(await at(5)).toBe('deliberation'); // within [day 3, day 10)
+		expect(await at(10.5)).toBe('voting'); // within [day 10, day 11)
+		expect(await at(12)).toBe('objection-window'); // within [day 11, day 25)
+		expect(await at(30)).toBe('finalized'); // after end + 14d window
 	});
 });

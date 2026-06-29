@@ -3,6 +3,7 @@ import { db as defaultDb } from '$lib/server/db';
 import { proposal } from '$lib/server/db/schema';
 import { emit } from '../events';
 import { aggregateResults } from './proposal-results';
+import { resolveProposalPhase } from './proposal-phase';
 import type { Database } from './types';
 
 export type ProposalRecord = typeof proposal.$inferSelect;
@@ -23,7 +24,6 @@ export async function transitionProposalStatus(
 ): Promise<ProposalRecord> {
 	const now = Date.now();
 	let newStatus = p.status;
-	const originalStatus = p.status;
 
 	if (p.status === 'draft' && p.startTime.getTime() <= now) {
 		newStatus = 'active';
@@ -35,22 +35,41 @@ export async function transitionProposalStatus(
 		newStatus = 'closed';
 	}
 
-	if (newStatus !== originalStatus) {
-		await db.update(proposal).set({ status: newStatus }).where(eq(proposal.id, p.id));
+	// New phase model (dual-written alongside the legacy status until 4.6).
+	const newPhase = await resolveProposalPhase(p, now, db);
 
-		// Emit events after successful DB write.
-		if (newStatus === 'active') {
-			emit('proposal.started', { proposalId: p.id, communityId: p.communityId });
-		}
-		if (newStatus === 'closed') {
-			const results = await aggregateResults(p.id, db);
-			emit('proposal.closed', { proposalId: p.id, communityId: p.communityId, results });
-		}
+	const statusChanged = newStatus !== p.status;
+	const phaseChanged = newPhase !== p.phase;
+	if (!statusChanged && !phaseChanged) return p;
 
-		return { ...p, status: newStatus };
+	await db
+		.update(proposal)
+		.set({
+			...(statusChanged ? { status: newStatus } : {}),
+			...(phaseChanged ? { phase: newPhase } : {})
+		})
+		.where(eq(proposal.id, p.id));
+
+	// Emit events after the successful DB write.
+	if (statusChanged && newStatus === 'active') {
+		emit('proposal.started', { proposalId: p.id, communityId: p.communityId });
+	}
+	if (statusChanged && newStatus === 'closed') {
+		const results = await aggregateResults(p.id, db);
+		emit('proposal.closed', { proposalId: p.id, communityId: p.communityId, results });
+	}
+	if (phaseChanged && newPhase === 'deliberation') {
+		emit('deliberation.started', { proposalId: p.id, communityId: p.communityId });
+	}
+	if (phaseChanged && newPhase === 'finalized') {
+		emit('proposal.finalized', {
+			proposalId: p.id,
+			communityId: p.communityId,
+			outcome: p.outcome ?? 'recorded'
+		});
 	}
 
-	return p;
+	return { ...p, status: newStatus, phase: newPhase };
 }
 
 /**

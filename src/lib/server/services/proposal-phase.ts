@@ -1,7 +1,5 @@
-import { eq } from 'drizzle-orm';
 import { db as defaultDb } from '$lib/server/db';
-import { proposalTypeVersion } from '$lib/server/db/schema';
-import { resolveMethodSnapshot } from './proposal-type-service';
+import { resolveMethodContext } from './proposal-type-service';
 import type { Database } from './types';
 
 /** Lifecycle phase — where a proposal is in its process (design D7). Matches the `proposals.phase` enum. */
@@ -53,17 +51,7 @@ export async function resolveProposalPhase(
 	now: number,
 	db: Database = defaultDb
 ): Promise<ProposalPhase> {
-	const snapshot = await resolveMethodSnapshot(prop, db);
-
-	let deliberationSeconds = 0;
-	if (prop.typeVersionId && !prop.methodOverrideJson) {
-		const [v] = await db
-			.select({ seconds: proposalTypeVersion.deliberationSeconds })
-			.from(proposalTypeVersion)
-			.where(eq(proposalTypeVersion.id, prop.typeVersionId))
-			.limit(1);
-		deliberationSeconds = v?.seconds ?? 0;
-	}
+	const { snapshot, deliberationSeconds } = await resolveMethodContext(prop, db);
 
 	return computePhase(
 		{

@@ -35,7 +35,10 @@ export function validateChoices(choices: unknown): asserts choices is string[] {
 			throw new ServiceError(ErrorCode.INVALID_CHOICES, 'Each choice must be a non-empty string');
 		}
 		if (choice.trim().length > 200) {
-			throw new ServiceError(ErrorCode.INVALID_CHOICES, 'Each choice must be at most 200 characters');
+			throw new ServiceError(
+				ErrorCode.INVALID_CHOICES,
+				'Each choice must be at most 200 characters'
+			);
 		}
 	}
 }

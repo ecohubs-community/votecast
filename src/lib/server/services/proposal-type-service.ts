@@ -64,26 +64,51 @@ function parseSnapshot(json: string, source: string): MethodSnapshot | null {
 	return null;
 }
 
+export interface MethodContext {
+	snapshot: MethodSnapshot;
+	deliberationSeconds: number;
+}
+
 /**
- * Resolve a proposal's effective method (design D4): an ad-hoc override snapshot wins; otherwise the
- * pinned type version; otherwise the legacy onePersonOneVote equivalent (pre-back-fill / corrupt-data safety).
+ * Resolve a proposal's effective method AND deliberation time in a single read (design D4): an
+ * ad-hoc override wins (no deliberation); otherwise the pinned type version; otherwise the legacy
+ * onePersonOneVote equivalent. Used by the phase engine and tally so they share one query.
  */
+export async function resolveMethodContext(
+	prop: { methodOverrideJson: string | null; typeVersionId: string | null },
+	db: Database = defaultDb
+): Promise<MethodContext> {
+	if (prop.methodOverrideJson) {
+		return {
+			snapshot: parseSnapshot(prop.methodOverrideJson, 'proposal override') ?? LEGACY_SNAPSHOT,
+			deliberationSeconds: 0
+		};
+	}
+	if (prop.typeVersionId) {
+		const [v] = await db
+			.select({
+				snap: proposalTypeVersion.methodSnapshotJson,
+				seconds: proposalTypeVersion.deliberationSeconds
+			})
+			.from(proposalTypeVersion)
+			.where(eq(proposalTypeVersion.id, prop.typeVersionId))
+			.limit(1);
+		if (v) {
+			return {
+				snapshot: parseSnapshot(v.snap, `type version ${prop.typeVersionId}`) ?? LEGACY_SNAPSHOT,
+				deliberationSeconds: v.seconds ?? 0
+			};
+		}
+	}
+	return { snapshot: LEGACY_SNAPSHOT, deliberationSeconds: 0 };
+}
+
+/** Resolve just the effective method snapshot (override → pinned version → legacy). */
 export async function resolveMethodSnapshot(
 	prop: { methodOverrideJson: string | null; typeVersionId: string | null },
 	db: Database = defaultDb
 ): Promise<MethodSnapshot> {
-	if (prop.methodOverrideJson) {
-		return parseSnapshot(prop.methodOverrideJson, 'proposal override') ?? LEGACY_SNAPSHOT;
-	}
-	if (prop.typeVersionId) {
-		const [v] = await db
-			.select({ snap: proposalTypeVersion.methodSnapshotJson })
-			.from(proposalTypeVersion)
-			.where(eq(proposalTypeVersion.id, prop.typeVersionId))
-			.limit(1);
-		if (v) return parseSnapshot(v.snap, `type version ${prop.typeVersionId}`) ?? LEGACY_SNAPSHOT;
-	}
-	return LEGACY_SNAPSHOT;
+	return (await resolveMethodContext(prop, db)).snapshot;
 }
 
 /**

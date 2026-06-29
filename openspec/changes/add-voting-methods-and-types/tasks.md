@@ -34,7 +34,7 @@
 - [x] 4.2 Added `proposal_type` + `proposal_type_version` tables (method is a JSON snapshot, not a table — D12) to `governance.schema.ts`
 - [~] 4.3 Phase + outcome **columns** added to `proposals` (legacy `status` kept for transition). The status→phase/outcome **data back-fill** stages with group 6 (needs phase logic) — pending
 - [x] 4.4 Preset types (`voting/presets.ts`: Quick poll / Operational / Constitutional) seeded on community creation via `seedPresetTypesSync` (wired into `createCommunity`); `resolveMethodSnapshot` reads override → version → legacy
-- [~] 4.5 `backfillVotingMethods` (idempotent: seed presets, pin proposals to Quick poll v1, map status→phase/outcome) built + tested (6 tests). Executing it on `local.db` runs at the vote-path switch (needs SvelteKit `$env`); not required until then since nothing reads `typeVersionId` yet
+- [x] 4.5 `backfillVotingMethods` built, tested, and **executed on `local.db`** (3 communities seeded, 4 proposals pinned to Quick poll v1, status→phase/outcome mapped, 0 skipped; DB backed up first)
 - [~] 4.6 Migration `0002` **APPLIED to local.db** (baselined drizzle's migration journal first — DB was built via `push`, so `0000`/`0001` weren't recorded; data preserved: 5 votes / 4 proposals intact). Still TODO in 4.6: remove legacy `proposal.strategyId`/`status` and `vote.choice_id`/`metadata_json` AFTER dispatch (group 5) + back-fill verify
 
 ## 5. Method Module registry & first modules
@@ -55,7 +55,7 @@
 > path, and need the **4.4/4.5 back-fill** done first (the phase engine has no method to read until
 > proposals are pinned to a type version). Sequence: 4.4/4.5 → 6.1 → 6.2/6.3 → 6.4/6.5/6.6 → 4.6.
 
-- [~] 6.1 Phase engine implemented + tested (`proposal-phase.ts`: pure `computePhase` over deliberation/voting/objection-window/finalized + `resolveProposalPhase` + `isVotingOpen`; 5 boundary tests). Wiring it into the live `transitionProposalStatus` happens at the vote-path switch (with the back-fill). Also: split `proposal-service.ts` (573→397) into validation/results/lifecycle modules (SRP)
+- [x] 6.1 Phase engine (`proposal-phase.ts`: `computePhase` + `resolveProposalPhase` + `isVotingOpen`) **wired into the live `transitionProposalStatus`** (dual-writes `phase` alongside legacy `status`; emits `deliberation.started`/`proposal.finalized`). Tests: 5 pure boundary + 1 DB-backed full-lifecycle. Also split `proposal-service.ts` (573→397) into validation/results/lifecycle (SRP). One read shared via `resolveMethodContext`
 - [ ] 6.2 Implement transition/stop conditions (stop on Nth objection / threshold / quorum / never) and the visibility axis (live / on-close / hidden-forever)
 - [~] 6.3 Lifecycle event catalog **types** added (D13: deliberation.started, subquestion.added, objection.raised, voting.closing-soon, outcome.decided, proposal.finalized). Emitting them from real phase transitions stages with 6.1
 - [ ] 6.4 Enforce voter-identity visibility (open vs. secret ballot) at the read/query layer, distinct from tally-reveal timing
