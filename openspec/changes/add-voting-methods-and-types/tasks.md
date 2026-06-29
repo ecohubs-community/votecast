@@ -55,7 +55,7 @@
 > path, and need the **4.4/4.5 back-fill** done first (the phase engine has no method to read until
 > proposals are pinned to a type version). Sequence: 4.4/4.5 → 6.1 → 6.2/6.3 → 6.4/6.5/6.6 → 4.6.
 
-- [ ] 6.1 Implement process phases & timing (deliberation → voting → optional async objection window) — needs 4.4/4.5
+- [~] 6.1 Phase engine implemented + tested (`proposal-phase.ts`: pure `computePhase` over deliberation/voting/objection-window/finalized + `resolveProposalPhase` + `isVotingOpen`; 5 boundary tests). Wiring it into the live `transitionProposalStatus` happens at the vote-path switch (with the back-fill). Also: split `proposal-service.ts` (573→397) into validation/results/lifecycle modules (SRP)
 - [ ] 6.2 Implement transition/stop conditions (stop on Nth objection / threshold / quorum / never) and the visibility axis (live / on-close / hidden-forever)
 - [~] 6.3 Lifecycle event catalog **types** added (D13: deliberation.started, subquestion.added, objection.raised, voting.closing-soon, outcome.decided, proposal.finalized). Emitting them from real phase transitions stages with 6.1
 - [ ] 6.4 Enforce voter-identity visibility (open vs. secret ballot) at the read/query layer, distinct from tally-reveal timing

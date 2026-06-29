@@ -1,0 +1,77 @@
+import { eq } from 'drizzle-orm';
+import { db as defaultDb } from '$lib/server/db';
+import { proposalTypeVersion } from '$lib/server/db/schema';
+import { resolveMethodSnapshot } from './proposal-type-service';
+import type { Database } from './types';
+
+/** Lifecycle phase — where a proposal is in its process (design D7). Matches the `proposals.phase` enum. */
+export type ProposalPhase = 'draft' | 'deliberation' | 'voting' | 'objection-window' | 'finalized';
+
+export interface PhaseTiming {
+	startTime: Date; // voting opens
+	endTime: Date; // voting closes
+	deliberationSeconds: number; // length of the pre-voting deliberation window (0 = none)
+	objectionWindowSeconds: number; // async objection window after voting closes (0 = none)
+}
+
+/**
+ * Pure phase computation from a method's timing (design D7). The deliberation window ends at
+ * `startTime` (so it spans `[startTime - deliberation, startTime)`); the objection window follows
+ * `endTime`. No side effects — trivially testable.
+ *
+ *   draft → deliberation → voting → objection-window → finalized
+ */
+export function computePhase(timing: PhaseTiming, now: number): ProposalPhase {
+	const start = timing.startTime.getTime();
+	const end = timing.endTime.getTime();
+	const objectionEnd = end + timing.objectionWindowSeconds * 1000;
+	const deliberationStart = start - timing.deliberationSeconds * 1000;
+
+	if (now >= objectionEnd) return 'finalized';
+	if (now >= end) return timing.objectionWindowSeconds > 0 ? 'objection-window' : 'finalized';
+	if (now >= start) return 'voting';
+	if (timing.deliberationSeconds > 0 && now >= deliberationStart) return 'deliberation';
+	return 'draft';
+}
+
+/** True while members may submit ballots (votes are only accepted during the voting phase). */
+export function isVotingOpen(phase: ProposalPhase): boolean {
+	return phase === 'voting';
+}
+
+/**
+ * Resolve a proposal's current phase from its pinned method (deliberation + objection-window timing)
+ * and times. Reads the type version's `deliberationSeconds` and the snapshot's objection window.
+ */
+export async function resolveProposalPhase(
+	prop: {
+		methodOverrideJson: string | null;
+		typeVersionId: string | null;
+		startTime: Date;
+		endTime: Date;
+	},
+	now: number,
+	db: Database = defaultDb
+): Promise<ProposalPhase> {
+	const snapshot = await resolveMethodSnapshot(prop, db);
+
+	let deliberationSeconds = 0;
+	if (prop.typeVersionId && !prop.methodOverrideJson) {
+		const [v] = await db
+			.select({ seconds: proposalTypeVersion.deliberationSeconds })
+			.from(proposalTypeVersion)
+			.where(eq(proposalTypeVersion.id, prop.typeVersionId))
+			.limit(1);
+		deliberationSeconds = v?.seconds ?? 0;
+	}
+
+	return computePhase(
+		{
+			startTime: prop.startTime,
+			endTime: prop.endTime,
+			deliberationSeconds,
+			objectionWindowSeconds: snapshot.process.objectionWindowSeconds ?? 0
+		},
+		now
+	);
+}
