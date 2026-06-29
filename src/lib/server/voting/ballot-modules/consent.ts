@@ -1,10 +1,4 @@
-import type {
-	BallotModule,
-	BallotRecord,
-	CanonicalTally,
-	TallyContext,
-	VoteContext
-} from '../contracts';
+import type { BallotModule, BallotRecord, CanonicalTally, TallyContext } from '../contracts';
 
 export type ConsentPosition = 'consent' | 'stand-aside' | 'object';
 
@@ -32,7 +26,7 @@ export const consentModule: BallotModule<ConsentSelection> = {
 		'fallbackRule'
 	],
 
-	validateVote(submission, _ctx: VoteContext) {
+	validateVote(submission) {
 		const selections = (submission as { selections?: unknown[] })?.selections;
 		if (!Array.isArray(selections) || selections.length !== 1) {
 			return { ok: false, reason: 'Take exactly one position.' };

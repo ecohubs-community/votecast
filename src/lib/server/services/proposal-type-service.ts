@@ -46,21 +46,42 @@ export function seedPresetTypesSync(
 }
 
 /**
+ * Defensively parse a stored method snapshot. Corrupt JSON or a snapshot missing its required
+ * binding ids returns null (caller falls back to the legacy method) rather than crashing a tally.
+ */
+function parseSnapshot(json: string, source: string): MethodSnapshot | null {
+	try {
+		const parsed = JSON.parse(json) as Partial<MethodSnapshot>;
+		if (typeof parsed?.ballotModuleId === 'string' && typeof parsed?.decisionRuleId === 'string') {
+			return parsed as MethodSnapshot;
+		}
+		console.warn(
+			`[voting] method snapshot from ${source} is missing required fields; using legacy`
+		);
+	} catch (err) {
+		console.warn(`[voting] failed to parse method snapshot from ${source}; using legacy:`, err);
+	}
+	return null;
+}
+
+/**
  * Resolve a proposal's effective method (design D4): an ad-hoc override snapshot wins; otherwise the
- * pinned type version; otherwise the legacy onePersonOneVote equivalent (pre-back-fill safety).
+ * pinned type version; otherwise the legacy onePersonOneVote equivalent (pre-back-fill / corrupt-data safety).
  */
 export async function resolveMethodSnapshot(
 	prop: { methodOverrideJson: string | null; typeVersionId: string | null },
 	db: Database = defaultDb
 ): Promise<MethodSnapshot> {
-	if (prop.methodOverrideJson) return JSON.parse(prop.methodOverrideJson) as MethodSnapshot;
+	if (prop.methodOverrideJson) {
+		return parseSnapshot(prop.methodOverrideJson, 'proposal override') ?? LEGACY_SNAPSHOT;
+	}
 	if (prop.typeVersionId) {
 		const [v] = await db
 			.select({ snap: proposalTypeVersion.methodSnapshotJson })
 			.from(proposalTypeVersion)
 			.where(eq(proposalTypeVersion.id, prop.typeVersionId))
 			.limit(1);
-		if (v) return JSON.parse(v.snap) as MethodSnapshot;
+		if (v) return parseSnapshot(v.snap, `type version ${prop.typeVersionId}`) ?? LEGACY_SNAPSHOT;
 	}
 	return LEGACY_SNAPSHOT;
 }
@@ -73,6 +94,7 @@ export async function resolveMethodSnapshot(
 export async function backfillVotingMethods(db: Database = defaultDb): Promise<{
 	communitiesSeeded: number;
 	proposalsPinned: number;
+	proposalsSkipped: number;
 }> {
 	const communities = await db
 		.select({ id: community.id, createdBy: community.createdBy })
@@ -98,9 +120,7 @@ export async function backfillVotingMethods(db: Database = defaultDb): Promise<{
 				.select({ versionId: proposalTypeVersion.id })
 				.from(proposalType)
 				.innerJoin(proposalTypeVersion, eq(proposalTypeVersion.typeId, proposalType.id))
-				.where(
-					and(eq(proposalType.communityId, c.id), eq(proposalType.name, PRESET_TYPES[0].name))
-				)
+				.where(and(eq(proposalType.communityId, c.id), eq(proposalType.name, PRESET_TYPES[0].name)))
 				.limit(1);
 			if (qp) quickPollVersionByCommunity[c.id] = qp.versionId;
 		}
@@ -113,9 +133,15 @@ export async function backfillVotingMethods(db: Database = defaultDb): Promise<{
 		.where(isNull(proposal.typeVersionId));
 
 	let proposalsPinned = 0;
+	let proposalsSkipped = 0;
 	for (const p of unpinned) {
 		const versionId = quickPollVersionByCommunity[p.communityId];
-		if (!versionId) continue;
+		if (!versionId) {
+			// No Quick poll version found for this community — surface rather than silently drop.
+			console.warn(`[voting] back-fill skipped proposal ${p.id}: no preset type for its community`);
+			proposalsSkipped++;
+			continue;
+		}
 		const phase = p.status === 'closed' ? 'finalized' : p.status === 'active' ? 'voting' : 'draft';
 		const outcome = p.status === 'closed' ? 'recorded' : null; // historical result kept as recorded
 		await db
@@ -125,5 +151,5 @@ export async function backfillVotingMethods(db: Database = defaultDb): Promise<{
 		proposalsPinned++;
 	}
 
-	return { communitiesSeeded, proposalsPinned };
+	return { communitiesSeeded, proposalsPinned, proposalsSkipped };
 }

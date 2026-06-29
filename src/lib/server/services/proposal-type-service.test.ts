@@ -64,6 +64,22 @@ describe('resolveMethodSnapshot', () => {
 		const snap = await resolveMethodSnapshot({ methodOverrideJson: null, typeVersionId: null }, db);
 		expect(snap).toEqual(LEGACY_SNAPSHOT);
 	});
+
+	it('falls back to legacy on corrupt override JSON instead of throwing', async () => {
+		const snap = await resolveMethodSnapshot(
+			{ methodOverrideJson: '{ not valid json', typeVersionId: null },
+			db
+		);
+		expect(snap).toEqual(LEGACY_SNAPSHOT);
+	});
+
+	it('falls back to legacy when the snapshot is missing required fields', async () => {
+		const snap = await resolveMethodSnapshot(
+			{ methodOverrideJson: JSON.stringify({ visibility: {} }), typeVersionId: null },
+			db
+		);
+		expect(snap).toEqual(LEGACY_SNAPSHOT);
+	});
 });
 
 describe('backfillVotingMethods', () => {
