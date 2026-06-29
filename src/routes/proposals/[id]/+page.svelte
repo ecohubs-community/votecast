@@ -3,17 +3,33 @@
 	import StatusBadge from '$lib/components/StatusBadge.svelte';
 	import { formatRelativeTime } from '$lib/utils/format';
 	import { resolve } from '$app/paths';
+	import { page } from '$app/state';
 	import type { PageData, ActionData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
+
+	const pageTitle = $derived(`${data.proposal.title} — VoteCast`);
+	const canonical = $derived(new URL(`/proposals/${data.proposal.id}`, page.url.origin).href);
+	const ogImage = $derived(new URL('/og-default.jpg', page.url.origin).href);
+	const isPublic = $derived(
+		data.proposal.visibility === 'public' && data.community.visibility === 'public'
+	);
+	const metaDescription = $derived(
+		(
+			data.proposal.body?.replace(/\s+/g, ' ').trim() ||
+			`A proposal in ${data.community.name} on VoteCast — cast your vote and see transparent results.`
+		).slice(0, 200)
+	);
 
 	let selectedChoiceId = $state<string | null>(null);
 	let submitting = $state(false);
 	let activeTab = $state<'description' | 'voters'>('description');
 
 	const timeContext = $derived.by(() => {
-		if (data.proposal.status === 'active') return `Voting closes ${formatRelativeTime(data.proposal.endTime)}`;
-		if (data.proposal.status === 'closed') return `Voting closed ${formatRelativeTime(data.proposal.endTime)}`;
+		if (data.proposal.status === 'active')
+			return `Voting closes ${formatRelativeTime(data.proposal.endTime)}`;
+		if (data.proposal.status === 'closed')
+			return `Voting closed ${formatRelativeTime(data.proposal.endTime)}`;
 		return `Voting opens ${formatRelativeTime(data.proposal.startTime)}`;
 	});
 
@@ -28,7 +44,8 @@
 	const resultsByChoice = $derived.by(() => {
 		const map = new Map<string, { votes: number; pct: number }>();
 		for (const r of data.results.results) {
-			const pct = data.results.totalVotes > 0 ? Math.round((r.votes / data.results.totalVotes) * 100) : 0;
+			const pct =
+				data.results.totalVotes > 0 ? Math.round((r.votes / data.results.totalVotes) * 100) : 0;
 			map.set(r.choiceId, { votes: r.votes, pct });
 		}
 		return map;
@@ -44,7 +61,19 @@
 </script>
 
 <svelte:head>
-	<title>{data.proposal.title} — VoteCast</title>
+	<title>{pageTitle}</title>
+	<meta name="description" content={metaDescription} />
+	<link rel="canonical" href={canonical} />
+	{#if !isPublic}
+		<meta name="robots" content="noindex, nofollow" />
+	{/if}
+	<meta property="og:title" content={pageTitle} />
+	<meta property="og:description" content={metaDescription} />
+	<meta property="og:url" content={canonical} />
+	<meta property="og:image" content={ogImage} />
+	<meta name="twitter:title" content={pageTitle} />
+	<meta name="twitter:description" content={metaDescription} />
+	<meta name="twitter:image" content={ogImage} />
 </svelte:head>
 
 <div class="page" style="max-width: 1100px;">
@@ -55,11 +84,19 @@
 	<header class="page-head">
 		<div>
 			<h1 class="page-title">{data.proposal.title}</h1>
-			<div style="margin-top: 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px;">
+			<div
+				style="margin-top: 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px;"
+			>
 				<StatusBadge status={data.proposal.status as 'draft' | 'active' | 'closed'} />
 				{#if data.proposal.visibility === 'public'}
 					<span class="meta-pill">
-						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+						<svg
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="1.8"
+							aria-hidden="true"
+						>
 							<circle cx="12" cy="12" r="9" />
 							<path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" />
 						</svg>
@@ -67,14 +104,22 @@
 					</span>
 				{:else}
 					<span class="meta-pill">
-						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+						<svg
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="1.8"
+							aria-hidden="true"
+						>
 							<rect x="4" y="11" width="16" height="10" rx="2" />
 							<path d="M8 11V7a4 4 0 0 1 8 0v4" />
 						</svg>
 						Members only
 					</span>
 				{/if}
-				<span style="color: var(--vc-muted); font-family: var(--vc-font-mono); font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em;">
+				<span
+					style="color: var(--vc-muted); font-family: var(--vc-font-mono); font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em;"
+				>
 					{timeContext}
 				</span>
 			</div>
@@ -84,16 +129,27 @@
 	<div class="proposal-detail-grid">
 		<div>
 			<nav class="tabs">
-				<button class="tab" class:active={activeTab === 'description'} onclick={() => (activeTab = 'description')}>
+				<button
+					class="tab"
+					class:active={activeTab === 'description'}
+					onclick={() => (activeTab = 'description')}
+				>
 					Context
 				</button>
-				<button class="tab" class:active={activeTab === 'voters'} onclick={() => (activeTab = 'voters')}>
-					Voters <span style="color: var(--vc-muted);">·</span> {data.results.totalVotes}
+				<button
+					class="tab"
+					class:active={activeTab === 'voters'}
+					onclick={() => (activeTab = 'voters')}
+				>
+					Voters <span style="color: var(--vc-muted);">·</span>
+					{data.results.totalVotes}
 				</button>
 			</nav>
 
 			{#if activeTab === 'description'}
-				<div style="white-space: pre-wrap; font-size: 15px; line-height: 1.65; color: var(--vc-ink-2);">
+				<div
+					style="white-space: pre-wrap; font-size: 15px; line-height: 1.65; color: var(--vc-ink-2);"
+				>
 					{data.proposal.body}
 				</div>
 			{:else if data.voters.length === 0}
@@ -127,7 +183,8 @@
 					</h2>
 					{#if showResults}
 						<span class="vote-card-count">
-							{data.results.totalVotes} {data.results.totalVotes === 1 ? 'vote' : 'votes'}
+							{data.results.totalVotes}
+							{data.results.totalVotes === 1 ? 'vote' : 'votes'}
 						</span>
 					{/if}
 				</div>
@@ -207,8 +264,18 @@
 								{/if}
 								<div class="choice-content">
 									{#if isUserChoice}
-										<svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor" style="flex-shrink: 0; color: var(--vc-accent);">
-											<path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+										<svg
+											width="18"
+											height="18"
+											viewBox="0 0 20 20"
+											fill="currentColor"
+											style="flex-shrink: 0; color: var(--vc-accent);"
+										>
+											<path
+												fill-rule="evenodd"
+												d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+												clip-rule="evenodd"
+											/>
 										</svg>
 									{:else}
 										<span class="choice-radio"></span>

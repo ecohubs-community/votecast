@@ -31,15 +31,20 @@
 
 <svelte:head>
 	<title>New proposal — {data.community.name}</title>
+	<meta name="robots" content="noindex, nofollow" />
 </svelte:head>
 
 <div class="page" style="max-width: 1100px;">
-	<a href={resolve(`/communities/${data.community.slug}`)} class="breadcrumb">{data.community.name}</a>
+	<a href={resolve(`/communities/${data.community.slug}`)} class="breadcrumb"
+		>{data.community.name}</a
+	>
 
 	<header class="page-head">
 		<div>
 			<h1 class="page-title">Open a <em>proposal.</em></h1>
-			<p class="page-sub">Write what's being decided. Add the options. Set when voting opens and closes.</p>
+			<p class="page-sub">
+				Write what's being decided. Add the options. Set when voting opens and closes.
+			</p>
 		</div>
 	</header>
 
@@ -73,7 +78,8 @@
 						rows="14"
 						class="textarea"
 						placeholder="Why this is up for a vote, what each option means, anything members should know before deciding…"
-						>{form?.body ?? ''}</textarea>
+						>{form?.body ?? ''}</textarea
+					>
 				</div>
 			</div>
 
@@ -83,7 +89,15 @@
 					<div class="toggle-group">
 						<label class="toggle-opt" class:selected={visibility === 'public'}>
 							<input type="radio" name="visibility" value="public" bind:group={visibility} />
-							<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+							<svg
+								width="14"
+								height="14"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="1.8"
+								aria-hidden="true"
+							>
 								<circle cx="12" cy="12" r="9" />
 								<path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" />
 							</svg>
@@ -91,7 +105,15 @@
 						</label>
 						<label class="toggle-opt" class:selected={visibility === 'community'}>
 							<input type="radio" name="visibility" value="community" bind:group={visibility} />
-							<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+							<svg
+								width="14"
+								height="14"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="1.8"
+								aria-hidden="true"
+							>
 								<rect x="4" y="11" width="16" height="10" rx="2" />
 								<path d="M8 11V7a4 4 0 0 1 8 0v4" />
 							</svg>
@@ -144,7 +166,11 @@
 									placeholder="Option {i + 1}"
 								/>
 								{#if choices.length > 2}
-									<button type="button" onclick={() => removeChoice(i)} class="btn btn-ghost btn-sm">
+									<button
+										type="button"
+										onclick={() => removeChoice(i)}
+										class="btn btn-ghost btn-sm"
+									>
 										Remove
 									</button>
 								{/if}
@@ -152,7 +178,12 @@
 						{/each}
 					</div>
 					{#if choices.length < 20}
-						<button type="button" onclick={addChoice} class="btn btn-ghost btn-sm" style="align-self: start; margin-top: 8px;">
+						<button
+							type="button"
+							onclick={addChoice}
+							class="btn btn-ghost btn-sm"
+							style="align-self: start; margin-top: 8px;"
+						>
 							+ Add a choice
 						</button>
 					{/if}
@@ -162,7 +193,9 @@
 
 		<div class="form-actions">
 			<button type="submit" class="btn btn-accent btn-lg">Open proposal</button>
-			<a href={resolve(`/communities/${data.community.slug}`)} class="btn btn-ghost btn-lg">Cancel</a>
+			<a href={resolve(`/communities/${data.community.slug}`)} class="btn btn-ghost btn-lg"
+				>Cancel</a
+			>
 		</div>
 	</form>
 </div>

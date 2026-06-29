@@ -44,6 +44,7 @@
 
 <svelte:head>
 	<title>Start a community — VoteCast</title>
+	<meta name="robots" content="noindex" />
 </svelte:head>
 
 <div class="page" style="max-width: 720px;">
@@ -93,7 +94,9 @@
 			/>
 			<p class="hint">
 				Lowercase letters, numbers, and hyphens. Lives at
-				<span style="font-family: var(--vc-font-mono); color: var(--vc-ink-2);">/communities/{slug || '…'}</span>
+				<span style="font-family: var(--vc-font-mono); color: var(--vc-ink-2);"
+					>/communities/{slug || '…'}</span
+				>
 			</p>
 		</div>
 
@@ -107,7 +110,9 @@
 				rows="4"
 				maxlength="2000"
 				class="textarea"
-				placeholder="A short, friendly line or two so newcomers know who you are.">{form?.description ?? ''}</textarea>
+				placeholder="A short, friendly line or two so newcomers know who you are."
+				>{form?.description ?? ''}</textarea
+			>
 		</div>
 
 		<div class="field">

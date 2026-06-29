@@ -40,6 +40,7 @@
 
 <svelte:head>
 	<title>Create your account — VoteCast</title>
+	<meta name="robots" content="noindex" />
 </svelte:head>
 
 <div class="page-narrow">

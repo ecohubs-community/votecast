@@ -8,6 +8,7 @@
 	let { data }: { data: PageData } = $props();
 
 	const canonical = $derived(new URL(page.url.pathname, page.url.origin).href);
+	const ogImage = $derived(new URL('/og-default.jpg', page.url.origin).href);
 	const metaDescription =
 		'VoteCast is community governance, simplified — create proposals, run transparent votes, and make decisions together in eco villages, cooperatives, and online collectives.';
 
@@ -17,6 +18,33 @@
 	});
 
 	const communityCount = $derived(data.myCommunities?.items.length ?? 0);
+
+	// Structured data for search engines (brand entity + site). Escaped to be
+	// safe for inline injection inside a <script> tag.
+	const jsonLd = $derived(
+		JSON.stringify({
+			'@context': 'https://schema.org',
+			'@graph': [
+				{
+					'@type': 'Organization',
+					name: 'VoteCast',
+					url: page.url.origin,
+					logo: ogImage,
+					description: metaDescription
+				},
+				{
+					'@type': 'WebSite',
+					name: 'VoteCast',
+					url: page.url.origin,
+					description: metaDescription
+				}
+			]
+		}).replace(/</g, '\\u003c')
+	);
+
+	// Full <script> tag built here; closing tag split so it can't terminate
+	// this module's own <script> block.
+	const jsonLdTag = $derived(`<script type="application/ld+json">${jsonLd}<` + `/script>`);
 </script>
 
 <svelte:head>
@@ -26,8 +54,16 @@
 	<meta property="og:title" content="VoteCast — Community Governance, Simplified" />
 	<meta property="og:description" content={metaDescription} />
 	<meta property="og:url" content={canonical} />
+	<meta property="og:image" content={ogImage} />
+	<meta property="og:image:width" content="1200" />
+	<meta property="og:image:height" content="632" />
+	<meta property="og:image:alt" content="VoteCast — community governance, simplified" />
 	<meta name="twitter:title" content="VoteCast — Community Governance, Simplified" />
 	<meta name="twitter:description" content={metaDescription} />
+	<meta name="twitter:image" content={ogImage} />
+	<meta name="twitter:image:alt" content="VoteCast — community governance, simplified" />
+	<!-- eslint-disable-next-line svelte/no-at-html-tags -- JSON-LD is escaped (< → <) and built from static strings only -->
+	{@html jsonLdTag}
 </svelte:head>
 
 <!-- Hero -->
@@ -41,8 +77,8 @@
 			<p class="lede">
 				{#if data.user}
 					Welcome back, {firstName}. {#if communityCount > 0}You're part of {communityCount}
-						{communityCount === 1 ? 'community' : 'communities'} — see what's open below.{:else}Find a
-						community to join, or start your own.{/if}
+						{communityCount === 1 ? 'community' : 'communities'} — see what's open below.{:else}Find
+						a community to join, or start your own.{/if}
 				{:else}
 					A quiet, transparent way for real communities to propose, deliberate, and decide — without
 					the noise of governance dashboards.

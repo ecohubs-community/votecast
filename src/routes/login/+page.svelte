@@ -123,6 +123,7 @@
 
 <svelte:head>
 	<title>Sign in — VoteCast</title>
+	<meta name="robots" content="noindex" />
 </svelte:head>
 
 <div class="page-narrow">
@@ -141,12 +142,24 @@
 		{/if}
 
 		{#if hasWallet}
-			<button onclick={handleWalletConnect} disabled={walletLoading} class="btn btn-ghost btn-lg" style="width: 100%;">
+			<button
+				onclick={handleWalletConnect}
+				disabled={walletLoading}
+				class="btn btn-ghost btn-lg"
+				style="width: 100%;"
+			>
 				{#if walletLoading}
 					<span class="spinner"></span>
 					Connecting your wallet…
 				{:else}
-					<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+					<svg
+						width="18"
+						height="18"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="1.8"
+					>
 						<rect x="2" y="6" width="20" height="14" rx="2" />
 						<path d="M16 14h.01" />
 						<path d="M2 10h20" />

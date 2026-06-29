@@ -113,7 +113,9 @@
 
 	async function deleteWebhook(webhookId: string) {
 		try {
-			await fetch(`/api/communities/${data.community.id}/webhooks/${webhookId}`, { method: 'DELETE' });
+			await fetch(`/api/communities/${data.community.id}/webhooks/${webhookId}`, {
+				method: 'DELETE'
+			});
 			webhooks = webhooks.filter((w) => w.id !== webhookId);
 		} catch {
 			// silently fail
@@ -142,10 +144,13 @@
 
 <svelte:head>
 	<title>Settings — {data.community.name}</title>
+	<meta name="robots" content="noindex, nofollow" />
 </svelte:head>
 
 <div class="page">
-	<a href={resolve(`/communities/${data.community.slug}`)} class="breadcrumb">{data.community.name}</a>
+	<a href={resolve(`/communities/${data.community.slug}`)} class="breadcrumb"
+		>{data.community.name}</a
+	>
 
 	<header class="page-head">
 		<div>
@@ -155,16 +160,35 @@
 	</header>
 
 	<nav class="tabs">
-		<button class="tab" class:active={activeTab === 'general'} onclick={() => (activeTab = 'general')}>
+		<button
+			class="tab"
+			class:active={activeTab === 'general'}
+			onclick={() => (activeTab = 'general')}
+		>
 			General
 		</button>
-		<button class="tab" class:active={activeTab === 'members'} onclick={() => (activeTab = 'members')}>
-			Members <span style="color: var(--vc-muted);">·</span> {data.members.items.length}
+		<button
+			class="tab"
+			class:active={activeTab === 'members'}
+			onclick={() => (activeTab = 'members')}
+		>
+			Members <span style="color: var(--vc-muted);">·</span>
+			{data.members.items.length}
 		</button>
-		<button class="tab" class:active={activeTab === 'webhooks'} onclick={() => (activeTab = 'webhooks')}>
-			Webhooks <span style="color: var(--vc-muted);">·</span> {webhooks.length}
+		<button
+			class="tab"
+			class:active={activeTab === 'webhooks'}
+			onclick={() => (activeTab = 'webhooks')}
+		>
+			Webhooks <span style="color: var(--vc-muted);">·</span>
+			{webhooks.length}
 		</button>
-		<button class="tab" class:active={activeTab === 'danger'} onclick={() => (activeTab = 'danger')} style="color: oklch(0.5 0.14 28);">
+		<button
+			class="tab"
+			class:active={activeTab === 'danger'}
+			onclick={() => (activeTab = 'danger')}
+			style="color: oklch(0.5 0.14 28);"
+		>
 			Danger zone
 		</button>
 	</nav>
@@ -193,13 +217,9 @@
 
 			<div class="field">
 				<label for="description" class="label">About</label>
-				<textarea
-					id="description"
-					name="description"
-					rows="4"
-					maxlength="2000"
-					class="textarea"
-					>{data.community.description}</textarea>
+				<textarea id="description" name="description" rows="4" maxlength="2000" class="textarea"
+					>{data.community.description}</textarea
+				>
 			</div>
 
 			<div class="field">
@@ -207,15 +227,36 @@
 				<div class="toggle-group">
 					<label class="toggle-opt" class:selected={communityVisibility === 'public'}>
 						<input type="radio" name="visibility" value="public" bind:group={communityVisibility} />
-						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+						<svg
+							width="14"
+							height="14"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="1.8"
+							aria-hidden="true"
+						>
 							<circle cx="12" cy="12" r="9" />
 							<path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" />
 						</svg>
 						Public
 					</label>
 					<label class="toggle-opt" class:selected={communityVisibility === 'community'}>
-						<input type="radio" name="visibility" value="community" bind:group={communityVisibility} />
-						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+						<input
+							type="radio"
+							name="visibility"
+							value="community"
+							bind:group={communityVisibility}
+						/>
+						<svg
+							width="14"
+							height="14"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="1.8"
+							aria-hidden="true"
+						>
 							<rect x="4" y="11" width="16" height="10" rx="2" />
 							<path d="M8 11V7a4 4 0 0 1 8 0v4" />
 						</svg>
@@ -262,12 +303,16 @@
 						<div class="member-name">
 							<span>{memberDisplayName(member)}</span>
 							{#if member.role === 'admin'}
-								<span class="meta-pill" style="background: var(--vc-accent-soft); color: var(--vc-accent-ink);">
+								<span
+									class="meta-pill"
+									style="background: var(--vc-accent-soft); color: var(--vc-accent-ink);"
+								>
 									Admin
 								</span>
 							{/if}
 							{#if member.userId === data.user?.id}
-								<span style="color: var(--vc-muted); font-size: 12px; font-weight: 400;">(you)</span>
+								<span style="color: var(--vc-muted); font-size: 12px; font-weight: 400;">(you)</span
+								>
 							{/if}
 						</div>
 						<div class="member-meta">
@@ -283,7 +328,11 @@
 						<div class="member-actions">
 							<form method="POST" action="?/updateRole" use:enhance>
 								<input type="hidden" name="userId" value={member.userId} />
-								<input type="hidden" name="role" value={member.role === 'admin' ? 'member' : 'admin'} />
+								<input
+									type="hidden"
+									name="role"
+									value={member.role === 'admin' ? 'member' : 'admin'}
+								/>
 								<button type="submit" class="btn btn-ghost btn-sm">
 									{member.role === 'admin' ? 'Demote' : 'Promote'}
 								</button>
@@ -300,11 +349,19 @@
 	{:else if activeTab === 'webhooks'}
 		{#if webhookSecret}
 			<div class="alert alert-warn" style="margin-bottom: 20px;">
-				<p style="margin: 0 0 8px; font-weight: 500;">Webhook ready — copy the secret now. We won't show it again.</p>
-				<code style="display: block; padding: 10px 12px; background: rgba(0,0,0,0.05); border-radius: 8px; font-family: var(--vc-font-mono); font-size: 13px; user-select: all;">
+				<p style="margin: 0 0 8px; font-weight: 500;">
+					Webhook ready — copy the secret now. We won't show it again.
+				</p>
+				<code
+					style="display: block; padding: 10px 12px; background: rgba(0,0,0,0.05); border-radius: 8px; font-family: var(--vc-font-mono); font-size: 13px; user-select: all;"
+				>
 					{webhookSecret}
 				</code>
-				<button onclick={() => (webhookSecret = null)} class="btn btn-ghost btn-sm" style="margin-top: 12px;">
+				<button
+					onclick={() => (webhookSecret = null)}
+					class="btn btn-ghost btn-sm"
+					style="margin-top: 12px;"
+				>
 					Dismiss
 				</button>
 			</div>
@@ -314,19 +371,30 @@
 			<div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px;">
 				{#each webhooks as wh (wh.id)}
 					<div class="vote-card" style="padding: 18px 20px;">
-						<div style="display: flex; gap: 16px; align-items: start; justify-content: space-between;">
+						<div
+							style="display: flex; gap: 16px; align-items: start; justify-content: space-between;"
+						>
 							<div style="min-width: 0; flex: 1;">
-								<p style="margin: 0; font-family: var(--vc-font-mono); font-size: 13px; color: var(--vc-ink); word-break: break-all;">
+								<p
+									style="margin: 0; font-family: var(--vc-font-mono); font-size: 13px; color: var(--vc-ink); word-break: break-all;"
+								>
 									{wh.url}
 								</p>
 								<p class="hint" style="margin-top: 6px;">Events: {wh.events.join(', ')}</p>
-								<p class="hint" style="margin-top: 2px;">Created {formatRelativeTime(wh.createdAt)}</p>
+								<p class="hint" style="margin-top: 2px;">
+									Created {formatRelativeTime(wh.createdAt)}
+								</p>
 							</div>
 							<div style="display: flex; gap: 8px; flex-shrink: 0;">
-								<button onclick={() => toggleWebhook(wh.id, !wh.active)} class="btn btn-ghost btn-sm">
+								<button
+									onclick={() => toggleWebhook(wh.id, !wh.active)}
+									class="btn btn-ghost btn-sm"
+								>
 									{wh.active ? 'Active' : 'Paused'}
 								</button>
-								<button onclick={() => deleteWebhook(wh.id)} class="btn btn-danger btn-sm">Delete</button>
+								<button onclick={() => deleteWebhook(wh.id)} class="btn btn-danger btn-sm"
+									>Delete</button
+								>
 							</div>
 						</div>
 					</div>
@@ -395,15 +463,22 @@
 		<div class="danger-zone">
 			<h3 class="danger-title">Delete this community</h3>
 			<p style="margin-top: 8px; color: var(--vc-ink-2); font-size: 14px; line-height: 1.55;">
-				This permanently removes <strong>{data.community.name}</strong> along with every proposal, vote, member, webhook, and invite. There's no coming back from this.
+				This permanently removes <strong>{data.community.name}</strong> along with every proposal, vote,
+				member, webhook, and invite. There's no coming back from this.
 			</p>
 
 			{#if !showDeleteConfirm}
-				<button onclick={() => (showDeleteConfirm = true)} class="btn btn-destructive" style="margin-top: 20px;">
+				<button
+					onclick={() => (showDeleteConfirm = true)}
+					class="btn btn-destructive"
+					style="margin-top: 20px;"
+				>
 					Delete community
 				</button>
 			{:else}
-				<div style="margin-top: 20px; padding: 16px; border: 1px solid oklch(0.55 0.16 28 / 0.4); border-radius: 12px; background: oklch(0.55 0.16 28 / 0.06);">
+				<div
+					style="margin-top: 20px; padding: 16px; border: 1px solid oklch(0.55 0.16 28 / 0.4); border-radius: 12px; background: oklch(0.55 0.16 28 / 0.06);"
+				>
 					<p style="margin: 0 0 10px; font-size: 14px; color: oklch(0.4 0.16 28);">
 						Type <strong>{data.community.name}</strong> to confirm.
 					</p>

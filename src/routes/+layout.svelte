@@ -79,6 +79,7 @@
 	<meta name="theme-color" content="#0f172a" />
 	<meta property="og:site_name" content="VoteCast" />
 	<meta property="og:type" content="website" />
+	<meta property="og:locale" content="en_US" />
 	<meta name="twitter:card" content="summary_large_image" />
 </svelte:head>
 
@@ -168,11 +169,25 @@
 			aria-label="Toggle menu"
 		>
 			{#if mobileMenuOpen}
-				<svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+				<svg
+					width="20"
+					height="20"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke="currentColor"
+					stroke-width="2"
+				>
 					<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
 				</svg>
 			{:else}
-				<svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+				<svg
+					width="20"
+					height="20"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke="currentColor"
+					stroke-width="2"
+				>
 					<path
 						stroke-linecap="round"
 						stroke-linejoin="round"
@@ -189,12 +204,18 @@
 				<div style="display:flex; gap:12px; align-items:center; padding:8px 14px 14px;">
 					<div class="avatar">{initials}</div>
 					<div style="min-width:0;">
-						<p style="margin:0; font-size:14px; font-weight:500; color:var(--vc-ink);">{displayName}</p>
+						<p style="margin:0; font-size:14px; font-weight:500; color:var(--vc-ink);">
+							{displayName}
+						</p>
 						{#if displayEmail}
 							<p style="margin:2px 0 0; font-size:12px; color:var(--vc-muted);">{displayEmail}</p>
 						{/if}
 						{#if shortWallet}
-							<p style="margin:2px 0 0; font-size:11px; color:var(--vc-muted); font-family:var(--vc-font-mono);">{shortWallet}</p>
+							<p
+								style="margin:2px 0 0; font-size:11px; color:var(--vc-muted); font-family:var(--vc-font-mono);"
+							>
+								{shortWallet}
+							</p>
 						{/if}
 					</div>
 				</div>
@@ -204,7 +225,9 @@
 			{:else}
 				<a href="#communities" class="nav-link">Browse</a>
 				<a href={resolve('/login')} class="nav-link">Sign in</a>
-				<a href={resolve('/register')} class="btn btn-primary" style="margin:8px 14px;">Get started</a>
+				<a href={resolve('/register')} class="btn btn-primary" style="margin:8px 14px;"
+					>Get started</a
+				>
 			{/if}
 		</div>
 	{/if}
