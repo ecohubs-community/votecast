@@ -47,7 +47,7 @@
 - [x] 5.6 Stand-aside (non-blocking) in the consent rule; per-method vote mutability in `validateSubmission`
 - [x] 5.7 Tally returns a result-set with per-entry outcomes; explicit outcome states (passed/failed/blocked/tie/quorum-not-met/indeterminate/recorded) resolved
 - [x] 5.8 `validateMethodBinding`: rejects unknown module/rule, family mismatch, unsupported knobs, unsupported fallback, and the hidden-forever vs. early-stop contradiction
-- [x] 5.9 Unit tests (`voting.test.ts`, 18 tests) cover each module/rule incl. the four Gate-1 hard cases and binding validation — all green; full suite 123/123
+- [x] 5.9 Unit tests: `voting.test.ts` (18, the four Gate-1 hard cases + binding validation) + `results.test.ts` (14, result-correctness: weighted outcomes, absolute/super-majority boundaries, silence=consent, quorum forms, result-set integrity, pass-ignored). The hardening pass **found and fixed a real bug**: `tallyBallots` wasn't threading `binding.config` into the tally context, so quorum/absence knobs were silently dropped. Full suite green.
 
 ## 6. Process, events & side-effects
 

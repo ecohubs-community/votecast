@@ -43,6 +43,8 @@ export function tallyBallots(
 	if (!rule) throw new Error(`Unknown decision rule '${binding.decisionRuleId}'.`);
 
 	const fallback = binding.fallbackRuleId ? getDecisionRule(binding.fallbackRuleId) : undefined;
-	const tally = ballot.aggregate(ballots, ctx);
-	return rule.resolve(tally, ctx, fallback);
+	// The method binding's config is authoritative — thread it into the context the module/rule read.
+	const ctxWithConfig: TallyContext = { ...ctx, config: binding.config };
+	const tally = ballot.aggregate(ballots, ctxWithConfig);
+	return rule.resolve(tally, ctxWithConfig, fallback);
 }

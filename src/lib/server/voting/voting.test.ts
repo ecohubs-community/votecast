@@ -47,9 +47,13 @@ describe('single-choice + simple-majority', () => {
 	});
 	it('below quorum is quorum-not-met', () => {
 		const r = tallyBallots(
-			method,
+			{
+				ballotModuleId: 'single-choice',
+				decisionRuleId: 'simple-majority',
+				config: { quorum: 0.5 }
+			},
 			[ballot('1', [{ choiceId: 'A' }])],
-			tallyCtx(AB, 10, { quorum: 0.5 })
+			tallyCtx(AB, 10)
 		);
 		expect(r.outcome).toBe('quorum-not-met');
 	});
