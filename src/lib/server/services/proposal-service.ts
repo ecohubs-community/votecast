@@ -1,10 +1,19 @@
-import { eq, and, desc, lt, or, count, sql, asc, lte } from 'drizzle-orm';
+import { eq, and, desc, lt, or, count, asc } from 'drizzle-orm';
 import { db as defaultDb } from '$lib/server/db';
-import { community, communityMember, proposal, proposalChoice, vote } from '$lib/server/db/schema';
+import { community, communityMember, proposal, proposalChoice } from '$lib/server/db/schema';
 import { ServiceError, ErrorCode } from './errors';
 import { emit } from '../events';
-import { requireMember, requireAdmin } from './membership-service';
+import { requireMember } from './membership-service';
 import { DEFAULT_METHOD, validateMethodBinding, type MethodBinding } from '$lib/server/voting';
+import {
+	validateTitle,
+	validateBody,
+	validateChoices,
+	toDate,
+	validateVisibility
+} from './proposal-validation';
+import { transitionProposalStatus, batchTransitionStatuses } from './proposal-lifecycle';
+import { aggregateResults, type ProposalResults } from './proposal-results';
 import {
 	type PaginationParams,
 	type PaginatedResult,
@@ -13,6 +22,10 @@ import {
 	decodeCursor,
 	clampLimit
 } from './types';
+
+// Re-exported for back-compat with existing importers (vote-service, events, routes).
+export { transitionProposalStatus };
+export type { ProposalResults };
 
 // ─── Input / output types ────────────────────────────────────────────────────
 
@@ -39,159 +52,6 @@ export interface UpdateProposalInput {
 
 export interface ProposalFilters {
 	status?: 'draft' | 'active' | 'closed';
-}
-
-export interface ProposalResults {
-	proposalId: string;
-	totalVotes: number;
-	results: Array<{
-		choiceId: string;
-		label: string;
-		votes: number;
-		votingPower: number;
-	}>;
-}
-
-// ─── Validation helpers ──────────────────────────────────────────────────────
-
-function validateTitle(title: unknown): asserts title is string {
-	if (typeof title !== 'string' || title.trim().length === 0) {
-		throw new ServiceError(ErrorCode.INVALID_REQUEST, 'Title is required');
-	}
-	if (title.trim().length > 200) {
-		throw new ServiceError(ErrorCode.INVALID_REQUEST, 'Title must be at most 200 characters');
-	}
-}
-
-function validateBody(body: unknown): asserts body is string {
-	if (typeof body !== 'string' || body.trim().length === 0) {
-		throw new ServiceError(ErrorCode.INVALID_REQUEST, 'Body is required');
-	}
-	if (body.length > 10000) {
-		throw new ServiceError(ErrorCode.INVALID_REQUEST, 'Body must be at most 10000 characters');
-	}
-}
-
-function validateChoices(choices: unknown): asserts choices is string[] {
-	if (!Array.isArray(choices)) {
-		throw new ServiceError(ErrorCode.INVALID_CHOICES, 'Choices must be an array');
-	}
-	if (choices.length < 2) {
-		throw new ServiceError(ErrorCode.INVALID_CHOICES, 'At least 2 choices are required');
-	}
-	if (choices.length > 20) {
-		throw new ServiceError(ErrorCode.INVALID_CHOICES, 'At most 20 choices are allowed');
-	}
-	for (const choice of choices) {
-		if (typeof choice !== 'string' || choice.trim().length === 0) {
-			throw new ServiceError(ErrorCode.INVALID_CHOICES, 'Each choice must be a non-empty string');
-		}
-		if (choice.trim().length > 200) {
-			throw new ServiceError(
-				ErrorCode.INVALID_CHOICES,
-				'Each choice must be at most 200 characters'
-			);
-		}
-	}
-}
-
-function toDate(value: Date | string): Date {
-	const d = typeof value === 'string' ? new Date(value) : value;
-	if (isNaN(d.getTime())) {
-		throw new ServiceError(ErrorCode.INVALID_REQUEST, 'Invalid date');
-	}
-	return d;
-}
-
-function validateVisibility(v: unknown): asserts v is 'public' | 'community' {
-	if (v !== 'public' && v !== 'community') {
-		throw new ServiceError(ErrorCode.INVALID_REQUEST, 'Visibility must be "public" or "community"');
-	}
-}
-
-// ─── Status transition ──────────────────────────────────────────────────────
-
-type ProposalRecord = typeof proposal.$inferSelect;
-
-/**
- * Lazily transition a proposal's status based on current time.
- * - draft → active when now >= startTime
- * - draft/active → closed when now >= endTime
- *
- * Updates the DB so subsequent reads are fast.
- * Exported for use by vote-service.
- */
-export async function transitionProposalStatus(
-	p: ProposalRecord,
-	db: Database = defaultDb
-): Promise<ProposalRecord> {
-	const now = Date.now();
-	let newStatus = p.status;
-	const originalStatus = p.status;
-
-	if (p.status === 'draft' && p.startTime.getTime() <= now) {
-		newStatus = 'active';
-	}
-	if (
-		(p.status === 'draft' || p.status === 'active' || newStatus === 'active') &&
-		p.endTime.getTime() <= now
-	) {
-		newStatus = 'closed';
-	}
-
-	if (newStatus !== originalStatus) {
-		await db.update(proposal).set({ status: newStatus }).where(eq(proposal.id, p.id));
-
-		// Emit events after successful DB write
-		// If draft→active (not skipping to closed), emit proposal.started
-		if (newStatus === 'active') {
-			emit('proposal.started', { proposalId: p.id, communityId: p.communityId });
-		}
-
-		// If transitioning to closed, emit proposal.closed with results
-		if (newStatus === 'closed') {
-			const results = await aggregateResults(p.id, db);
-			emit('proposal.closed', { proposalId: p.id, communityId: p.communityId, results });
-		}
-
-		return { ...p, status: newStatus };
-	}
-
-	return p;
-}
-
-/**
- * Batch-transition stale statuses for a community before listing.
- * More efficient than transitioning one at a time.
- */
-async function batchTransitionStatuses(communityId: string, db: Database = defaultDb) {
-	const now = new Date();
-
-	// draft → active where startTime has passed (but endTime hasn't)
-	await db
-		.update(proposal)
-		.set({ status: 'active' })
-		.where(
-			and(
-				eq(proposal.communityId, communityId),
-				eq(proposal.status, 'draft'),
-				lte(proposal.startTime, now)
-				// Only set to active if endTime hasn't passed yet
-				// otherwise the next query will set to closed
-			)
-		);
-
-	// draft/active → closed where endTime has passed
-	await db
-		.update(proposal)
-		.set({ status: 'closed' })
-		.where(
-			and(
-				eq(proposal.communityId, communityId),
-				or(eq(proposal.status, 'draft'), eq(proposal.status, 'active')),
-				lte(proposal.endTime, now)
-			)
-		);
 }
 
 // ─── Service functions ───────────────────────────────────────────────────────
@@ -506,42 +366,6 @@ export async function getProposalResults(
 }
 
 // ─── Private helpers ─────────────────────────────────────────────────────────
-
-/**
- * Aggregate vote results for a proposal (no access checks).
- * Used by both `getProposalResults()` and event emission in `transitionProposalStatus()`.
- */
-async function aggregateResults(
-	proposalId: string,
-	db: Database = defaultDb
-): Promise<ProposalResults> {
-	const results = await db
-		.select({
-			choiceId: proposalChoice.id,
-			label: proposalChoice.label,
-			position: proposalChoice.position,
-			votes: sql<number>`count(${vote.id})`,
-			votingPower: sql<number>`coalesce(sum(${vote.votingPower}), 0)`
-		})
-		.from(proposalChoice)
-		.leftJoin(vote, eq(proposalChoice.id, vote.choiceId))
-		.where(eq(proposalChoice.proposalId, proposalId))
-		.groupBy(proposalChoice.id)
-		.orderBy(asc(proposalChoice.position));
-
-	const totalVotes = results.reduce((sum, r) => sum + r.votes, 0);
-
-	return {
-		proposalId,
-		totalVotes,
-		results: results.map((r) => ({
-			choiceId: r.choiceId,
-			label: r.label,
-			votes: r.votes,
-			votingPower: r.votingPower
-		}))
-	};
-}
 
 /**
  * Check that an unverified community has not reached its proposal limit (20).
