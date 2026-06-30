@@ -47,6 +47,10 @@ export const actions: Actions = {
 		const questions = formData
 			.getAll('questions')
 			.filter((q) => (q as string).trim() !== '') as string[];
+		const questionContributors =
+			(formData.get('questionContributors') as 'proposer' | 'members') || undefined;
+		const questionContributionPhase =
+			(formData.get('questionContributionPhase') as 'creation' | 'deliberation') || undefined;
 		const startTime = formData.get('startTime') as string;
 		const endTime = formData.get('endTime') as string;
 		const visibility = (formData.get('visibility') as string) || 'public';
@@ -62,6 +66,8 @@ export const actions: Actions = {
 				rationale,
 				choices,
 				questions,
+				questionContributors,
+				questionContributionPhase,
 				startTime: new Date(startTime),
 				endTime: new Date(endTime),
 				visibility: visibility as 'public' | 'community',

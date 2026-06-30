@@ -50,6 +50,13 @@
       "when": 1782828633504,
       "tag": "0006_early_slayback",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1782863085546,
+      "tag": "0007_lame_valeria_richards",
+      "breakpoints": true
     }
   ]
 }

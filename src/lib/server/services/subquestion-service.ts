@@ -27,9 +27,11 @@ async function evaluateContribution(
 		return { ok: false, code: 'invalid', reason: 'Only Common Ground proposals collect questions' };
 	}
 
+	// The proposal froze its own policy at creation; fall back to the type version for older rows.
 	const defaults = p.typeVersionId ? await getTypeVersionDefaults(p.typeVersionId, db) : null;
-	const contributors = defaults?.questionContributors ?? 'proposer';
-	const contributionPhase = defaults?.questionContributionPhase ?? 'creation';
+	const contributors = p.questionContributors ?? defaults?.questionContributors ?? 'proposer';
+	const contributionPhase =
+		p.questionContributionPhase ?? defaults?.questionContributionPhase ?? 'creation';
 
 	// Freeze at voting-open: only draft/deliberation can still gain questions.
 	const phase = await resolveProposalPhase(p, Date.now(), db);

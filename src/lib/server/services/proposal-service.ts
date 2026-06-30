@@ -50,6 +50,8 @@ export interface CreateProposalInput {
 	rationale?: string; // optional markdown "why" — the body is what's voted on (design D2)
 	choices: string[];
 	questions?: string[]; // Common Ground (multi-question): the sub-question prompts (choices ignored)
+	questionContributors?: 'proposer' | 'members'; // Common Ground: proposer override (if type unlocked)
+	questionContributionPhase?: 'creation' | 'deliberation';
 	startTime: Date | string;
 	endTime: Date | string;
 	visibility?: 'public' | 'community';
@@ -123,23 +125,37 @@ export async function createProposal(
 	let visibility = input.visibility;
 	const startTime = toDate(input.startTime);
 	let endTime = toDate(input.endTime);
-	if (typeVersionId) {
-		const defaults = await getTypeVersionDefaults(typeVersionId, db);
-		if (defaults) {
-			if (
-				!isMultiQuestion &&
-				defaults.defaultChoices &&
-				(defaults.lockChoices || !choices || choices.length === 0)
-			) {
-				choices = defaults.defaultChoices;
-			}
-			if (defaults.lockVoting) {
-				endTime = new Date(startTime.getTime() + defaults.votingSeconds * 1000);
-			}
-			if (defaults.lockVisibility || visibility === undefined) {
-				visibility = defaults.defaultVisibility;
-			}
+	const defaults = typeVersionId ? await getTypeVersionDefaults(typeVersionId, db) : null;
+	if (defaults) {
+		if (
+			!isMultiQuestion &&
+			defaults.defaultChoices &&
+			(defaults.lockChoices || !choices || choices.length === 0)
+		) {
+			choices = defaults.defaultChoices;
 		}
+		if (defaults.lockVoting) {
+			endTime = new Date(startTime.getTime() + defaults.votingSeconds * 1000);
+		}
+		if (defaults.lockVisibility || visibility === undefined) {
+			visibility = defaults.defaultVisibility;
+		}
+	}
+
+	// Common Ground: freeze the proposal's question-contribution policy at creation — a locked type
+	// wins; otherwise the proposer's pick, else the type default, else proposer-at-creation.
+	let questionContributors: 'proposer' | 'members' | null = null;
+	let questionContributionPhase: 'creation' | 'deliberation' | null = null;
+	if (isMultiQuestion) {
+		const locked = defaults?.lockQuestionContribution ?? false;
+		questionContributors =
+			(locked ? defaults?.questionContributors : input.questionContributors) ??
+			defaults?.questionContributors ??
+			'proposer';
+		questionContributionPhase =
+			(locked ? defaults?.questionContributionPhase : input.questionContributionPhase) ??
+			defaults?.questionContributionPhase ??
+			'creation';
 	}
 
 	let questions: string[] = [];
@@ -179,6 +195,8 @@ export async function createProposal(
 				createdBy: userId,
 				typeVersionId,
 				methodOverrideJson: input.method ? JSON.stringify(input.method) : null,
+				questionContributors,
+				questionContributionPhase,
 				visibility: visibility ?? 'community',
 				startTime,
 				endTime

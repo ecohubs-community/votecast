@@ -247,6 +247,61 @@ describe('addSubquestion guards (5b.3)', () => {
 		await expect(addSubquestion(adminId, p.id, 'Too late', db)).rejects.toThrow(/frozen/i);
 	});
 
+	it('honors a proposer override of the contribution policy when the type is unlocked', async () => {
+		// Type defaults to proposer-at-creation but leaves it unlocked.
+		const typeVersionId = await mqTypeVersion({}, 7);
+		const p = await createProposal(
+			adminId,
+			{
+				communityId,
+				title: 'Overridden',
+				body: 'Body text here',
+				choices: [],
+				questions: ['Seed'],
+				// Proposer opens it up to members during deliberation.
+				questionContributors: 'members',
+				questionContributionPhase: 'deliberation',
+				startTime: future(86_400_000),
+				endTime: future(2 * 86_400_000),
+				typeVersionId
+			},
+			db
+		);
+		const member = await seedUser(db);
+		await seedMember(db, communityId, member.id);
+		await addSubquestion(member.id, p.id, 'Member-added', db);
+		expect((await loadQuestions(p.id, db)).map((q) => q.prompt)).toContain('Member-added');
+	});
+
+	it('ignores a proposer override when the type locks the contribution policy', async () => {
+		const typeVersionId = await mqTypeVersion(
+			{
+				questionContributors: 'proposer',
+				questionContributionPhase: 'creation',
+				lockQuestionContribution: true
+			},
+			7
+		);
+		const p = await createProposal(
+			adminId,
+			{
+				communityId,
+				title: 'Locked policy',
+				body: 'Body text here',
+				choices: [],
+				questions: ['Seed'],
+				questionContributors: 'members', // ignored — locked
+				questionContributionPhase: 'deliberation', // ignored — locked
+				startTime: future(86_400_000),
+				endTime: future(2 * 86_400_000),
+				typeVersionId
+			},
+			db
+		);
+		// Frozen back to the type's creation-only policy → even the proposer can't add later.
+		await expect(addSubquestion(adminId, p.id, 'Nope', db)).rejects.toThrow(/created/i);
+	});
+
 	it('rejects contributions for a creation-only type', async () => {
 		const typeVersionId = await mqTypeVersion(
 			{ questionContributors: 'members', questionContributionPhase: 'creation' },

@@ -197,6 +197,12 @@ export const proposal = sqliteTable(
 		typeVersionId: text('type_version_id').references(() => proposalTypeVersion.id),
 		// Ad-hoc per-proposal override snapshot; when present it supersedes the pinned version (D4).
 		methodOverrideJson: text('method_override_json'),
+		// Common Ground: the proposal's own question-contribution policy, resolved at creation from the
+		// type (with proposer overrides when the type leaves it unlocked). Null = inherit from the type.
+		questionContributors: text('question_contributors', { enum: ['proposer', 'members'] }),
+		questionContributionPhase: text('question_contribution_phase', {
+			enum: ['creation', 'deliberation']
+		}),
 		visibility: text('visibility', { enum: ['public', 'community'] })
 			.notNull()
 			.default('community'),

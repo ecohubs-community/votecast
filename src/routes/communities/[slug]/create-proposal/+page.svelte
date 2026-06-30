@@ -98,6 +98,13 @@
 
 	// Common Ground: the proposal collects questions (each gets Agree/Disagree/Abstain) instead of choices.
 	let questions = $derived(form?.questions?.length ? [...form.questions] : ['']);
+
+	// Common Ground: who/when may add more questions — pre-filled from the type, locked when the type says so.
+	const lockQuestionContribution = $derived(selectedType?.lockQuestionContribution ?? false);
+	let qPhase = $derived<'creation' | 'deliberation'>(
+		selectedType?.questionContributionPhase ?? 'creation'
+	);
+	let qWho = $derived<'proposer' | 'members'>(selectedType?.questionContributors ?? 'proposer');
 	function addQuestion() {
 		if (questions.length < 20) questions = [...questions, ''];
 	}
@@ -373,6 +380,36 @@
 								+ Add a question
 							</button>
 						{/if}
+
+						<div class="mq-contrib">
+							<span class="label">Adding more questions later</span>
+							{#if lockQuestionContribution}
+								<p class="locked-value">
+									{qPhase === 'creation'
+										? 'Fixed at creation'
+										: `During deliberation — ${qWho === 'members' ? 'any member' : 'proposer only'}`}
+									<span class="locked-tag">set by method</span>
+								</p>
+								<input type="hidden" name="questionContributionPhase" value={qPhase} />
+								<input type="hidden" name="questionContributors" value={qWho} />
+							{:else}
+								<select name="questionContributionPhase" bind:value={qPhase} class="input">
+									<option value="creation">Only at creation</option>
+									<option value="deliberation">During the deliberation phase</option>
+								</select>
+								{#if qPhase === 'deliberation'}
+									<select
+										name="questionContributors"
+										bind:value={qWho}
+										class="input"
+										style="margin-top: 8px;"
+									>
+										<option value="proposer">Proposer only</option>
+										<option value="members">Any member</option>
+									</select>
+								{/if}
+							{/if}
+						</div>
 					{:else if lockChoices}
 						<ul class="locked-choices">
 							{#each choices as choice, i (i)}
@@ -538,6 +575,12 @@
 		cursor: pointer;
 		padding: 0;
 		border-bottom: 1px solid var(--vc-line-2);
+	}
+	.mq-contrib {
+		margin-top: 16px;
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
 	}
 	.locked-value {
 		font-size: 14px;
