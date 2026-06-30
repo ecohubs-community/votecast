@@ -25,6 +25,23 @@ the version they were created under.
 - **WHEN** an admin changes a type's default voting days
 - **THEN** a new version is created and proposals already pinned to the old version are unaffected
 
+### Requirement: Configurable question contribution for Common Ground
+A multi-question type SHALL configure who may add questions (proposer-only or members) and when (at
+creation or during deliberation), with a lock. Adding a question SHALL be permitted only in the
+configured phase and only before voting opens; the question set SHALL freeze when voting opens.
+
+#### Scenario: Members add questions during deliberation
+- **WHEN** a type allows member contribution during deliberation and a member adds a question while the proposal is in deliberation
+- **THEN** the question is added to the ballot and a subquestion-added event is emitted
+
+#### Scenario: Contribution rejected after voting opens
+- **WHEN** a member attempts to add a question once voting has opened
+- **THEN** the system rejects it and the question set is unchanged
+
+#### Scenario: Contribution rejected for an unpermitted user or phase
+- **WHEN** a type restricts contribution to the proposer, and a non-proposer member attempts to add a question
+- **THEN** the system rejects it
+
 ### Requirement: Type management in settings with a retired filter
 Proposal types SHALL be managed from a Settings tab, with a filter for active vs. retired types and
 retired types hidden by default.

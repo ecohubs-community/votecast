@@ -50,6 +50,26 @@ edit it and the corresponding type field is not locked.
 - **WHEN** a type locks the voting window and the proposer views the timeline
 - **THEN** the voting segment shows no Edit affordance and cannot be changed
 
+### Requirement: Ballot-family-aware authoring and display
+Proposal authoring and display SHALL adapt to the type's ballot family. Single-choice/consent ballots
+collect and render choices; multi-question (Common Ground) ballots collect and render **questions**,
+each with its own positions, and SHALL NOT present a flat choice list.
+
+#### Scenario: Authoring a Common Ground proposal
+- **WHEN** a proposer creates a proposal under a multi-question type
+- **THEN** the form collects questions (each with positions like agree/disagree/abstain), not flat choices, and persists them as the proposal's questions
+
+#### Scenario: Displaying a Common Ground proposal
+- **WHEN** a member views a multi-question proposal's results
+- **THEN** each question's positions are shown per question, not as one combined choice list
+
+### Requirement: Show the proposal's method
+The proposal detail page SHALL show how the proposal is decided (its type and ballot/decision method).
+
+#### Scenario: Method shown on detail
+- **WHEN** a member opens a proposal
+- **THEN** the page shows the proposal's type and method summary
+
 ### Requirement: Phase-aware status label
 The proposal detail page SHALL label status from the lifecycle phase, not the legacy status, so a
 not-yet-open proposal does not read "Draft."

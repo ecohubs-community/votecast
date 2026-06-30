@@ -55,6 +55,30 @@ The detail-page badge maps from `phase` (not legacy `status`): draft→"Draft", 
 "Deliberation", voting→"Voting open", objection-window→"Objection window", finalized→"Closed".
 Resolves the "Draft while it says opens in 4h" confusion (1b). Pure display; no data change.
 
+### D7 — Ballot input/display is family-aware (fixes Common Ground)
+The create form and detail page branch on the type's **tally family**. `count`/`consent` collect and
+render **choices** (as today). `multiQuestion` collects **questions**, each with its own positions
+(default agree/disagree/abstain), via a questions-editor, and persists them to the existing
+`ballot_question` (+ `proposal_choice.questionId`) tables — so `tallyProposal`'s multi-question path
+actually has data. Detail renders per-question position tallies, not a flat choice list. **Alternative
+considered:** keep one flat "choices" control for all families → rejected; it silently produces
+unusable multi-question ballots (the reported bug).
+
+### D8 — Question contribution: config on the type, enforced by phase, frozen at voting-open
+Implements the original change's D10 (designed, never built). The type version carries
+`questionContributors` (`proposer` | `members`) and `questionContributionPhase` (`creation` |
+`deliberation`) with a lock. A new `addSubquestion(proposalId, userId, …)` service enforces: the
+proposal's ballot is multi-question, the phase is the configured contribution phase (and not past
+voting-open — the set **freezes** when voting opens), and the user is permitted (proposer, or any
+member when `members`). It emits `subquestion.added`. The detail page shows an "Add a question"
+control only during the contribution window for permitted users. **Why freeze at voting-open:** a
+question added mid-voting would get uneven exposure (the late-statement problem).
+
+### D9 — Show the resolved method on the detail page
+The detail load resolves the proposal's method (via the pinned version / `resolveMethodContext`) and
+the page shows a compact summary (type name + ballot · rule, e.g. "Constitutional — consent · consensus").
+Read-only; no data change.
+
 ## Risks / Trade-offs
 
 - **Markdown XSS** → MUST sanitize rendered HTML (DOMPurify or equivalent); never `{@html}` raw output.

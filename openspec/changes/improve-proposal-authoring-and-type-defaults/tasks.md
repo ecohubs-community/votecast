@@ -1,8 +1,8 @@
 ## 1. Schema & migration
 
 - [ ] 1.1 Add `proposal.rationale` (text, nullable, markdown)
-- [ ] 1.2 Extend `proposal_type_version`: `defaultChoicesJson` (nullable), `votingSeconds` (default 3d), `defaultVisibility` (enum, default 'community'/'public'), and locks `lockChoices`/`lockDeliberation`/`lockVoting`/`lockVisibility` (bool default false)
-- [ ] 1.3 Generate migration; back-fill existing versions (votingSeconds=3d, locks=false, defaultChoices=null); apply to local.db
+- [ ] 1.2 Extend `proposal_type_version`: `defaultChoicesJson` (nullable), `votingSeconds` (default 3d), `defaultVisibility` (enum, default 'community'/'public'), locks `lockChoices`/`lockDeliberation`/`lockVoting`/`lockVisibility`, and contribution config `questionContributors` ('proposer'|'members') + `questionContributionPhase` ('creation'|'deliberation') + `lockQuestionContribution`
+- [ ] 1.3 Generate migration; back-fill existing versions (votingSeconds=3d, locks=false, defaultChoices=null, contributors='proposer'/creation); apply to local.db
 
 ## 2. Markdown editor + renderer
 
@@ -31,13 +31,22 @@
 
 - [ ] 5.1 Render body + rationale (reveal-on-click) via `Markdown`
 - [ ] 5.2 Phase-aware status label (phase → Draft/Deliberation/Voting open/Objection window/Closed) — extend `StatusBadge` or add `PhaseBadge`
-- [ ] 5.3 svelte-autofixer clean
+- [ ] 5.3 Show the proposal's method/type summary (D9)
+- [ ] 5.4 svelte-autofixer clean
+
+## 5b. Common Ground questions (ballot-family-aware)
+
+- [ ] 5b.1 Create-proposal: branch ballot input by family — `QuestionsEditor` for multi-question (questions + per-question positions), choices otherwise; persist to `ballot_question` + `proposal_choice.questionId`
+- [ ] 5b.2 Proposal detail: render multi-question ballots per question (positions per question), and the voting UI accordingly
+- [ ] 5b.3 `addSubquestion` service — guarded by ballot family, contribution who/when config, and frozen-at-voting-open; emits `subquestion.added`
+- [ ] 5b.4 Detail page: "Add a question" control shown only during the contribution window for permitted users
+- [ ] 5b.5 Tests: family-aware persistence, contribution permission/phase/freeze enforcement
 
 ## 6. Type settings UX
 
 - [ ] 6.1 Move type management into a Settings **tab** (not a button)
 - [ ] 6.2 Active/Retired filter; retired hidden by default
-- [ ] 6.3 Type form: default choices (hidden for multi-question), deliberation days, voting days, visibility — each with a lock checkbox
+- [ ] 6.3 Type form: default choices (hidden for multi-question), deliberation days, voting days, visibility — each with a lock checkbox; for multi-question, the question-contribution who/when config (+ lock)
 - [ ] 6.4 Delete button: enabled only for retired + no-proposals; disabled with tooltip otherwise
 - [ ] 6.5 svelte-autofixer clean
 
