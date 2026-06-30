@@ -8,7 +8,7 @@ import {
 	seedProposal,
 	type TestDb
 } from './test-helpers';
-import { voteSelection } from '$lib/server/db/schema';
+import { vote, voteSelection } from '$lib/server/db/schema';
 import { castVote } from './vote-service';
 import { tallyProposal, aggregateResults } from './proposal-results';
 import { getProposalOutcome } from './proposal-service';
@@ -119,6 +119,40 @@ describe('vote/results flip: castVote → vote_selection → tallyProposal', () 
 		});
 		// Member: visible once voting has closed
 		expect((await getProposalOutcome(closed.id, adminId, db, 'member')).revealed).toBe(true);
+	});
+
+	it('tallies a consensus (consent) proposal end-to-end over real DB data (task 8.1)', async () => {
+		const map = seedPresetTypesSync(db, communityId, adminId); // Constitutional = consent/consensus
+		const { proposal: p } = await seedProposal(db, communityId, adminId, {
+			status: 'active',
+			startTime: new Date(Date.now() - 1000),
+			endTime: new Date(Date.now() + 3_600_000),
+			typeVersionId: map['Constitutional'],
+			choices: ['n/a']
+		});
+		// Two consenting members (consent ballots store a position in vote_selection, not a choiceId).
+		const u1 = await seedUser(db);
+		const u2 = await seedUser(db);
+		for (const u of [u1, u2]) {
+			await seedMember(db, communityId, u.id);
+			await db.insert(vote).values({ proposalId: p.id, userId: u.id, votingPower: 1 });
+			await db
+				.insert(voteSelection)
+				.values({ proposalId: p.id, userId: u.id, consentPosition: 'consent' });
+		}
+		expect((await tallyProposal(p.id, db)).outcome).toBe('passed'); // no objection → consensus passes
+
+		// A reasoned objection blocks.
+		const u3 = await seedUser(db);
+		await seedMember(db, communityId, u3.id);
+		await db.insert(vote).values({ proposalId: p.id, userId: u3.id, votingPower: 1 });
+		await db.insert(voteSelection).values({
+			proposalId: p.id,
+			userId: u3.id,
+			consentPosition: 'object',
+			reason: 'violates the vision'
+		});
+		expect((await tallyProposal(p.id, db)).outcome).toBe('blocked');
 	});
 
 	it('rejects a vote once the voting phase is over', async () => {

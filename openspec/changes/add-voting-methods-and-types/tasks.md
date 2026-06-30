@@ -74,6 +74,6 @@
 
 ## 8. Verification
 
-- [ ] 8.1 End-to-end: run the attached real-community consensus method through create → deliberate → vote → async objection → finalize
-- [ ] 8.2 Verify migration: existing proposals still tally correctly under their back-filled type version
-- [ ] 8.3 Confirm `deferred.md` items are still out of scope and recorded; open follow-up changes where warranted
+- [~] 8.1 Consensus **tally** verified end-to-end over real DB data (consent → passed; reasoned objection → blocked). The consent/multi-question **vote-casting UI** (castVote is choiceId-only) lands in `improve-proposal-authoring-and-type-defaults` (5b); full create→deliberate→object→finalize UX completes there
+- [x] 8.2 Migration verified: back-fill executed on local.db (4 proposals pinned, 5 votes→vote_selection) and integration tests confirm back-filled/legacy proposals tally correctly (engine/legacy parity)
+- [x] 8.3 `deferred.md` items recorded; follow-up change `improve-proposal-authoring-and-type-defaults` opened for the authoring/Common-Ground UI gaps surfaced in testing
