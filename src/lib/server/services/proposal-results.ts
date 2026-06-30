@@ -9,6 +9,7 @@ import {
 } from '$lib/server/db/schema';
 import { ServiceError, ErrorCode } from './errors';
 import { resolveMethodContext } from './proposal-type-service';
+import { loadQuestions, buildMqTallyInputs } from './multi-question';
 import {
 	bindingFromSnapshot,
 	tallyBallots,
@@ -87,21 +88,7 @@ export async function tallyProposal(
 
 	const { snapshot } = await resolveMethodContext(p, db);
 	const binding = bindingFromSnapshot(snapshot);
-
-	const choices = await db
-		.select({
-			id: proposalChoice.id,
-			label: proposalChoice.label,
-			questionId: proposalChoice.questionId
-		})
-		.from(proposalChoice)
-		.where(eq(proposalChoice.proposalId, proposalId))
-		.orderBy(asc(proposalChoice.position));
-	const options = choices.map((c) => ({
-		optionId: c.id,
-		label: c.label,
-		group: c.questionId ?? undefined
-	}));
+	const isMultiQuestion = snapshot.ballotModuleId === 'multi-question';
 
 	const voteRows = await db
 		.select({ userId: vote.userId, votingPower: vote.votingPower, createdAt: vote.createdAt })
@@ -121,19 +108,44 @@ export async function tallyProposal(
 		.from(voteSelection)
 		.where(eq(voteSelection.proposalId, proposalId));
 
+	let options: Array<{ optionId: string; group?: string; label?: string }>;
 	const selectionsByUser = new Map<string, unknown[]>();
-	for (const s of selRows) {
-		const selection = s.consentPosition
-			? { position: s.consentPosition, reason: s.reason ?? undefined }
-			: {
-					choiceId: s.choiceId,
-					questionId: s.questionId ?? undefined,
-					rank: s.rank,
-					score: s.score
-				};
-		const list = selectionsByUser.get(s.userId) ?? [];
-		list.push(selection);
-		selectionsByUser.set(s.userId, list);
+
+	if (isMultiQuestion) {
+		// Map questions/choices/selections onto the engine's {questionId, position} encoding.
+		const questions = await loadQuestions(proposalId, db);
+		const mq = buildMqTallyInputs(questions, selRows);
+		options = mq.options;
+		for (const [uid, sels] of mq.selectionsByUser) selectionsByUser.set(uid, sels);
+	} else {
+		const choices = await db
+			.select({
+				id: proposalChoice.id,
+				label: proposalChoice.label,
+				questionId: proposalChoice.questionId
+			})
+			.from(proposalChoice)
+			.where(eq(proposalChoice.proposalId, proposalId))
+			.orderBy(asc(proposalChoice.position));
+		options = choices.map((c) => ({
+			optionId: c.id,
+			label: c.label,
+			group: c.questionId ?? undefined
+		}));
+
+		for (const s of selRows) {
+			const selection = s.consentPosition
+				? { position: s.consentPosition, reason: s.reason ?? undefined }
+				: {
+						choiceId: s.choiceId,
+						questionId: s.questionId ?? undefined,
+						rank: s.rank,
+						score: s.score
+					};
+			const list = selectionsByUser.get(s.userId) ?? [];
+			list.push(selection);
+			selectionsByUser.set(s.userId, list);
+		}
 	}
 
 	const ballots: BallotRecord[] = voteRows.map((v) => ({

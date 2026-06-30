@@ -7,3 +7,4 @@ export * from './weight';
 export * from './facilitator';
 export * from './presets';
 export * from './external-resolver';
+export { mqOptionId, type MultiQuestionPosition } from './ballot-modules/multi-question';

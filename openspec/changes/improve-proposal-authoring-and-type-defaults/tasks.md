@@ -36,11 +36,11 @@
 
 ## 5b. Common Ground questions (ballot-family-aware)
 
-- [ ] 5b.1 Create-proposal: branch ballot input by family — `QuestionsEditor` for multi-question (questions + per-question positions), choices otherwise; persist to `ballot_question` + `proposal_choice.questionId`
-- [ ] 5b.2 Proposal detail: render multi-question ballots per question (positions per question), and the voting UI accordingly
-- [ ] 5b.3 `addSubquestion` service — guarded by ballot family, contribution who/when config, and frozen-at-voting-open; emits `subquestion.added`
-- [ ] 5b.4 Detail page: "Add a question" control shown only during the contribution window for permitted users
-- [ ] 5b.5 Tests: family-aware persistence, contribution permission/phase/freeze enforcement
+- [x] 5b.1 Create-proposal branches ballot input by family: a questions editor for multi-question (each question stored with Agree/Disagree/Abstain position-choices), the choices editor otherwise. Persisted to `ballot_question` + `proposal_choice.questionId` via `insertQuestion`; `createProposal` resolves the family and validates ≥1 question. Tally bridged in `tallyProposal` (`buildMqTallyInputs` maps choices→`{questionId, position}` so the existing module/rule run)
+- [x] 5b.2 Proposal detail renders multi-question per question (`MultiQuestionBallot`): per-question position voting via `castMultiQuestionVote` (one `vote_selection` per question), the voter's own answers, and per-question agree/disagree result entries when revealed
+- [x] 5b.3 `addSubquestion` service — guards ballot family, contribution who/when config, freeze-at-voting-open, and proposer-vs-members permission; emits `subquestion.added`. Non-throwing `canAddSubquestion` drives the UI
+- [x] 5b.4 Detail page shows an "Add a question" control only when `canAddSubquestion` (multi-question, deliberation phase, permitted user); `?/addQuestion` action wired
+- [x] 5b.5 Tests (`multi-question.integration.test.ts`, 9): family-aware persistence, ≥1-question guard, end-to-end per-question tally, mismatched-selection rejection, and the addSubquestion permission/phase/freeze/creation-only guards. Full suite 216 green
 
 ## 6. Type settings UX
 

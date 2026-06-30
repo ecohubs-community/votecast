@@ -20,6 +20,7 @@ import {
 	validateVisibility
 } from './proposal-validation';
 import { transitionProposalStatus } from './proposal-lifecycle';
+import { insertQuestion } from './multi-question';
 import { computePhase } from './proposal-phase-compute';
 import { aggregateResults, tallyProposal, type ProposalResults } from './proposal-results';
 import {
@@ -48,6 +49,7 @@ export interface CreateProposalInput {
 	body: string;
 	rationale?: string; // optional markdown "why" — the body is what's voted on (design D2)
 	choices: string[];
+	questions?: string[]; // Common Ground (multi-question): the sub-question prompts (choices ignored)
 	startTime: Date | string;
 	endTime: Date | string;
 	visibility?: 'public' | 'community';
@@ -106,6 +108,14 @@ export async function createProposal(
 		}
 	}
 
+	// The effective ballot family decides what the proposal collects: a multi-question (Common Ground)
+	// proposal stores sub-questions, every other family stores flat choices.
+	const { snapshot } = await resolveMethodContext(
+		{ methodOverrideJson: input.method ? JSON.stringify(input.method) : null, typeVersionId },
+		db
+	);
+	const isMultiQuestion = snapshot.ballotModuleId === 'multi-question';
+
 	// Apply the pinned type's defaults and enforce its locks server-side (task 3.4): a locked field is
 	// re-asserted from the type regardless of what the client submitted; an unlocked field with no
 	// client value falls back to the type default. Never trust the form alone.
@@ -116,7 +126,11 @@ export async function createProposal(
 	if (typeVersionId) {
 		const defaults = await getTypeVersionDefaults(typeVersionId, db);
 		if (defaults) {
-			if (defaults.defaultChoices && (defaults.lockChoices || !choices || choices.length === 0)) {
+			if (
+				!isMultiQuestion &&
+				defaults.defaultChoices &&
+				(defaults.lockChoices || !choices || choices.length === 0)
+			) {
 				choices = defaults.defaultChoices;
 			}
 			if (defaults.lockVoting) {
@@ -128,7 +142,18 @@ export async function createProposal(
 		}
 	}
 
-	validateChoices(choices);
+	let questions: string[] = [];
+	if (isMultiQuestion) {
+		questions = (input.questions ?? []).map((q) => q.trim()).filter(Boolean);
+		if (questions.length === 0) {
+			throw new ServiceError(
+				ErrorCode.INVALID_CHOICES,
+				'Add at least one question for a Common Ground proposal'
+			);
+		}
+	} else {
+		validateChoices(choices);
+	}
 
 	if (startTime.getTime() >= endTime.getTime()) {
 		throw new ServiceError(ErrorCode.INVALID_REQUEST, 'Start time must be before end time');
@@ -141,7 +166,7 @@ export async function createProposal(
 	// Check unverified community proposal limit
 	await checkProposalLimit(input.communityId, db);
 
-	// Atomic: insert proposal + choices
+	// Atomic: insert proposal + (questions | choices)
 	// Note: better-sqlite3 transactions are synchronous — no async/await inside
 	const result = db.transaction((tx) => {
 		const created = tx
@@ -161,13 +186,16 @@ export async function createProposal(
 			.returning()
 			.get();
 
-		const choiceValues = choices.map((label, index) => ({
-			proposalId: created.id,
-			label: label.trim(),
-			position: index
-		}));
-
-		tx.insert(proposalChoice).values(choiceValues).run();
+		if (isMultiQuestion) {
+			questions.forEach((prompt, i) => insertQuestion(tx, created.id, prompt, i));
+		} else {
+			const choiceValues = choices.map((label, index) => ({
+				proposalId: created.id,
+				label: label.trim(),
+				position: index
+			}));
+			tx.insert(proposalChoice).values(choiceValues).run();
+		}
 
 		return created;
 	});

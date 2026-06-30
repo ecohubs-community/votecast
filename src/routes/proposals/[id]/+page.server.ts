@@ -7,8 +7,19 @@ import {
 } from '$lib/server/services/proposal-service';
 import { getCommunityById } from '$lib/server/services/community-service';
 import { getMember } from '$lib/server/services/membership-service';
-import { getUserVote, castVote, getProposalVoters } from '$lib/server/services/vote-service';
+import {
+	getUserVote,
+	castVote,
+	castMultiQuestionVote,
+	getProposalVoters
+} from '$lib/server/services/vote-service';
 import { resolveMethodSummary } from '$lib/server/services/proposal-type-service';
+import {
+	loadQuestions,
+	getUserMultiQuestionAnswers,
+	MQ_POSITION_LABELS
+} from '$lib/server/services/multi-question';
+import { addSubquestion, canAddSubquestion } from '$lib/server/services/subquestion-service';
 import { renderMarkdown } from '$lib/server/markdown';
 import { ServiceError } from '$lib/server/services/errors';
 
@@ -30,6 +41,14 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 			resolveMethodSummary(proposal)
 		]);
 
+		// Common Ground (multi-question): load questions, the viewer's answers, and whether they may add
+		// a question right now. Per-question result entries come from the (access-gated) outcome.
+		const isMultiQuestion = method.ballotModuleId === 'multi-question';
+		const questions = isMultiQuestion ? await loadQuestions(params.id) : [];
+		const userAnswers =
+			isMultiQuestion && userId ? await getUserMultiQuestionAnswers(userId, params.id) : {};
+		const canAddQuestion = isMultiQuestion ? await canAddSubquestion(userId, params.id) : false;
+
 		return {
 			proposal,
 			// Server-rendered, sanitized markdown — the body is what's voted on; rationale is the "why".
@@ -41,7 +60,12 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 			membership,
 			userVote,
 			voters,
-			method
+			method,
+			isMultiQuestion,
+			questions,
+			userAnswers,
+			canAddQuestion,
+			positionLabels: MQ_POSITION_LABELS
 		};
 	} catch (e) {
 		if (e instanceof ServiceError) {
@@ -58,22 +82,44 @@ export const actions: Actions = {
 		}
 
 		const formData = await request.formData();
-		const choiceId = formData.get('choiceId') as string;
 
-		if (!choiceId) {
-			return fail(400, { error: 'Please select a choice before voting' });
-		}
+		// Multi-question ballots submit one `q_<questionId>` field per question.
+		const answers = [...formData.entries()]
+			.filter(([k, v]) => k.startsWith('q_') && typeof v === 'string' && v)
+			.map(([k, v]) => ({ questionId: k.slice(2), choiceId: v as string }));
 
 		try {
-			await castVote(locals.user.id, {
-				proposalId: params.id,
-				choiceId
-			});
+			if (answers.length > 0) {
+				await castMultiQuestionVote(locals.user.id, { proposalId: params.id, answers });
+				return { success: true };
+			}
 
+			const choiceId = formData.get('choiceId') as string;
+			if (!choiceId) {
+				return fail(400, { error: 'Please select a choice before voting' });
+			}
+			await castVote(locals.user.id, { proposalId: params.id, choiceId });
 			return { success: true };
 		} catch (e) {
 			if (e instanceof ServiceError) {
 				return fail(e.statusCode, { error: e.message });
+			}
+			throw e;
+		}
+	},
+
+	addQuestion: async ({ request, locals, params }) => {
+		if (!locals.user) {
+			redirect(302, '/login');
+		}
+		const formData = await request.formData();
+		const prompt = formData.get('prompt') as string;
+		try {
+			await addSubquestion(locals.user.id, params.id, prompt);
+			return { questionAdded: true };
+		} catch (e) {
+			if (e instanceof ServiceError) {
+				return fail(e.statusCode, { questionError: e.message });
 			}
 			throw e;
 		}

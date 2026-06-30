@@ -23,7 +23,128 @@ export interface CastVoteInput {
 	signature?: string;
 }
 
+export interface MultiQuestionVoteInput {
+	proposalId: string;
+	answers: Array<{ questionId: string; choiceId: string }>;
+	signature?: string;
+}
+
 // ─── Service functions ───────────────────────────────────────────────────────
+
+/**
+ * Shared pre-cast checks: the proposal exists, voting is open, the user is an eligible member.
+ * Returns the (transitioned) proposal, its method snapshot, and the resolved voting power.
+ */
+async function assertCanVote(proposalId: string, userId: string, db: Database) {
+	const [found] = await db.select().from(proposal).where(eq(proposal.id, proposalId)).limit(1);
+	if (!found) {
+		throw new ServiceError(ErrorCode.NOT_FOUND, 'Proposal not found');
+	}
+
+	const current = await transitionProposalStatus(found, db);
+	if (!isVotingOpen(current.phase)) {
+		throw new ServiceError(
+			ErrorCode.PROPOSAL_NOT_ACTIVE,
+			current.phase === 'draft' || current.phase === 'deliberation'
+				? 'Voting has not started yet'
+				: 'Voting has ended'
+		);
+	}
+
+	await requireMember(current.communityId, userId, db);
+	const { snapshot } = await resolveMethodContext(current, db);
+	if (!isEligible(snapshot.eligibility, { isMember: true })) {
+		throw new ServiceError(ErrorCode.FORBIDDEN, 'You are not eligible to vote on this proposal');
+	}
+
+	return { current, snapshot, votingPower: resolveVotingPower(snapshot.weight, {}) };
+}
+
+/** Reject a second ballot from the same voter on the same proposal. */
+async function assertNotVoted(proposalId: string, userId: string, db: Database) {
+	const [existingVote] = await db
+		.select({ id: vote.id })
+		.from(vote)
+		.where(and(eq(vote.proposalId, proposalId), eq(vote.userId, userId)))
+		.limit(1);
+	if (existingVote) {
+		throw new ServiceError(ErrorCode.ALREADY_VOTED, 'You have already voted on this proposal');
+	}
+}
+
+/**
+ * Cast a Common Ground (multi-question) vote: one position-choice per answered sub-question. Each
+ * answer's choice must belong to its question on this proposal; writes one `vote_selection` per answer.
+ */
+export async function castMultiQuestionVote(
+	userId: string,
+	input: MultiQuestionVoteInput,
+	db: Database = defaultDb
+) {
+	const { votingPower } = await assertCanVote(input.proposalId, userId, db);
+
+	const answers = input.answers ?? [];
+	if (answers.length === 0) {
+		throw new ServiceError(ErrorCode.INVALID_REQUEST, 'Answer at least one question.');
+	}
+	const seenQuestions = new Set<string>();
+	for (const a of answers) {
+		if (seenQuestions.has(a.questionId)) {
+			throw new ServiceError(ErrorCode.INVALID_REQUEST, 'Duplicate answer for a question.');
+		}
+		seenQuestions.add(a.questionId);
+	}
+
+	// Validate every (questionId, choiceId) pair belongs to this proposal.
+	const validChoices = await db
+		.select({ id: proposalChoice.id, questionId: proposalChoice.questionId })
+		.from(proposalChoice)
+		.where(eq(proposalChoice.proposalId, input.proposalId));
+	const validPairs = new Set(validChoices.map((c) => `${c.questionId}:${c.id}`));
+	for (const a of answers) {
+		if (!validPairs.has(`${a.questionId}:${a.choiceId}`)) {
+			throw new ServiceError(
+				ErrorCode.INVALID_REQUEST,
+				'A selection does not belong to its question.'
+			);
+		}
+	}
+
+	await assertNotVoted(input.proposalId, userId, db);
+
+	const created = db.transaction((tx) => {
+		const v = tx
+			.insert(vote)
+			.values({
+				proposalId: input.proposalId,
+				userId,
+				votingPower,
+				signature: input.signature ?? null
+			})
+			.returning()
+			.get();
+		tx.insert(voteSelection)
+			.values(
+				answers.map((a) => ({
+					proposalId: input.proposalId,
+					userId,
+					questionId: a.questionId,
+					choiceId: a.choiceId
+				}))
+			)
+			.run();
+		return v;
+	});
+
+	emit('vote.cast', {
+		voteId: created.id,
+		proposalId: input.proposalId,
+		userId,
+		choiceId: answers[0].choiceId
+	});
+
+	return created;
+}
 
 /**
  * Cast a vote on an active proposal.
@@ -35,36 +156,7 @@ export interface CastVoteInput {
  * - user has not already voted
  */
 export async function castVote(userId: string, input: CastVoteInput, db: Database = defaultDb) {
-	// Fetch proposal
-	const [found] = await db
-		.select()
-		.from(proposal)
-		.where(eq(proposal.id, input.proposalId))
-		.limit(1);
-
-	if (!found) {
-		throw new ServiceError(ErrorCode.NOT_FOUND, 'Proposal not found');
-	}
-
-	// Transition to ensure phase/status are current, then gate on the voting phase.
-	const current = await transitionProposalStatus(found, db);
-
-	if (!isVotingOpen(current.phase)) {
-		throw new ServiceError(
-			ErrorCode.PROPOSAL_NOT_ACTIVE,
-			current.phase === 'draft' || current.phase === 'deliberation'
-				? 'Voting has not started yet'
-				: 'Voting has ended'
-		);
-	}
-
-	// Verify membership, then the method's eligibility axis (all-members = membership; trained etc.
-	// fail closed until their data sources land).
-	await requireMember(current.communityId, userId, db);
-	const { snapshot } = await resolveMethodContext(current, db);
-	if (!isEligible(snapshot.eligibility, { isMember: true })) {
-		throw new ServiceError(ErrorCode.FORBIDDEN, 'You are not eligible to vote on this proposal');
-	}
+	const { votingPower } = await assertCanVote(input.proposalId, userId, db);
 
 	// Verify choice belongs to this proposal
 	const [choice] = await db
@@ -79,19 +171,7 @@ export async function castVote(userId: string, input: CastVoteInput, db: Databas
 		throw new ServiceError(ErrorCode.INVALID_REQUEST, 'Choice does not belong to this proposal');
 	}
 
-	// Check user hasn't already voted
-	const [existingVote] = await db
-		.select({ id: vote.id })
-		.from(vote)
-		.where(and(eq(vote.proposalId, input.proposalId), eq(vote.userId, userId)))
-		.limit(1);
-
-	if (existingVote) {
-		throw new ServiceError(ErrorCode.ALREADY_VOTED, 'You have already voted on this proposal');
-	}
-
-	// Voting power from the weight axis (1 for one-person-one-vote).
-	const votingPower = resolveVotingPower(snapshot.weight, {});
+	await assertNotVoted(input.proposalId, userId, db);
 
 	// Atomic: write the vote envelope + its selection (the choice lives on vote_selection).
 	const created = db.transaction((tx) => {

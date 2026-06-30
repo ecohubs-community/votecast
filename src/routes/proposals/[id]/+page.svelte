@@ -3,6 +3,7 @@
 	import StatusBadge from '$lib/components/StatusBadge.svelte';
 	import MethodFlow from '$lib/components/MethodFlow.svelte';
 	import Markdown from '$lib/components/Markdown.svelte';
+	import MultiQuestionBallot from '$lib/components/MultiQuestionBallot.svelte';
 	import { formatRelativeTime } from '$lib/utils/format';
 	import { ballotLabel, ruleLabel } from '$lib/utils/method-labels';
 	import { resolve } from '$app/paths';
@@ -236,7 +237,7 @@
 					{/if}
 				</div>
 
-				{#if outcomeLabel}
+				{#if outcomeLabel && !data.isMultiQuestion}
 					<div class="outcome-badge" data-outcome={data.outcome?.result?.outcome}>
 						Outcome: <strong>{outcomeLabel}</strong>
 					</div>
@@ -250,7 +251,18 @@
 					<div class="alert alert-success" style="margin-bottom: 16px;">Vote recorded.</div>
 				{/if}
 
-				{#if votingState === 'can-vote'}
+				{#if data.isMultiQuestion}
+					<MultiQuestionBallot
+						questions={data.questions}
+						userAnswers={data.userAnswers}
+						canVote={votingState === 'can-vote'}
+						hasVoted={votingState === 'already-voted'}
+						{showResults}
+						entries={data.outcome?.revealed ? (data.outcome.result?.entries ?? null) : null}
+						canAddQuestion={data.canAddQuestion}
+						{form}
+					/>
+				{:else if votingState === 'can-vote'}
 					<form
 						method="POST"
 						action="?/vote"

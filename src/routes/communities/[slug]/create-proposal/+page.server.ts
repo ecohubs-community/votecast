@@ -44,6 +44,9 @@ export const actions: Actions = {
 		const choices = formData
 			.getAll('choices')
 			.filter((c) => (c as string).trim() !== '') as string[];
+		const questions = formData
+			.getAll('questions')
+			.filter((q) => (q as string).trim() !== '') as string[];
 		const startTime = formData.get('startTime') as string;
 		const endTime = formData.get('endTime') as string;
 		const visibility = (formData.get('visibility') as string) || 'public';
@@ -58,6 +61,7 @@ export const actions: Actions = {
 				body,
 				rationale,
 				choices,
+				questions,
 				startTime: new Date(startTime),
 				endTime: new Date(endTime),
 				visibility: visibility as 'public' | 'community',
@@ -73,6 +77,7 @@ export const actions: Actions = {
 					body,
 					rationale,
 					choices,
+					questions,
 					startTime,
 					endTime,
 					visibility,

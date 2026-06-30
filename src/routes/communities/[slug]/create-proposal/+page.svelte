@@ -95,6 +95,15 @@
 	function removeChoice(index: number) {
 		if (choices.length > 2) choices = choices.filter((_, i) => i !== index);
 	}
+
+	// Common Ground: the proposal collects questions (each gets Agree/Disagree/Abstain) instead of choices.
+	let questions = $derived(form?.questions?.length ? [...form.questions] : ['']);
+	function addQuestion() {
+		if (questions.length < 20) questions = [...questions, ''];
+	}
+	function removeQuestion(index: number) {
+		if (questions.length > 1) questions = questions.filter((_, i) => i !== index);
+	}
 </script>
 
 <svelte:head>
@@ -321,18 +330,49 @@
 
 				<div class="field">
 					<span class="label">
-						Choices
+						{isMultiQuestion ? 'Questions' : 'Choices'}
 						{#if !lockChoices && !isMultiQuestion}<span class="label-optional">2–20</span>{/if}
 					</span>
 
 					{#if isMultiQuestion}
 						<p class="hint">
-							Common Ground proposals collect positions per question. Questions are set up after the
-							proposal is created.
+							Each question is answered Agree / Disagree / Abstain and tallied on its own.
 						</p>
-						{#each choices as choice, i (i)}
-							<input type="hidden" name="choices" value={choice} />
-						{/each}
+						<div style="display: flex; flex-direction: column; gap: 8px;">
+							<!-- eslint-disable-next-line @typescript-eslint/no-unused-vars -- index-only loop; bound via questions[i] -->
+							{#each questions as _, i (i)}
+								<div style="display: flex; gap: 8px;">
+									<input
+										type="text"
+										name="questions"
+										required
+										maxlength="280"
+										bind:value={questions[i]}
+										class="input"
+										placeholder="Question {i + 1}"
+									/>
+									{#if questions.length > 1}
+										<button
+											type="button"
+											onclick={() => removeQuestion(i)}
+											class="btn btn-ghost btn-sm"
+										>
+											Remove
+										</button>
+									{/if}
+								</div>
+							{/each}
+						</div>
+						{#if questions.length < 20}
+							<button
+								type="button"
+								onclick={addQuestion}
+								class="btn btn-ghost btn-sm"
+								style="align-self: start; margin-top: 8px;"
+							>
+								+ Add a question
+							</button>
+						{/if}
 					{:else if lockChoices}
 						<ul class="locked-choices">
 							{#each choices as choice, i (i)}
