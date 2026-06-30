@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
+	import MethodFlow from '$lib/components/MethodFlow.svelte';
 	import type { PageData, ActionData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -100,6 +101,13 @@
 						</select>
 						{#if selectedType}
 							<p class="hint">{selectedType.description}</p>
+							<MethodFlow
+								ballotModuleId={selectedType.ballotModuleId}
+								decisionRuleId={selectedType.decisionRuleId}
+								deliberationSeconds={selectedType.deliberationSeconds}
+								objectionWindowSeconds={selectedType.objectionWindowSeconds}
+								tallyReveal={selectedType.tallyReveal}
+							/>
 						{/if}
 					</div>
 				{/if}

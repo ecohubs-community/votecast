@@ -1,15 +1,10 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
+	import MethodFlow from '$lib/components/MethodFlow.svelte';
 	import type { PageData, ActionData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
-
-	function deliberationLabel(seconds: number): string {
-		if (!seconds) return 'no deliberation';
-		const days = Math.round(seconds / 86_400);
-		return days >= 1 ? `${days}d deliberation` : `${Math.round(seconds / 3600)}h deliberation`;
-	}
 </script>
 
 <svelte:head>
@@ -56,10 +51,13 @@
 						<p class="page-sub" style="margin: 4px 0 0;">{t.description}</p>
 					{/if}
 					{#if t.summary}
-						<p class="hint" style="margin: 6px 0 0;">
-							{t.summary.ballotModuleId} · {t.summary.decisionRuleId} ·
-							{deliberationLabel(t.summary.deliberationSeconds)}
-						</p>
+						<MethodFlow
+							ballotModuleId={t.summary.ballotModuleId}
+							decisionRuleId={t.summary.decisionRuleId}
+							deliberationSeconds={t.summary.deliberationSeconds}
+							objectionWindowSeconds={t.summary.objectionWindowSeconds}
+							tallyReveal={t.summary.tallyReveal}
+						/>
 					{/if}
 				</div>
 				<form method="POST" action="?/retire" use:enhance>

@@ -116,6 +116,8 @@ export interface ProposalTypeSummary {
 	description: string;
 	currentVersionId: string;
 	deliberationSeconds: number;
+	objectionWindowSeconds: number;
+	tallyReveal: 'live' | 'on-close' | 'hidden-forever';
 	ballotModuleId: string;
 	decisionRuleId: string;
 }
@@ -162,6 +164,8 @@ export async function listProposalTypes(
 			description: t.description,
 			currentVersionId: v.id,
 			deliberationSeconds: v.deliberationSeconds,
+			objectionWindowSeconds: snap.process.objectionWindowSeconds ?? 0,
+			tallyReveal: snap.visibility.tallyReveal,
 			ballotModuleId: snap.ballotModuleId,
 			decisionRuleId: snap.decisionRuleId
 		});
