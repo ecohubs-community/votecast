@@ -192,11 +192,6 @@ export const proposal = sqliteTable(
 		createdBy: text('created_by')
 			.notNull()
 			.references(() => user.id),
-		// LEGACY: superseded by `phase`+`outcome`; dropped once the UI moves to phase (rides with the
-		// authoring change's phase-aware status badge).
-		status: text('status', { enum: ['draft', 'active', 'closed'] })
-			.notNull()
-			.default('draft'),
 		// Pinned method version (D4). Nullable only to allow back-fill of pre-existing rows; the
 		// service layer requires it on all new proposals.
 		typeVersionId: text('type_version_id').references(() => proposalTypeVersion.id),
@@ -234,7 +229,6 @@ export const proposal = sqliteTable(
 	},
 	(table) => [
 		index('proposal_community_idx').on(table.communityId),
-		index('proposal_status_idx').on(table.status), // LEGACY, dropped with the column in 4.6
 		index('proposal_phase_idx').on(table.phase),
 		index('proposal_type_version_idx').on(table.typeVersionId),
 		index('proposal_start_time_idx').on(table.startTime),

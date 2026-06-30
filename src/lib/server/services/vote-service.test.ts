@@ -28,7 +28,7 @@ describe('castVote', () => {
 		await seedMember(db, comm.id, voter.id);
 
 		const { proposal: prop, choices } = await seedProposal(db, comm.id, admin.id, {
-			status: 'active',
+			phase: 'voting',
 			startTime: new Date(Date.now() - 60_000),
 			endTime: new Date(Date.now() + 3_600_000),
 			choices: ['Yes', 'No']
@@ -48,7 +48,7 @@ describe('castVote', () => {
 		const comm = await seedCommunity(db, admin.id);
 
 		const { proposal: prop, choices } = await seedProposal(db, comm.id, admin.id, {
-			status: 'draft',
+			phase: 'draft',
 			startTime: new Date(Date.now() + 60_000),
 			endTime: new Date(Date.now() + 3_600_000)
 		});
@@ -65,7 +65,7 @@ describe('castVote', () => {
 		const comm = await seedCommunity(db, admin.id);
 
 		const { proposal: prop, choices } = await seedProposal(db, comm.id, admin.id, {
-			status: 'active',
+			phase: 'voting',
 			startTime: new Date(Date.now() - 3_600_000),
 			endTime: new Date(Date.now() - 60_000) // ended
 		});
@@ -83,7 +83,7 @@ describe('castVote', () => {
 		const outsider = await seedUser(db, { name: 'Outsider' });
 
 		const { proposal: prop, choices } = await seedProposal(db, comm.id, admin.id, {
-			status: 'active',
+			phase: 'voting',
 			startTime: new Date(Date.now() - 60_000),
 			endTime: new Date(Date.now() + 3_600_000)
 		});
@@ -100,15 +100,15 @@ describe('castVote', () => {
 		const comm = await seedCommunity(db, admin.id);
 
 		await seedProposal(db, comm.id, admin.id, {
-			status: 'active',
+			phase: 'voting',
 			startTime: new Date(Date.now() - 60_000),
 			endTime: new Date(Date.now() + 3_600_000)
 		});
 
 		// Create another proposal with different choices
-		const { proposal: prop2, choices: choices2 } = await seedProposal(db, comm.id, admin.id, {
+		const { proposal: prop2 } = await seedProposal(db, comm.id, admin.id, {
 			title: 'Other Proposal',
-			status: 'active',
+			phase: 'voting',
 			startTime: new Date(Date.now() - 60_000),
 			endTime: new Date(Date.now() + 3_600_000)
 		});
@@ -116,7 +116,7 @@ describe('castVote', () => {
 		// Try voting on prop2 with a choice from a different proposal
 		const { choices: otherChoices } = await seedProposal(db, comm.id, admin.id, {
 			title: 'Third Proposal',
-			status: 'active',
+			phase: 'voting',
 			startTime: new Date(Date.now() - 60_000),
 			endTime: new Date(Date.now() + 3_600_000)
 		});
@@ -133,7 +133,7 @@ describe('castVote', () => {
 		const comm = await seedCommunity(db, admin.id);
 
 		const { proposal: prop, choices } = await seedProposal(db, comm.id, admin.id, {
-			status: 'active',
+			phase: 'voting',
 			startTime: new Date(Date.now() - 60_000),
 			endTime: new Date(Date.now() + 3_600_000)
 		});
@@ -164,7 +164,7 @@ describe('vote counting accuracy', () => {
 		await seedMember(db, comm.id, voter3.id);
 
 		const { proposal: prop, choices } = await seedProposal(db, comm.id, admin.id, {
-			status: 'active',
+			phase: 'voting',
 			startTime: new Date(Date.now() - 60_000),
 			endTime: new Date(Date.now() + 3_600_000),
 			choices: ['Yes', 'No', 'Abstain']
@@ -198,7 +198,7 @@ describe('vote counting accuracy', () => {
 		const comm = await seedCommunity(db, admin.id);
 
 		const { proposal: prop, choices } = await seedProposal(db, comm.id, admin.id, {
-			status: 'active',
+			phase: 'voting',
 			startTime: new Date(Date.now() - 60_000),
 			endTime: new Date(Date.now() + 3_600_000),
 			choices: ['Yes', 'No']

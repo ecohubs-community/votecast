@@ -11,11 +11,11 @@ export const load: PageServerLoad = async ({ params, locals, url }) => {
 	try {
 		const community = await getCommunityBySlug(params.slug, userId);
 
-		// Parse optional filters
-		const statusParam = url.searchParams.get('status');
+		// Parse optional phase filter (upcoming / voting / closed).
+		const phaseParam = url.searchParams.get('phase');
 		const filters: ProposalFilters = {};
-		if (statusParam === 'draft' || statusParam === 'active' || statusParam === 'closed') {
-			filters.status = statusParam;
+		if (phaseParam === 'upcoming' || phaseParam === 'voting' || phaseParam === 'closed') {
+			filters.phase = phaseParam;
 		}
 
 		const cursor = url.searchParams.get('cursor') ?? undefined;
@@ -33,7 +33,7 @@ export const load: PageServerLoad = async ({ params, locals, url }) => {
 			proposals,
 			membership,
 			members,
-			statusFilter: filters.status ?? null
+			phaseFilter: filters.phase ?? null
 		};
 	} catch (e) {
 		if (e instanceof ServiceError) {

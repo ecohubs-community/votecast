@@ -9,6 +9,7 @@ import { resolve } from 'node:path';
 import BetterSqlite3 from 'better-sqlite3';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
 import * as schema from '$lib/server/db/schema';
+import { computePhase } from './proposal-phase-compute';
 
 export type TestDb = ReturnType<typeof createTestDb>;
 
@@ -131,6 +132,25 @@ export async function seedProposal(
 ) {
 	const { choices: choiceLabels = ['Yes', 'No'], ...proposalOverrides } = overrides;
 
+	// Derive default times consistent with a `phase` override so transitions keep the phase stable.
+	const now = Date.now();
+	const HOUR = 3_600_000;
+	const phasePref = proposalOverrides.phase;
+	let startTime = proposalOverrides.startTime;
+	let endTime = proposalOverrides.endTime;
+	if (!startTime || !endTime) {
+		if (phasePref === 'voting') {
+			startTime ??= new Date(now - HOUR);
+			endTime ??= new Date(now + HOUR);
+		} else if (phasePref === 'finalized' || phasePref === 'objection-window') {
+			startTime ??= new Date(now - 2 * HOUR);
+			endTime ??= new Date(now - HOUR);
+		} else {
+			startTime ??= new Date(now + HOUR); // draft / deliberation → not yet open
+			endTime ??= new Date(now + 2 * HOUR);
+		}
+	}
+
 	const [prop] = await db
 		.insert(schema.proposal)
 		.values({
@@ -139,9 +159,14 @@ export async function seedProposal(
 			body: proposalOverrides.body ?? 'Test body',
 			createdBy,
 			visibility: proposalOverrides.visibility ?? 'community',
-			status: proposalOverrides.status ?? 'draft',
-			startTime: proposalOverrides.startTime ?? new Date(Date.now() + 60_000),
-			endTime: proposalOverrides.endTime ?? new Date(Date.now() + 3_600_000),
+			startTime,
+			endTime,
+			phase:
+				phasePref ??
+				computePhase(
+					{ startTime, endTime, deliberationSeconds: 0, objectionWindowSeconds: 0 },
+					now
+				),
 			...proposalOverrides
 		})
 		.returning();

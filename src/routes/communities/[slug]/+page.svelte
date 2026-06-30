@@ -26,8 +26,8 @@
 
 	const statuses = [
 		{ label: 'All', value: null },
-		{ label: 'Open', value: 'active' },
-		{ label: 'Drafts', value: 'draft' },
+		{ label: 'Open', value: 'voting' },
+		{ label: 'Upcoming', value: 'upcoming' },
 		{ label: 'Closed', value: 'closed' }
 	] as const;
 
@@ -229,9 +229,9 @@
 	{#if activeTab === 'proposals'}
 		<div class="chips">
 			{#each statuses as { label, value } (label)}
-				{@const isActive = data.statusFilter === value}
+				{@const isActive = data.phaseFilter === value}
 				<a
-					href={resolve(`/communities/${data.community.slug}${value ? `?status=${value}` : ''}`)}
+					href={resolve(`/communities/${data.community.slug}${value ? `?phase=${value}` : ''}`)}
 					class="chip"
 					class:active={isActive}
 				>
@@ -262,7 +262,7 @@
 				<div style="margin-top: 28px; text-align: center;">
 					<a
 						href={resolve(
-							`/communities/${data.community.slug}?cursor=${data.proposals.nextCursor}${data.statusFilter ? `&status=${data.statusFilter}` : ''}`
+							`/communities/${data.community.slug}?cursor=${data.proposals.nextCursor}${data.phaseFilter ? `&phase=${data.phaseFilter}` : ''}`
 						)}
 						class="btn btn-ghost btn-sm"
 					>
@@ -272,8 +272,8 @@
 			{/if}
 		{:else}
 			<EmptyState
-				message={data.statusFilter
-					? `No ${data.statusFilter} proposals here yet.`
+				message={data.phaseFilter
+					? `No ${data.phaseFilter} proposals here yet.`
 					: 'Nothing has been put to a vote yet.'}
 				actionText={data.membership ? 'Open the first one' : undefined}
 				actionHref={data.membership

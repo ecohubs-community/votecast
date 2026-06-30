@@ -1,41 +1,15 @@
 import { db as defaultDb } from '$lib/server/db';
 import { resolveMethodContext } from './proposal-type-service';
+import { computePhase, type ProposalPhase } from './proposal-phase-compute';
 import type { Database } from './types';
 
-/** Lifecycle phase — where a proposal is in its process (design D7). Matches the `proposals.phase` enum. */
-export type ProposalPhase = 'draft' | 'deliberation' | 'voting' | 'objection-window' | 'finalized';
-
-export interface PhaseTiming {
-	startTime: Date; // voting opens
-	endTime: Date; // voting closes
-	deliberationSeconds: number; // length of the pre-voting deliberation window (0 = none)
-	objectionWindowSeconds: number; // async objection window after voting closes (0 = none)
-}
-
-/**
- * Pure phase computation from a method's timing (design D7). The deliberation window ends at
- * `startTime` (so it spans `[startTime - deliberation, startTime)`); the objection window follows
- * `endTime`. No side effects — trivially testable.
- *
- *   draft → deliberation → voting → objection-window → finalized
- */
-export function computePhase(timing: PhaseTiming, now: number): ProposalPhase {
-	const start = timing.startTime.getTime();
-	const end = timing.endTime.getTime();
-	const objectionEnd = end + timing.objectionWindowSeconds * 1000;
-	const deliberationStart = start - timing.deliberationSeconds * 1000;
-
-	if (now >= objectionEnd) return 'finalized';
-	if (now >= end) return timing.objectionWindowSeconds > 0 ? 'objection-window' : 'finalized';
-	if (now >= start) return 'voting';
-	if (timing.deliberationSeconds > 0 && now >= deliberationStart) return 'deliberation';
-	return 'draft';
-}
-
-/** True while members may submit ballots (votes are only accepted during the voting phase). */
-export function isVotingOpen(phase: ProposalPhase): boolean {
-	return phase === 'voting';
-}
+// Pure phase math lives in ./proposal-phase-compute (no service imports). Re-exported for convenience.
+export {
+	computePhase,
+	isVotingOpen,
+	type ProposalPhase,
+	type PhaseTiming
+} from './proposal-phase-compute';
 
 /**
  * Resolve a proposal's current phase from its pinned method (deliberation + objection-window timing)

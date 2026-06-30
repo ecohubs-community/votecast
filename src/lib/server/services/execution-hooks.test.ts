@@ -119,7 +119,7 @@ describe('execution-service', () => {
 		it('creates a webhook handler for a draft proposal', async () => {
 			const comm = await seedCommunity(db, admin.id);
 			const { proposal: prop } = await seedProposal(db, comm.id, admin.id, {
-				status: 'draft',
+				phase: 'draft',
 				startTime: new Date(Date.now() + 3_600_000),
 				endTime: new Date(Date.now() + 7_200_000),
 				choices: ['Yes', 'No']
@@ -139,7 +139,7 @@ describe('execution-service', () => {
 		it('rejects non-draft proposals', async () => {
 			const comm = await seedCommunity(db, admin.id);
 			const { proposal: prop } = await seedProposal(db, comm.id, admin.id, {
-				status: 'active',
+				phase: 'voting',
 				startTime: new Date(Date.now() - 60_000),
 				endTime: new Date(Date.now() + 3_600_000),
 				choices: ['Yes', 'No']
@@ -157,7 +157,7 @@ describe('execution-service', () => {
 		it('rejects unsupported handler types', async () => {
 			const comm = await seedCommunity(db, admin.id);
 			const { proposal: prop } = await seedProposal(db, comm.id, admin.id, {
-				status: 'draft',
+				phase: 'draft',
 				startTime: new Date(Date.now() + 3_600_000),
 				endTime: new Date(Date.now() + 7_200_000),
 				choices: ['Yes', 'No']
@@ -173,7 +173,7 @@ describe('execution-service', () => {
 		it('returns all handlers for a proposal', async () => {
 			const comm = await seedCommunity(db, admin.id);
 			const { proposal: prop } = await seedProposal(db, comm.id, admin.id, {
-				status: 'draft',
+				phase: 'draft',
 				startTime: new Date(Date.now() + 3_600_000),
 				endTime: new Date(Date.now() + 7_200_000),
 				choices: ['Yes', 'No']
@@ -199,7 +199,7 @@ describe('execution-service', () => {
 		it('deletes a handler from a draft proposal', async () => {
 			const comm = await seedCommunity(db, admin.id);
 			const { proposal: prop } = await seedProposal(db, comm.id, admin.id, {
-				status: 'draft',
+				phase: 'draft',
 				startTime: new Date(Date.now() + 3_600_000),
 				endTime: new Date(Date.now() + 7_200_000),
 				choices: ['Yes', 'No']
@@ -230,7 +230,7 @@ describe('execution-service', () => {
 
 			const comm = await seedCommunity(db, admin.id);
 			const { proposal: prop } = await seedProposal(db, comm.id, admin.id, {
-				status: 'draft',
+				phase: 'draft',
 				startTime: new Date(Date.now() + 3_600_000),
 				endTime: new Date(Date.now() + 7_200_000),
 				choices: ['Yes', 'No']
@@ -263,7 +263,7 @@ describe('execution-service', () => {
 
 			const comm = await seedCommunity(db, admin.id);
 			const { proposal: prop } = await seedProposal(db, comm.id, admin.id, {
-				status: 'draft',
+				phase: 'draft',
 				startTime: new Date(Date.now() + 3_600_000),
 				endTime: new Date(Date.now() + 7_200_000),
 				choices: ['Yes', 'No']

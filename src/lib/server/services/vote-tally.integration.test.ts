@@ -28,7 +28,7 @@ beforeEach(async () => {
 
 const openProposal = () =>
 	seedProposal(db, communityId, adminId, {
-		status: 'active',
+		phase: 'voting',
 		startTime: new Date(Date.now() - 1000),
 		endTime: new Date(Date.now() + 3_600_000),
 		choices: ['Yes', 'No']
@@ -78,7 +78,7 @@ describe('vote/results flip: castVote → vote_selection → tallyProposal', () 
 		// A consensus proposal with no objections would tally "passed"; it must stay hidden while draft.
 		const map = seedPresetTypesSync(db, communityId, adminId); // Constitutional = consent/consensus
 		const { proposal: p } = await seedProposal(db, communityId, adminId, {
-			status: 'draft',
+			phase: 'draft',
 			startTime: new Date(Date.now() + 4 * 3_600_000), // opens in 4h
 			endTime: new Date(Date.now() + 7 * 86_400_000),
 			typeVersionId: map['Constitutional'],
@@ -99,7 +99,7 @@ describe('vote/results flip: castVote → vote_selection → tallyProposal', () 
 	it('on-close visibility hides the tally from members until voting closes, but a facilitator sees it', async () => {
 		const map = seedPresetTypesSync(db, communityId, adminId); // Operational = on-close
 		const { proposal: open } = await seedProposal(db, communityId, adminId, {
-			status: 'active',
+			phase: 'voting',
 			startTime: new Date(Date.now() - 1000),
 			endTime: new Date(Date.now() + 3_600_000),
 			typeVersionId: map['Operational'],
@@ -111,7 +111,7 @@ describe('vote/results flip: castVote → vote_selection → tallyProposal', () 
 		expect((await getProposalOutcome(open.id, adminId, db, 'admin')).revealed).toBe(true);
 
 		const { proposal: closed } = await seedProposal(db, communityId, adminId, {
-			status: 'closed',
+			phase: 'finalized',
 			startTime: new Date(Date.now() - 7_200_000),
 			endTime: new Date(Date.now() - 3_600_000),
 			typeVersionId: map['Operational'],
@@ -124,7 +124,7 @@ describe('vote/results flip: castVote → vote_selection → tallyProposal', () 
 	it('tallies a consensus (consent) proposal end-to-end over real DB data (task 8.1)', async () => {
 		const map = seedPresetTypesSync(db, communityId, adminId); // Constitutional = consent/consensus
 		const { proposal: p } = await seedProposal(db, communityId, adminId, {
-			status: 'active',
+			phase: 'voting',
 			startTime: new Date(Date.now() - 1000),
 			endTime: new Date(Date.now() + 3_600_000),
 			typeVersionId: map['Constitutional'],
@@ -157,7 +157,7 @@ describe('vote/results flip: castVote → vote_selection → tallyProposal', () 
 
 	it('rejects a vote once the voting phase is over', async () => {
 		const { proposal: p, choices } = await seedProposal(db, communityId, adminId, {
-			status: 'closed',
+			phase: 'finalized',
 			startTime: new Date(Date.now() - 7_200_000),
 			endTime: new Date(Date.now() - 3_600_000),
 			choices: ['Yes', 'No']

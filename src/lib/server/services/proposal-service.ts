@@ -1,4 +1,4 @@
-import { eq, and, desc, lt, or, count, asc } from 'drizzle-orm';
+import { eq, and, desc, lt, lte, gt, or, count, asc } from 'drizzle-orm';
 import { db as defaultDb } from '$lib/server/db';
 import { community, communityMember, proposal, proposalChoice } from '$lib/server/db/schema';
 import { ServiceError, ErrorCode } from './errors';
@@ -19,7 +19,8 @@ import {
 	toDate,
 	validateVisibility
 } from './proposal-validation';
-import { transitionProposalStatus, batchTransitionStatuses } from './proposal-lifecycle';
+import { transitionProposalStatus } from './proposal-lifecycle';
+import { computePhase } from './proposal-phase-compute';
 import { aggregateResults, tallyProposal, type ProposalResults } from './proposal-results';
 import { getTypeVersionForCommunity, resolveMethodContext } from './proposal-type-service';
 import {
@@ -59,7 +60,8 @@ export interface UpdateProposalInput {
 }
 
 export interface ProposalFilters {
-	status?: 'draft' | 'active' | 'closed';
+	// Lifecycle category, resolved from the proposal's times at query time.
+	phase?: 'upcoming' | 'voting' | 'closed';
 }
 
 // ─── Service functions ───────────────────────────────────────────────────────
@@ -127,7 +129,6 @@ export async function createProposal(
 				typeVersionId,
 				methodOverrideJson: input.method ? JSON.stringify(input.method) : null,
 				visibility: input.visibility ?? 'community',
-				status: 'draft',
 				startTime,
 				endTime
 			})
@@ -170,11 +171,14 @@ export async function updateProposal(
 		throw new ServiceError(ErrorCode.NOT_FOUND, 'Proposal not found');
 	}
 
-	// Transition status first to ensure it's up to date
+	// Transition first to ensure the phase is up to date; only editable before voting opens.
 	const current = await transitionProposalStatus(found, db);
 
-	if (current.status !== 'draft') {
-		throw new ServiceError(ErrorCode.PROPOSAL_NOT_EDITABLE, 'Only draft proposals can be edited');
+	if (current.phase !== 'draft' && current.phase !== 'deliberation') {
+		throw new ServiceError(
+			ErrorCode.PROPOSAL_NOT_EDITABLE,
+			'A proposal can only be edited before voting opens'
+		);
 	}
 
 	// Check permission: creator or admin
@@ -313,16 +317,20 @@ export async function listProposals(
 	pagination: PaginationParams = {},
 	db: Database = defaultDb
 ): Promise<PaginatedResult<typeof proposal.$inferSelect>> {
-	// Batch-transition stale statuses first
-	await batchTransitionStatuses(communityId, db);
-
+	const now = new Date();
 	const limit = clampLimit(pagination.limit);
 	const cursor = pagination.cursor ? decodeCursor(pagination.cursor) : null;
 
 	const conditions = [eq(proposal.communityId, communityId)];
 
-	if (filters.status) {
-		conditions.push(eq(proposal.status, filters.status));
+	// Phase filter resolved from times (no stored-phase dependency): upcoming = not yet open,
+	// voting = open, closed = ended. (Lists collapse deliberation→upcoming, objection-window→closed.)
+	if (filters.phase === 'upcoming') {
+		conditions.push(gt(proposal.startTime, now));
+	} else if (filters.phase === 'voting') {
+		conditions.push(and(lte(proposal.startTime, now), gt(proposal.endTime, now))!);
+	} else if (filters.phase === 'closed') {
+		conditions.push(lte(proposal.endTime, now));
 	}
 
 	if (cursor) {
@@ -342,7 +350,22 @@ export async function listProposals(
 		.limit(limit + 1);
 
 	const hasMore = rows.length > limit;
-	const items = hasMore ? rows.slice(0, limit) : rows;
+	const sliced = hasMore ? rows.slice(0, limit) : rows;
+
+	// Stamp a current display phase from times (lists don't resolve deliberation/objection windows).
+	const nowMs = now.getTime();
+	const items = sliced.map((p) => ({
+		...p,
+		phase: computePhase(
+			{
+				startTime: p.startTime,
+				endTime: p.endTime,
+				deliberationSeconds: 0,
+				objectionWindowSeconds: 0
+			},
+			nowMs
+		)
+	}));
 
 	const nextCursor =
 		hasMore && items.length > 0

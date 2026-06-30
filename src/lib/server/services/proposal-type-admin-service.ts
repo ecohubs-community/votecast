@@ -1,4 +1,4 @@
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, desc } from 'drizzle-orm';
 import { db as defaultDb } from '$lib/server/db';
 import { proposalType, proposalTypeVersion } from '$lib/server/db/schema';
 import { ServiceError, ErrorCode } from './errors';

@@ -2,6 +2,7 @@ import { eq, and, isNull, inArray } from 'drizzle-orm';
 import { db as defaultDb } from '$lib/server/db';
 import { community, proposal, proposalType, proposalTypeVersion } from '$lib/server/db/schema';
 import { PRESET_TYPES, LEGACY_SNAPSHOT, type MethodSnapshot } from '$lib/server/voting';
+import { computePhase } from './proposal-phase-compute';
 import type { Database } from './types';
 
 // better-sqlite3 transaction handle has the same insert API as the db; typed loosely for reuse.
@@ -254,9 +255,15 @@ export async function backfillVotingMethods(db: Database = defaultDb): Promise<{
 		}
 	}
 
-	// Pin proposals that have no type version yet, and map status → phase/outcome.
+	// Pin proposals that have no type version yet, and set phase/outcome from their times.
+	const now = Date.now();
 	const unpinned = await db
-		.select({ id: proposal.id, communityId: proposal.communityId, status: proposal.status })
+		.select({
+			id: proposal.id,
+			communityId: proposal.communityId,
+			startTime: proposal.startTime,
+			endTime: proposal.endTime
+		})
 		.from(proposal)
 		.where(isNull(proposal.typeVersionId));
 
@@ -270,8 +277,16 @@ export async function backfillVotingMethods(db: Database = defaultDb): Promise<{
 			proposalsSkipped++;
 			continue;
 		}
-		const phase = p.status === 'closed' ? 'finalized' : p.status === 'active' ? 'voting' : 'draft';
-		const outcome = p.status === 'closed' ? 'recorded' : null; // historical result kept as recorded
+		const phase = computePhase(
+			{
+				startTime: p.startTime,
+				endTime: p.endTime,
+				deliberationSeconds: 0,
+				objectionWindowSeconds: 0
+			},
+			now
+		);
+		const outcome = phase === 'finalized' ? 'recorded' : null; // historical result kept as recorded
 		await db
 			.update(proposal)
 			.set({ typeVersionId: versionId, phase, ...(outcome ? { outcome } : {}) })

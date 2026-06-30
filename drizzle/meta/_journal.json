@@ -43,6 +43,13 @@
       "when": 1782788498579,
       "tag": "0005_awesome_wind_dancer",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1782828633504,
+      "tag": "0006_early_slayback",
+      "breakpoints": true
     }
   ]
 }

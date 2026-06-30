@@ -89,8 +89,8 @@ describe('resolveMethodSnapshot', () => {
 describe('backfillVotingMethods', () => {
 	it('seeds presets, pins proposals, and maps status → phase', async () => {
 		const comm = await seedCommunity(db, userId); // no types seeded
-		const { proposal: active } = await seedProposal(db, comm.id, userId, { status: 'active' });
-		const { proposal: closed } = await seedProposal(db, comm.id, userId, { status: 'closed' });
+		const { proposal: active } = await seedProposal(db, comm.id, userId, { phase: 'voting' });
+		const { proposal: closed } = await seedProposal(db, comm.id, userId, { phase: 'finalized' });
 
 		const result = await backfillVotingMethods(db);
 		expect(result.communitiesSeeded).toBe(1);
@@ -107,7 +107,7 @@ describe('backfillVotingMethods', () => {
 
 	it('is idempotent — a second run seeds and pins nothing new', async () => {
 		const comm = await seedCommunity(db, userId);
-		await seedProposal(db, comm.id, userId, { status: 'draft' });
+		await seedProposal(db, comm.id, userId, { phase: 'draft' });
 		await backfillVotingMethods(db);
 		const second = await backfillVotingMethods(db);
 		expect(second.communitiesSeeded).toBe(0);

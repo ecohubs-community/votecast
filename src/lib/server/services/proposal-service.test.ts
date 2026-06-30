@@ -48,7 +48,7 @@ describe('createProposal', () => {
 		);
 
 		expect(result.title).toBe('Install Solar Panels');
-		expect(result.status).toBe('draft');
+		expect(result.phase).toBe('draft');
 	});
 
 	it('rejects proposals with fewer than 2 choices', async () => {
@@ -234,7 +234,7 @@ describe('updateProposal', () => {
 
 		// Create a proposal whose start time has passed (will transition to active)
 		const { proposal: prop } = await seedProposal(db, comm.id, admin.id, {
-			status: 'active',
+			phase: 'voting',
 			startTime: new Date(Date.now() - 60_000),
 			endTime: new Date(Date.now() + 3_600_000)
 		});
@@ -277,52 +277,52 @@ describe('transitionProposalStatus', () => {
 		const comm = await seedCommunity(db, admin.id);
 
 		const { proposal: prop } = await seedProposal(db, comm.id, admin.id, {
-			status: 'draft',
+			phase: 'draft',
 			startTime: new Date(Date.now() - 60_000), // in the past
 			endTime: new Date(Date.now() + 3_600_000)
 		});
 
 		const transitioned = await transitionProposalStatus(prop, db);
-		expect(transitioned.status).toBe('active');
+		expect(transitioned.phase).toBe('voting');
 	});
 
 	it('transitions active → closed when endTime has passed', async () => {
 		const comm = await seedCommunity(db, admin.id);
 
 		const { proposal: prop } = await seedProposal(db, comm.id, admin.id, {
-			status: 'active',
+			phase: 'voting',
 			startTime: new Date(Date.now() - 3_600_000),
 			endTime: new Date(Date.now() - 60_000) // in the past
 		});
 
 		const transitioned = await transitionProposalStatus(prop, db);
-		expect(transitioned.status).toBe('closed');
+		expect(transitioned.phase).toBe('finalized');
 	});
 
 	it('transitions draft → closed when both times have passed', async () => {
 		const comm = await seedCommunity(db, admin.id);
 
 		const { proposal: prop } = await seedProposal(db, comm.id, admin.id, {
-			status: 'draft',
+			phase: 'draft',
 			startTime: new Date(Date.now() - 3_600_000),
 			endTime: new Date(Date.now() - 60_000) // both in the past
 		});
 
 		const transitioned = await transitionProposalStatus(prop, db);
-		expect(transitioned.status).toBe('closed');
+		expect(transitioned.phase).toBe('finalized');
 	});
 
 	it('does not change status if times are in the future', async () => {
 		const comm = await seedCommunity(db, admin.id);
 
 		const { proposal: prop } = await seedProposal(db, comm.id, admin.id, {
-			status: 'draft',
+			phase: 'draft',
 			startTime: new Date(Date.now() + 60_000),
 			endTime: new Date(Date.now() + 3_600_000)
 		});
 
 		const transitioned = await transitionProposalStatus(prop, db);
-		expect(transitioned.status).toBe('draft');
+		expect(transitioned.phase).toBe('draft');
 	});
 });
 
@@ -372,15 +372,15 @@ describe('listProposals', () => {
 
 	it('filters by status', async () => {
 		const comm = await seedCommunity(db, admin.id);
-		await seedProposal(db, comm.id, admin.id, { title: 'Draft', status: 'draft' });
+		await seedProposal(db, comm.id, admin.id, { title: 'Draft', phase: 'draft' });
 		await seedProposal(db, comm.id, admin.id, {
 			title: 'Active',
-			status: 'active',
+			phase: 'voting',
 			startTime: new Date(Date.now() - 60_000),
 			endTime: new Date(Date.now() + 3_600_000)
 		});
 
-		const result = await listProposals(comm.id, { status: 'active' }, {}, db);
+		const result = await listProposals(comm.id, { phase: 'voting' }, {}, db);
 		expect(result.items).toHaveLength(1);
 		expect(result.items[0].title).toBe('Active');
 	});

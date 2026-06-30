@@ -5,9 +5,9 @@ import { listProposals } from '$lib/server/services/proposal-service';
 /** GET /api/communities/:id/proposals — list proposals for a community. */
 export const GET: RequestHandler = async ({ params, url }) => {
 	try {
-		const status = url.searchParams.get('status') as 'draft' | 'active' | 'closed' | null;
+		const phase = url.searchParams.get('phase') as 'upcoming' | 'voting' | 'closed' | null;
 		const pagination = parsePagination(url);
-		const filters = status ? { status } : undefined;
+		const filters = phase ? { phase } : undefined;
 		const result = await listProposals(params.id, filters, pagination);
 		return success(result);
 	} catch (error) {

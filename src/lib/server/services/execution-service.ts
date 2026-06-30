@@ -69,10 +69,10 @@ export async function createExecutionHandler(
 		throw new ServiceError(ErrorCode.NOT_FOUND, 'Proposal not found');
 	}
 
-	if (found.status !== 'draft') {
+	if (found.phase !== 'draft' && found.phase !== 'deliberation') {
 		throw new ServiceError(
 			ErrorCode.PROPOSAL_NOT_EDITABLE,
-			'Execution handlers can only be added to draft proposals'
+			'Execution handlers can only be added before voting opens'
 		);
 	}
 
@@ -137,10 +137,10 @@ export async function deleteExecutionHandler(
 		throw new ServiceError(ErrorCode.NOT_FOUND, 'Proposal not found');
 	}
 
-	if (prop.status !== 'draft') {
+	if (prop.phase !== 'draft' && prop.phase !== 'deliberation') {
 		throw new ServiceError(
 			ErrorCode.PROPOSAL_NOT_EDITABLE,
-			'Execution handlers can only be removed from draft proposals'
+			'Execution handlers can only be removed before voting opens'
 		);
 	}
 

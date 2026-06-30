@@ -1,4 +1,4 @@
-import { eq, and, or, lte } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { db as defaultDb } from '$lib/server/db';
 import { proposal } from '$lib/server/db/schema';
 import { emit } from '../events';
@@ -9,59 +9,36 @@ import type { Database } from './types';
 export type ProposalRecord = typeof proposal.$inferSelect;
 
 /**
- * Lazily transition a proposal's status based on current time.
- * - draft → active when now >= startTime
- * - draft/active → closed when now >= endTime
- *
- * Updates the DB so subsequent reads are fast. Emits lifecycle events on transition.
- *
- * NOTE (legacy path): still drives the `status` column. The phase engine (`proposal-phase.ts`) maps
- * the richer phase/outcome model; this stays until the legacy `status` column is dropped (task 4.6).
+ * Lazily transition a proposal's lifecycle PHASE from the current time + its method timing
+ * (deliberation → voting → objection-window → finalized). Persists the new phase and emits the
+ * matching lifecycle events. Called on single-proposal reads (getProposal, vote, results).
  */
 export async function transitionProposalStatus(
 	p: ProposalRecord,
 	db: Database = defaultDb
 ): Promise<ProposalRecord> {
 	const now = Date.now();
-	let newStatus = p.status;
-
-	if (p.status === 'draft' && p.startTime.getTime() <= now) {
-		newStatus = 'active';
-	}
-	if (
-		(p.status === 'draft' || p.status === 'active' || newStatus === 'active') &&
-		p.endTime.getTime() <= now
-	) {
-		newStatus = 'closed';
-	}
-
-	// New phase model (dual-written alongside the legacy status until 4.6).
 	const newPhase = await resolveProposalPhase(p, now, db);
+	if (newPhase === p.phase) return p;
 
-	const statusChanged = newStatus !== p.status;
-	const phaseChanged = newPhase !== p.phase;
-	if (!statusChanged && !phaseChanged) return p;
+	const prev = p.phase;
+	await db.update(proposal).set({ phase: newPhase }).where(eq(proposal.id, p.id));
 
-	await db
-		.update(proposal)
-		.set({
-			...(statusChanged ? { status: newStatus } : {}),
-			...(phaseChanged ? { phase: newPhase } : {})
-		})
-		.where(eq(proposal.id, p.id));
-
-	// Emit events after the successful DB write.
-	if (statusChanged && newStatus === 'active') {
+	// Events after the successful DB write.
+	if (newPhase === 'deliberation') {
+		emit('deliberation.started', { proposalId: p.id, communityId: p.communityId });
+	}
+	if (newPhase === 'voting') {
 		emit('proposal.started', { proposalId: p.id, communityId: p.communityId });
 	}
-	if (statusChanged && newStatus === 'closed') {
+	// Voting ended — fire once, when crossing from a pre-/in-voting phase into a post-voting one.
+	const wasOpen = prev === 'draft' || prev === 'deliberation' || prev === 'voting';
+	const nowClosed = newPhase === 'objection-window' || newPhase === 'finalized';
+	if (wasOpen && nowClosed) {
 		const results = await aggregateResults(p.id, db);
 		emit('proposal.closed', { proposalId: p.id, communityId: p.communityId, results });
 	}
-	if (phaseChanged && newPhase === 'deliberation') {
-		emit('deliberation.started', { proposalId: p.id, communityId: p.communityId });
-	}
-	if (phaseChanged && newPhase === 'finalized') {
+	if (newPhase === 'finalized') {
 		emit('proposal.finalized', {
 			proposalId: p.id,
 			communityId: p.communityId,
@@ -69,37 +46,5 @@ export async function transitionProposalStatus(
 		});
 	}
 
-	return { ...p, status: newStatus, phase: newPhase };
-}
-
-/**
- * Batch-transition stale statuses for a community before listing.
- * More efficient than transitioning one at a time.
- */
-export async function batchTransitionStatuses(communityId: string, db: Database = defaultDb) {
-	const now = new Date();
-
-	// draft → active where startTime has passed (but endTime hasn't)
-	await db
-		.update(proposal)
-		.set({ status: 'active' })
-		.where(
-			and(
-				eq(proposal.communityId, communityId),
-				eq(proposal.status, 'draft'),
-				lte(proposal.startTime, now)
-			)
-		);
-
-	// draft/active → closed where endTime has passed
-	await db
-		.update(proposal)
-		.set({ status: 'closed' })
-		.where(
-			and(
-				eq(proposal.communityId, communityId),
-				or(eq(proposal.status, 'draft'), eq(proposal.status, 'active')),
-				lte(proposal.endTime, now)
-			)
-		);
+	return { ...p, phase: newPhase };
 }
