@@ -34,6 +34,7 @@
 		"@tailwindcss/vite": "^4.1.18",
 		"@types/better-sqlite3": "^7.6.13",
 		"@types/node": "^24",
+		"@types/sanitize-html": "^2.16.1",
 		"@vitest/browser-playwright": "^4.0.18",
 		"better-auth": "~1.4.21",
 		"drizzle-kit": "^0.31.8",
@@ -58,6 +59,8 @@
 	},
 	"dependencies": {
 		"better-sqlite3": "^12.6.2",
+		"marked": "^18.0.5",
+		"sanitize-html": "^2.17.5",
 		"viem": "^2.47.1"
 	},
 	"pnpm": {

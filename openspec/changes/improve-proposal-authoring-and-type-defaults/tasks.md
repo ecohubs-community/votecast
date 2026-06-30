@@ -6,10 +6,10 @@
 
 ## 2. Markdown editor + renderer
 
-- [ ] 2.1 Pick a small markdown lib + sanitizer (design D1); add dependency
-- [ ] 2.2 `Markdown.svelte` — render sanitized markdown (no raw `{@html}`)
-- [ ] 2.3 `MarkdownEditor.svelte` — textarea + toolbar (heading/bold/italic/link; table/image/hr as plus) + Preview toggle; svelte-autofixer clean
-- [ ] 2.4 Unit-test the sanitizer strips scripts/handlers
+- [x] 2.1 marked + sanitize-html (server-side render path; tables hand-rolling deemed too fragile). Single `renderMarkdown` in `$lib/server/markdown`
+- [x] 2.2 `Markdown.svelte` renders server-sanitized HTML (only ever fed `renderMarkdown` output)
+- [x] 2.3 `MarkdownEditor.svelte` — textarea + toolbar (H/B/I/Link/Table/Img/HR) + Preview toggle (POSTs to `/api/markdown`); svelte-autofixer clean
+- [x] 2.4 `markdown.test.ts` (7) — strips scripts/handlers/javascript: URLs, hardens links, renders tables/images
 
 ## 3. Type defaults & locks (backend)
 

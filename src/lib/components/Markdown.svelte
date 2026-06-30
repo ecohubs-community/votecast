@@ -1,0 +1,75 @@
+<script lang="ts">
+	// Renders already-sanitized HTML (produced server-side by renderMarkdown). The `html` prop MUST be
+	// the output of $lib/server/markdown — never raw user input.
+	let { html }: { html: string } = $props();
+</script>
+
+{#if html}
+	<!-- eslint-disable-next-line svelte/no-at-html-tags -->
+	<div class="markdown-body">{@html html}</div>
+{/if}
+
+<style>
+	.markdown-body {
+		line-height: 1.6;
+		color: var(--vc-ink);
+		overflow-wrap: anywhere;
+	}
+	.markdown-body :global(h1),
+	.markdown-body :global(h2),
+	.markdown-body :global(h3) {
+		font-family: var(--vc-font-display, inherit);
+		margin: 1.2em 0 0.5em;
+		line-height: 1.25;
+	}
+	.markdown-body :global(p) {
+		margin: 0 0 0.9em;
+	}
+	.markdown-body :global(a) {
+		color: var(--vc-accent);
+		text-decoration: underline;
+	}
+	.markdown-body :global(ul),
+	.markdown-body :global(ol) {
+		margin: 0 0 0.9em;
+		padding-left: 1.4em;
+	}
+	.markdown-body :global(blockquote) {
+		margin: 0 0 0.9em;
+		padding-left: 1em;
+		border-left: 3px solid var(--vc-line);
+		color: var(--vc-ink-2);
+	}
+	.markdown-body :global(code) {
+		font-family: var(--vc-font-mono, monospace);
+		font-size: 0.92em;
+		background: var(--vc-surface-2, rgba(0, 0, 0, 0.05));
+		padding: 0.1em 0.35em;
+		border-radius: 4px;
+	}
+	.markdown-body :global(pre) {
+		overflow-x: auto;
+		padding: 12px;
+		background: var(--vc-surface-2, rgba(0, 0, 0, 0.05));
+		border-radius: 8px;
+	}
+	.markdown-body :global(img) {
+		max-width: 100%;
+		height: auto;
+		border-radius: 8px;
+	}
+	.markdown-body :global(table) {
+		border-collapse: collapse;
+		margin: 0 0 0.9em;
+	}
+	.markdown-body :global(th),
+	.markdown-body :global(td) {
+		border: 1px solid var(--vc-line);
+		padding: 6px 10px;
+	}
+	.markdown-body :global(hr) {
+		border: none;
+		border-top: 1px solid var(--vc-line);
+		margin: 1.4em 0;
+	}
+</style>
