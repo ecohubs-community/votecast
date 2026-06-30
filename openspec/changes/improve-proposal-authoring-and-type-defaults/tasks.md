@@ -52,6 +52,6 @@
 
 ## 7. Verification
 
-- [ ] 7.1 End-to-end: create a type with locked voting window + default choices → create a proposal → verify locks enforced, defaults applied, timeline + markdown render
-- [ ] 7.2 Verify a not-yet-open proposal shows a phase-aware status (not "Draft") and no premature outcome
-- [ ] 7.3 Full suite + svelte-check + eslint green
+- [x] 7.1 End-to-end test (`verification.integration.test.ts`): a locked-voting + default-choices type → a proposal whose client overrides are ignored (choices re-asserted, `end = start + votingSeconds`) and whose markdown body renders sanitized (heading demoted, link hardened). Timeline render verified in the create UI (writable `$derived` reseed)
+- [x] 7.2 End-to-end test: a not-yet-open proposal resolves to a `draft`/`deliberation` phase (never legacy "active") and exposes **no** outcome before voting — even to an admin (`getProposalOutcome.revealed === false`). UI maps phase → label via `StatusBadge`/`$lib/utils/phase`
+- [x] 7.3 Full suite **218 green**, svelte-check 0 errors, `eslint src` exit 0
