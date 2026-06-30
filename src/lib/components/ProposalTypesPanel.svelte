@@ -1,0 +1,306 @@
+<script lang="ts">
+	import { untrack } from 'svelte';
+	import { enhance } from '$app/forms';
+	import MethodFlow from './MethodFlow.svelte';
+
+	type TypeSummary = {
+		ballotModuleId: string;
+		decisionRuleId: string;
+		deliberationSeconds: number;
+		objectionWindowSeconds: number;
+		tallyReveal: 'live' | 'on-close' | 'hidden-forever';
+		defaultChoices: string[] | null;
+		defaultVisibility: 'public' | 'community';
+		lockChoices: boolean;
+		lockDeliberation: boolean;
+		lockVoting: boolean;
+		lockVisibility: boolean;
+	};
+	type TypeRow = {
+		id: string;
+		name: string;
+		description: string;
+		retired: boolean;
+		hasProposals: boolean;
+		summary: TypeSummary | null;
+	};
+
+	let {
+		types,
+		methodOptions,
+		form
+	}: {
+		types: TypeRow[];
+		methodOptions: ReadonlyArray<{ id: string; label: string }>;
+		form: { typeError?: string; typeSuccess?: string; name?: string } | null;
+	} = $props();
+
+	let showRetired = $state(false);
+	const visibleTypes = $derived(types.filter((t) => showRetired || !t.retired));
+
+	// New-type form: the chosen method decides whether choices or question-contribution config applies.
+	let methodOption = $state(untrack(() => methodOptions[0]?.id ?? ''));
+	const isMultiQuestion = $derived(methodOption.startsWith('multi-question'));
+</script>
+
+<div class="vote-card-head">
+	<h2 class="vote-card-title">Proposal types</h2>
+	<p class="page-sub" style="margin: 4px 0 0;">
+		Types bundle a voting method, timings, and defaults. Editing a method makes a new version;
+		existing proposals keep the version they were created with.
+	</p>
+</div>
+
+{#if form?.typeError}
+	<div class="alert alert-error" style="margin-bottom: 16px;">{form.typeError}</div>
+{/if}
+{#if form?.typeSuccess}
+	<div class="alert alert-success" style="margin-bottom: 16px;">{form.typeSuccess}</div>
+{/if}
+
+<div class="types-filter">
+	<label class="check-inline">
+		<input type="checkbox" bind:checked={showRetired} />
+		Show retired
+	</label>
+</div>
+
+<section class="types-list">
+	{#each visibleTypes as t (t.id)}
+		<div class="vote-card type-card">
+			<div class="type-main">
+				<div class="type-head">
+					<strong>{t.name}</strong>
+					{#if t.retired}<span class="meta-pill">Retired</span>{/if}
+				</div>
+				{#if t.description}
+					<p class="page-sub" style="margin: 4px 0 0;">{t.description}</p>
+				{/if}
+				{#if t.summary}
+					<MethodFlow
+						ballotModuleId={t.summary.ballotModuleId}
+						decisionRuleId={t.summary.decisionRuleId}
+						deliberationSeconds={t.summary.deliberationSeconds}
+						objectionWindowSeconds={t.summary.objectionWindowSeconds}
+						tallyReveal={t.summary.tallyReveal}
+					/>
+					<p class="type-defaults">
+						{#if t.summary.defaultChoices}
+							Choices: {t.summary.defaultChoices.join(', ')}{t.summary.lockChoices ? ' 🔒' : ''} ·
+						{/if}
+						Visibility: {t.summary.defaultVisibility}{t.summary.lockVisibility ? ' 🔒' : ''}
+						{#if t.summary.lockDeliberation || t.summary.lockVoting}
+							· Timing 🔒
+						{/if}
+					</p>
+				{/if}
+			</div>
+
+			<div class="type-actions">
+				<form method="POST" action="?/retireType" use:enhance>
+					<input type="hidden" name="typeId" value={t.id} />
+					<input type="hidden" name="retired" value={t.retired ? 'false' : 'true'} />
+					<button type="submit" class="btn btn-ghost btn-sm">
+						{t.retired ? 'Restore' : 'Retire'}
+					</button>
+				</form>
+				<form method="POST" action="?/deleteType" use:enhance>
+					<input type="hidden" name="typeId" value={t.id} />
+					<button
+						type="submit"
+						class="btn btn-danger btn-sm"
+						disabled={!t.retired || t.hasProposals}
+						title={!t.retired
+							? 'Retire the type before deleting it'
+							: t.hasProposals
+								? 'This type still has proposals and cannot be deleted'
+								: 'Permanently delete this type'}
+					>
+						Delete
+					</button>
+				</form>
+			</div>
+		</div>
+	{/each}
+	{#if visibleTypes.length === 0}
+		<p class="page-sub">No {showRetired ? '' : 'active '}types.</p>
+	{/if}
+</section>
+
+<section class="vote-card" style="margin-top: 24px;">
+	<div class="vote-card-head"><h3 class="vote-card-title">New type</h3></div>
+
+	<form method="POST" action="?/createType" use:enhance class="form-stack">
+		<div class="field">
+			<label for="type-name" class="label">Name</label>
+			<input
+				type="text"
+				id="type-name"
+				name="name"
+				required
+				maxlength="80"
+				class="input"
+				value={form?.name ?? ''}
+			/>
+		</div>
+
+		<div class="field">
+			<label for="type-desc" class="label">
+				Description <span class="label-optional">optional</span>
+			</label>
+			<input type="text" id="type-desc" name="description" maxlength="200" class="input" />
+		</div>
+
+		<div class="field">
+			<label for="type-method" class="label">Method</label>
+			<select id="type-method" name="methodOption" bind:value={methodOption} class="input">
+				{#each methodOptions as opt (opt.id)}
+					<option value={opt.id}>{opt.label}</option>
+				{/each}
+			</select>
+		</div>
+
+		<div class="field">
+			<label for="type-reveal" class="label">When results are revealed</label>
+			<select id="type-reveal" name="tallyReveal" class="input">
+				<option value="on-close">After voting closes</option>
+				<option value="live">Live, during voting</option>
+				<option value="hidden-forever">Hidden (facilitators only)</option>
+			</select>
+		</div>
+
+		<div class="grid-2">
+			<div class="field">
+				<label for="type-delib" class="label">Deliberation (days)</label>
+				<input
+					type="number"
+					id="type-delib"
+					name="deliberationDays"
+					min="0"
+					max="60"
+					value="0"
+					class="input"
+				/>
+				<label class="check-inline">
+					<input type="checkbox" name="lockDeliberation" /> Lock — proposers can't change
+				</label>
+			</div>
+			<div class="field">
+				<label for="type-voting" class="label">Voting (days)</label>
+				<input
+					type="number"
+					id="type-voting"
+					name="votingDays"
+					min="1"
+					max="60"
+					value="3"
+					class="input"
+				/>
+				<label class="check-inline">
+					<input type="checkbox" name="lockVoting" /> Lock — proposers can't change
+				</label>
+			</div>
+		</div>
+
+		<div class="field">
+			<label for="type-visibility" class="label">Default visibility</label>
+			<select id="type-visibility" name="defaultVisibility" class="input">
+				<option value="community">Members only</option>
+				<option value="public">Public</option>
+			</select>
+			<label class="check-inline">
+				<input type="checkbox" name="lockVisibility" /> Lock — proposers can't change
+			</label>
+		</div>
+
+		{#if isMultiQuestion}
+			<div class="field">
+				<span class="label">Who may add questions</span>
+				<div class="grid-2">
+					<select name="questionContributors" class="input">
+						<option value="proposer">Proposer only</option>
+						<option value="members">Any member</option>
+					</select>
+					<select name="questionContributionPhase" class="input">
+						<option value="creation">At creation</option>
+						<option value="deliberation">During deliberation</option>
+					</select>
+				</div>
+				<label class="check-inline">
+					<input type="checkbox" name="lockQuestionContribution" /> Lock — proposers can't change
+				</label>
+			</div>
+		{:else}
+			<div class="field">
+				<label for="type-choices" class="label">
+					Default choices <span class="label-optional">comma-separated, optional</span>
+				</label>
+				<input
+					type="text"
+					id="type-choices"
+					name="defaultChoices"
+					class="input"
+					placeholder="For, Against, Abstain"
+				/>
+				<label class="check-inline">
+					<input type="checkbox" name="lockChoices" /> Lock — proposers can't change
+				</label>
+			</div>
+		{/if}
+
+		<button type="submit" class="btn btn-accent" style="align-self: start;">Create type</button>
+	</form>
+</section>
+
+<style>
+	.types-filter {
+		margin-bottom: 16px;
+	}
+	.types-list {
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
+	}
+	.type-card {
+		display: flex;
+		align-items: flex-start;
+		gap: 16px;
+	}
+	.type-main {
+		flex: 1;
+		min-width: 0;
+	}
+	.type-head {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+	}
+	.type-defaults {
+		margin: 8px 0 0;
+		font-size: 12px;
+		color: var(--vc-muted);
+	}
+	.type-actions {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		flex-shrink: 0;
+	}
+	.check-inline {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		margin-top: 8px;
+		font-size: 13px;
+		color: var(--vc-ink-2);
+	}
+	.grid-2 {
+		display: grid;
+		gap: 12px;
+		grid-template-columns: 1fr 1fr;
+	}
+	.btn[disabled] {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+</style>

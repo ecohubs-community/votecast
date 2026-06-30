@@ -44,11 +44,11 @@
 
 ## 6. Type settings UX
 
-- [ ] 6.1 Move type management into a Settings **tab** (not a button)
-- [ ] 6.2 Active/Retired filter; retired hidden by default
-- [ ] 6.3 Type form: default choices (hidden for multi-question), deliberation days, voting days, visibility — each with a lock checkbox; for multi-question, the question-contribution who/when config (+ lock)
-- [ ] 6.4 Delete button: enabled only for retired + no-proposals; disabled with tooltip otherwise
-- [ ] 6.5 svelte-autofixer clean
+- [x] 6.1 Type management moved into a Settings **"Proposal types" tab** (`ProposalTypesPanel`); standalone `/types` route deleted, header button removed. Settings load/actions absorb create/retire/delete
+- [x] 6.2 Active/Retired filter ("Show retired" toggle); retired hidden by default
+- [x] 6.3 Type form: default choices (hidden for multi-question) + voting days + deliberation days + default visibility, each with a lock checkbox; multi-question swaps in the question-contribution who/when config (+ lock). Parsed into `TypeDefaultsInput` and passed to `createProposalType`
+- [x] 6.4 Delete button enabled only for retired + no-proposals, else disabled with an explanatory tooltip; gate sourced from new `getTypeIdsWithProposals` (tested) and re-enforced server-side by `deleteProposalType`
+- [x] 6.5 svelte-autofixer clean (panel + settings); check + lint clean; 207 tests green
 
 ## 7. Verification
 

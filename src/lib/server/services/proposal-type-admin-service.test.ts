@@ -12,6 +12,7 @@ import {
 	addTypeVersion,
 	setTypeRetired,
 	deleteProposalType,
+	getTypeIdsWithProposals,
 	listTypeVersions,
 	listAllProposalTypes
 } from './proposal-type-admin-service';
@@ -182,6 +183,19 @@ describe('deleteProposalType (task 3.2)', () => {
 		const outsider = await seedUser(db);
 		await seedMember(db, communityId, outsider.id);
 		await expect(deleteProposalType(outsider.id, type.id, db)).rejects.toThrow();
+	});
+});
+
+describe('getTypeIdsWithProposals (delete-gate source)', () => {
+	it('lists only the types that have at least one proposal', async () => {
+		const used = await createProposalType(adminId, communityId, { name: 'Used', method }, db);
+		const unused = await createProposalType(adminId, communityId, { name: 'Unused', method }, db);
+		const [usedV1] = await listTypeVersions(used.id, db);
+		await seedProposal(db, communityId, adminId, { typeVersionId: usedV1.id });
+
+		const ids = await getTypeIdsWithProposals(communityId, db);
+		expect(ids).toContain(used.id);
+		expect(ids).not.toContain(unused.id);
 	});
 });
 

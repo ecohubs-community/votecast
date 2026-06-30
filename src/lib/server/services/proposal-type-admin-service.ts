@@ -275,3 +275,17 @@ export async function listAllProposalTypes(communityId: string, db: Database = d
 		.where(eq(proposalType.communityId, communityId))
 		.orderBy(proposalType.createdAt);
 }
+
+/** Type ids in a community that have at least one proposal (any version) — drives the delete gate. */
+export async function getTypeIdsWithProposals(
+	communityId: string,
+	db: Database = defaultDb
+): Promise<string[]> {
+	const rows = await db
+		.selectDistinct({ typeId: proposalType.id })
+		.from(proposal)
+		.innerJoin(proposalTypeVersion, eq(proposalTypeVersion.id, proposal.typeVersionId))
+		.innerJoin(proposalType, eq(proposalType.id, proposalTypeVersion.typeId))
+		.where(eq(proposalType.communityId, communityId));
+	return rows.map((r) => r.typeId);
+}

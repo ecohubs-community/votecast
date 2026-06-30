@@ -3,11 +3,12 @@
 	import { invalidateAll } from '$app/navigation';
 	import { formatRelativeTime } from '$lib/utils/format';
 	import { resolve } from '$app/paths';
+	import ProposalTypesPanel from '$lib/components/ProposalTypesPanel.svelte';
 	import type { PageData, ActionData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
-	let activeTab = $state<'general' | 'members' | 'webhooks' | 'danger'>('general');
+	let activeTab = $state<'general' | 'types' | 'members' | 'webhooks' | 'danger'>('general');
 
 	let communityVisibility = $derived(data.community.visibility as 'public' | 'community');
 
@@ -151,9 +152,6 @@
 			<h1 class="page-title">Settings</h1>
 			<p class="page-sub">{data.community.name}</p>
 		</div>
-		<a href={resolve(`/communities/${data.community.slug}/types`)} class="btn btn-ghost">
-			Proposal types
-		</a>
 	</header>
 
 	<nav class="tabs">
@@ -163,6 +161,10 @@
 			onclick={() => (activeTab = 'general')}
 		>
 			General
+		</button>
+		<button class="tab" class:active={activeTab === 'types'} onclick={() => (activeTab = 'types')}>
+			Proposal types <span style="color: var(--vc-muted);">·</span>
+			{data.types.length}
 		</button>
 		<button
 			class="tab"
@@ -277,6 +279,8 @@
 				<button type="submit" class="btn btn-accent">Save changes</button>
 			</div>
 		</form>
+	{:else if activeTab === 'types'}
+		<ProposalTypesPanel types={data.types} methodOptions={data.methodOptions} {form} />
 	{:else if activeTab === 'members'}
 		{#if form?.memberSuccess}
 			<div class="alert alert-success" style="margin-bottom: 20px;">Updated.</div>
