@@ -60,9 +60,12 @@
 		(form?.visibility as 'public' | 'community') ?? selectedType?.defaultVisibility ?? 'public'
 	);
 
-	// Timeline. Start defaults to now; end = start + the type's voting window (default 3 days);
-	// deliberation opens that many seconds before voting (when the type defines one).
-	let startTime = $derived(form?.startTime ?? nowIso);
+	// Timeline. Voting opens after the deliberation window (so deliberation can begin at creation, not
+	// before it); with no deliberation it opens now. End = start + the type's voting window (3d default).
+	const nowMs = new Date(nowIso).getTime();
+	// Earliest voting start that keeps deliberation from beginning before the proposal exists.
+	const minStart = $derived(toLocalInput(new Date(nowMs + deliberationSeconds * 1000)));
+	let startTime = $derived(form?.startTime ?? minStart);
 	let endTime = $derived.by(() => {
 		if (form?.endTime) return form.endTime;
 		const secs = selectedType?.votingSeconds ?? DEFAULT_VOTING_SECONDS;
@@ -77,7 +80,9 @@
 	const timelineError = $derived(
 		new Date(endTime).getTime() <= new Date(startTime).getTime()
 			? 'Voting needs to close after it opens.'
-			: null
+			: deliberationSeconds > 0 && new Date(deliberationStart).getTime() < nowMs
+				? 'Deliberation would begin before the proposal is created — open voting later.'
+				: null
 	);
 
 	let editStart = $state(false);
@@ -262,7 +267,7 @@
 										type="datetime-local"
 										name="startTime"
 										bind:value={startTime}
-										min={nowIso}
+										min={minStart}
 										class="input tl-input"
 									/>
 									<button type="button" class="tl-edit" onclick={() => (editStart = false)}>
