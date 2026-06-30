@@ -1,8 +1,8 @@
 ## 1. Schema & migration
 
-- [ ] 1.1 Add `proposal.rationale` (text, nullable, markdown)
-- [ ] 1.2 Extend `proposal_type_version`: `defaultChoicesJson` (nullable), `votingSeconds` (default 3d), `defaultVisibility` (enum, default 'community'/'public'), locks `lockChoices`/`lockDeliberation`/`lockVoting`/`lockVisibility`, and contribution config `questionContributors` ('proposer'|'members') + `questionContributionPhase` ('creation'|'deliberation') + `lockQuestionContribution`
-- [ ] 1.3 Generate migration; back-fill existing versions (votingSeconds=3d, locks=false, defaultChoices=null, contributors='proposer'/creation); apply to local.db
+- [x] 1.1 Added `proposal.rationale` (text, nullable, markdown)
+- [x] 1.2 Extended `proposal_type_version`: `defaultChoicesJson` (nullable), `votingSeconds` (default 3d), `defaultVisibility` (enum, default 'community'/'public'), locks `lockChoices`/`lockDeliberation`/`lockVoting`/`lockVisibility`, and contribution config `questionContributors` ('proposer'|'members') + `questionContributionPhase` ('creation'|'deliberation') + `lockQuestionContribution`
+- [x] 1.3 Generated migration 0005 (additive ALTERs; defaults back-fill existing rows); applied to local.db. Originally: Generate migration; back-fill existing versions (votingSeconds=3d, locks=false, defaultChoices=null, contributors='proposer'/creation); apply to local.db
 
 ## 2. Markdown editor + renderer
 

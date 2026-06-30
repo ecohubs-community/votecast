@@ -139,6 +139,29 @@ export const proposalTypeVersion = sqliteTable(
 		// process, visibility, knobs } — the whole method, never mutated once written (D4/D12).
 		methodSnapshotJson: text('method_snapshot_json').notNull(),
 		deliberationSeconds: integer('deliberation_seconds').notNull().default(0),
+		// Voting window length (default 3 days) — the proposer's voting-end default.
+		votingSeconds: integer('voting_seconds').notNull().default(259200),
+		// Type-level defaults (pre-fill the create form); each lockable (locked = proposer can't change).
+		defaultChoicesJson: text('default_choices_json'), // JSON string[] | null (n/a for multi-question)
+		defaultVisibility: text('default_visibility', { enum: ['public', 'community'] })
+			.notNull()
+			.default('community'),
+		lockChoices: integer('lock_choices', { mode: 'boolean' }).notNull().default(false),
+		lockDeliberation: integer('lock_deliberation', { mode: 'boolean' }).notNull().default(false),
+		lockVoting: integer('lock_voting', { mode: 'boolean' }).notNull().default(false),
+		lockVisibility: integer('lock_visibility', { mode: 'boolean' }).notNull().default(false),
+		// Common Ground: who may add questions and when (frozen at voting-open). Design D8.
+		questionContributors: text('question_contributors', { enum: ['proposer', 'members'] })
+			.notNull()
+			.default('proposer'),
+		questionContributionPhase: text('question_contribution_phase', {
+			enum: ['creation', 'deliberation']
+		})
+			.notNull()
+			.default('creation'),
+		lockQuestionContribution: integer('lock_question_contribution', { mode: 'boolean' })
+			.notNull()
+			.default(false),
 		createdBy: text('created_by')
 			.notNull()
 			.references(() => user.id),
@@ -165,6 +188,7 @@ export const proposal = sqliteTable(
 			.references(() => community.id),
 		title: text('title').notNull(),
 		body: text('body').notNull(),
+		rationale: text('rationale'), // optional markdown — the "why" (the body is what's voted on)
 		createdBy: text('created_by')
 			.notNull()
 			.references(() => user.id),
