@@ -22,7 +22,11 @@ import {
 import { transitionProposalStatus } from './proposal-lifecycle';
 import { computePhase } from './proposal-phase-compute';
 import { aggregateResults, tallyProposal, type ProposalResults } from './proposal-results';
-import { getTypeVersionForCommunity, resolveMethodContext } from './proposal-type-service';
+import {
+	getTypeVersionForCommunity,
+	getTypeVersionDefaults,
+	resolveMethodContext
+} from './proposal-type-service';
 import {
 	type PaginationParams,
 	type PaginatedResult,
@@ -82,18 +86,6 @@ export async function createProposal(
 	validateTitle(title);
 	const body = input.body?.trim();
 	validateBody(body);
-	validateChoices(input.choices);
-
-	const startTime = toDate(input.startTime);
-	const endTime = toDate(input.endTime);
-
-	if (startTime.getTime() >= endTime.getTime()) {
-		throw new ServiceError(ErrorCode.INVALID_REQUEST, 'Start time must be before end time');
-	}
-
-	if (input.visibility !== undefined) {
-		validateVisibility(input.visibility);
-	}
 
 	// Resolve + validate the voting method via the registry (replaces the onePersonOneVote-only guard).
 	const method = input.method ?? DEFAULT_METHOD;
@@ -113,6 +105,38 @@ export async function createProposal(
 		}
 	}
 
+	// Apply the pinned type's defaults and enforce its locks server-side (task 3.4): a locked field is
+	// re-asserted from the type regardless of what the client submitted; an unlocked field with no
+	// client value falls back to the type default. Never trust the form alone.
+	let choices = input.choices;
+	let visibility = input.visibility;
+	const startTime = toDate(input.startTime);
+	let endTime = toDate(input.endTime);
+	if (typeVersionId) {
+		const defaults = await getTypeVersionDefaults(typeVersionId, db);
+		if (defaults) {
+			if (defaults.defaultChoices && (defaults.lockChoices || !choices || choices.length === 0)) {
+				choices = defaults.defaultChoices;
+			}
+			if (defaults.lockVoting) {
+				endTime = new Date(startTime.getTime() + defaults.votingSeconds * 1000);
+			}
+			if (defaults.lockVisibility || visibility === undefined) {
+				visibility = defaults.defaultVisibility;
+			}
+		}
+	}
+
+	validateChoices(choices);
+
+	if (startTime.getTime() >= endTime.getTime()) {
+		throw new ServiceError(ErrorCode.INVALID_REQUEST, 'Start time must be before end time');
+	}
+
+	if (visibility !== undefined) {
+		validateVisibility(visibility);
+	}
+
 	// Check unverified community proposal limit
 	await checkProposalLimit(input.communityId, db);
 
@@ -128,14 +152,14 @@ export async function createProposal(
 				createdBy: userId,
 				typeVersionId,
 				methodOverrideJson: input.method ? JSON.stringify(input.method) : null,
-				visibility: input.visibility ?? 'community',
+				visibility: visibility ?? 'community',
 				startTime,
 				endTime
 			})
 			.returning()
 			.get();
 
-		const choiceValues = input.choices.map((label, index) => ({
+		const choiceValues = choices.map((label, index) => ({
 			proposalId: created.id,
 			label: label.trim(),
 			position: index

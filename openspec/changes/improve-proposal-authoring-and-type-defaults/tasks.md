@@ -13,11 +13,11 @@
 
 ## 3. Type defaults & locks (backend)
 
-- [ ] 3.1 `proposal-type-admin-service`: accept defaults + locks on create/addTypeVersion; validate (no default choices for multi-question)
-- [ ] 3.2 `deleteProposalType` — allowed only when retired AND zero proposals across all versions; else error
-- [ ] 3.3 `listProposalTypes` summary surfaces defaults + locks for pre-fill/enforcement
-- [ ] 3.4 `createProposal` applies type defaults and **enforces locks server-side** (ignore locked overrides)
-- [ ] 3.5 Tests: lock enforcement, default application, delete-guard, default-choices-vs-multi-question
+- [x] 3.1 `proposal-type-admin-service`: `create`/`addTypeVersion` accept a `TypeDefaultsInput` (default choices, voting days, default visibility, locks, question-contribution config), persisted via a shared `buildVersionValues` helper; validates no default choices for multi-question and ≥2 (or none)
+- [x] 3.2 `deleteProposalType` — admin-only; allowed only when retired AND no proposal references any version across the type; else `INVALID_REQUEST`
+- [x] 3.3 `listProposalTypes` summary surfaces defaults + locks (`TypeVersionDefaults` mixed into `ProposalTypeSummary`); added `getTypeVersionDefaults` for the create path
+- [x] 3.4 `createProposal` applies type defaults (pre-fill) and **enforces locks server-side**: locked choices/visibility re-asserted from the type, locked voting window forces `end = start + votingSeconds`; client overrides of locked fields ignored
+- [x] 3.5 Tests (proposal-type-admin-service.test.ts, +9 → 14): default persistence + summary surfacing, default-choices-vs-multi-question + single-choice guards, delete-guard (not-retired / has-proposals / clean-delete / non-admin), lock enforcement + unlocked-pre-fill override. Full suite 202 green
 
 ## 4. Create-proposal UX
 

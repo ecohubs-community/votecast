@@ -104,7 +104,21 @@ export async function resolveMethodContext(
 	return { snapshot: LEGACY_SNAPSHOT, deliberationSeconds: 0 };
 }
 
-export interface ProposalTypeSummary {
+/** Type-level defaults + per-field locks resolved from a type version (tasks 3.3/3.4). */
+export interface TypeVersionDefaults {
+	defaultChoices: string[] | null;
+	votingSeconds: number;
+	defaultVisibility: 'public' | 'community';
+	lockChoices: boolean;
+	lockDeliberation: boolean;
+	lockVoting: boolean;
+	lockVisibility: boolean;
+	questionContributors: 'proposer' | 'members';
+	questionContributionPhase: 'creation' | 'deliberation';
+	lockQuestionContribution: boolean;
+}
+
+export interface ProposalTypeSummary extends TypeVersionDefaults {
 	typeId: string;
 	name: string;
 	description: string;
@@ -114,6 +128,57 @@ export interface ProposalTypeSummary {
 	tallyReveal: 'live' | 'on-close' | 'hidden-forever';
 	ballotModuleId: string;
 	decisionRuleId: string;
+}
+
+/** Parse a stored `defaultChoicesJson` to a string[] | null, tolerating corrupt JSON. */
+function parseDefaultChoices(json: string | null): string[] | null {
+	if (!json) return null;
+	try {
+		const parsed = JSON.parse(json);
+		return Array.isArray(parsed) && parsed.every((c) => typeof c === 'string') ? parsed : null;
+	} catch {
+		return null;
+	}
+}
+
+/** Project a type-version row onto its defaults/locks shape. */
+function defaultsFromVersion(v: {
+	defaultChoicesJson: string | null;
+	votingSeconds: number;
+	defaultVisibility: 'public' | 'community';
+	lockChoices: boolean;
+	lockDeliberation: boolean;
+	lockVoting: boolean;
+	lockVisibility: boolean;
+	questionContributors: 'proposer' | 'members';
+	questionContributionPhase: 'creation' | 'deliberation';
+	lockQuestionContribution: boolean;
+}): TypeVersionDefaults {
+	return {
+		defaultChoices: parseDefaultChoices(v.defaultChoicesJson),
+		votingSeconds: v.votingSeconds,
+		defaultVisibility: v.defaultVisibility,
+		lockChoices: v.lockChoices,
+		lockDeliberation: v.lockDeliberation,
+		lockVoting: v.lockVoting,
+		lockVisibility: v.lockVisibility,
+		questionContributors: v.questionContributors,
+		questionContributionPhase: v.questionContributionPhase,
+		lockQuestionContribution: v.lockQuestionContribution
+	};
+}
+
+/** Resolve a single type version's defaults/locks (for the create-proposal enforcement path). */
+export async function getTypeVersionDefaults(
+	typeVersionId: string,
+	db: Database = defaultDb
+): Promise<TypeVersionDefaults | null> {
+	const [v] = await db
+		.select()
+		.from(proposalTypeVersion)
+		.where(eq(proposalTypeVersion.id, typeVersionId))
+		.limit(1);
+	return v ? defaultsFromVersion(v) : null;
 }
 
 /**
@@ -161,7 +226,8 @@ export async function listProposalTypes(
 			objectionWindowSeconds: snap.process.objectionWindowSeconds ?? 0,
 			tallyReveal: snap.visibility.tallyReveal,
 			ballotModuleId: snap.ballotModuleId,
-			decisionRuleId: snap.decisionRuleId
+			decisionRuleId: snap.decisionRuleId,
+			...defaultsFromVersion(v)
 		});
 	}
 	return summaries;
