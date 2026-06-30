@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import StatusBadge from '$lib/components/StatusBadge.svelte';
+	import MethodFlow from '$lib/components/MethodFlow.svelte';
 	import { formatRelativeTime } from '$lib/utils/format';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
@@ -141,6 +142,21 @@
 			</div>
 		</div>
 	</header>
+
+	{#if data.method}
+		<section style="margin-bottom: 28px;">
+			<MethodFlow
+				ballotModuleId={data.method.ballotModuleId}
+				decisionRuleId={data.method.decisionRuleId}
+				deliberationSeconds={data.method.deliberationSeconds}
+				objectionWindowSeconds={data.method.objectionWindowSeconds}
+				tallyReveal={data.method.tallyReveal}
+				startTime={data.proposal.startTime}
+				endTime={data.proposal.endTime}
+				currentPhase={data.proposal.phase}
+			/>
+		</section>
+	{/if}
 
 	<div class="proposal-detail-grid">
 		<div>

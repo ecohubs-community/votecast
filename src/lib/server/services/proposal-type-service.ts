@@ -190,6 +190,29 @@ export async function getTypeVersionForCommunity(
 	return row?.id ?? null;
 }
 
+export interface ProposalMethodSummary {
+	ballotModuleId: string;
+	decisionRuleId: string;
+	deliberationSeconds: number;
+	objectionWindowSeconds: number;
+	tallyReveal: 'live' | 'on-close' | 'hidden-forever';
+}
+
+/** Compact method summary for display (proposal detail flow diagram). */
+export async function resolveMethodSummary(
+	prop: { methodOverrideJson: string | null; typeVersionId: string | null },
+	db: Database = defaultDb
+): Promise<ProposalMethodSummary> {
+	const { snapshot, deliberationSeconds } = await resolveMethodContext(prop, db);
+	return {
+		ballotModuleId: snapshot.ballotModuleId,
+		decisionRuleId: snapshot.decisionRuleId,
+		deliberationSeconds,
+		objectionWindowSeconds: snapshot.process.objectionWindowSeconds ?? 0,
+		tallyReveal: snapshot.visibility.tallyReveal
+	};
+}
+
 /** Resolve just the effective method snapshot (override → pinned version → legacy). */
 export async function resolveMethodSnapshot(
 	prop: { methodOverrideJson: string | null; typeVersionId: string | null },

@@ -7,19 +7,39 @@
 		deliberationSeconds: number;
 		objectionWindowSeconds: number;
 		tallyReveal: 'live' | 'on-close' | 'hidden-forever';
+		// When the proposal's actual window is provided, each step shows real dates and the current
+		// phase is highlighted (proposal detail). Omit for the abstract method shape (type/create).
+		startTime?: Date | string | number;
+		endTime?: Date | string | number;
+		currentPhase?: string;
 	}
 	let {
 		ballotModuleId,
 		decisionRuleId,
 		deliberationSeconds,
 		objectionWindowSeconds,
-		tallyReveal
+		tallyReveal,
+		startTime,
+		endTime,
+		currentPhase
 	}: Props = $props();
 
 	function days(seconds: number): string {
 		const d = Math.round((seconds / 86_400) * 10) / 10;
 		return d >= 1 ? `${d}d` : `${Math.round(seconds / 3600)}h`;
 	}
+	function ms(v: Date | string | number): number {
+		return typeof v === 'number' ? v : new Date(v).getTime();
+	}
+	function fmt(at: number): string {
+		return new Date(at).toLocaleString(undefined, {
+			month: 'short',
+			day: 'numeric',
+			hour: '2-digit',
+			minute: '2-digit'
+		});
+	}
+	const dated = $derived(startTime != null && endTime != null);
 
 	const ballotLabel = $derived(
 		(
@@ -44,14 +64,35 @@
 		)[decisionRuleId] ?? decisionRuleId
 	);
 
-	const steps = $derived([
-		...(deliberationSeconds > 0 ? [{ label: 'Deliberation', sub: days(deliberationSeconds) }] : []),
-		{ label: 'Voting', sub: ballotLabel },
-		...(objectionWindowSeconds > 0
-			? [{ label: 'Objection window', sub: days(objectionWindowSeconds) }]
-			: []),
-		{ label: 'Result', sub: ruleLabel }
-	]);
+	const steps = $derived.by(() => {
+		// Compute actual phase boundaries when a window is given.
+		const start = dated ? ms(startTime!) : 0;
+		const end = dated ? ms(endTime!) : 0;
+		const range = (from: number, to: number) => `${fmt(from)} → ${fmt(to)}`;
+
+		const out: Array<{ label: string; sub: string; phase: string }> = [];
+		if (deliberationSeconds > 0) {
+			out.push({
+				label: 'Deliberation',
+				phase: 'deliberation',
+				sub: dated ? range(start - deliberationSeconds * 1000, start) : days(deliberationSeconds)
+			});
+		}
+		out.push({ label: 'Voting', phase: 'voting', sub: dated ? range(start, end) : ballotLabel });
+		if (objectionWindowSeconds > 0) {
+			out.push({
+				label: 'Objection window',
+				phase: 'objection-window',
+				sub: dated ? range(end, end + objectionWindowSeconds * 1000) : days(objectionWindowSeconds)
+			});
+		}
+		out.push({
+			label: 'Result',
+			phase: 'finalized',
+			sub: dated ? fmt(end + objectionWindowSeconds * 1000) : ruleLabel
+		});
+		return out;
+	});
 
 	const revealLabel = $derived(
 		(
@@ -67,7 +108,12 @@
 <div class="method-flow" aria-label="Method process flow">
 	<ol class="flow-steps">
 		{#each steps as step, i (i)}
-			<li class="flow-step" class:terminal={i === steps.length - 1}>
+			<li
+				class="flow-step"
+				class:terminal={i === steps.length - 1}
+				class:active={currentPhase === step.phase}
+				aria-current={currentPhase === step.phase ? 'step' : undefined}
+			>
 				<span class="flow-label">{step.label}</span>
 				<span class="flow-sub">{step.sub}</span>
 			</li>
@@ -109,6 +155,10 @@
 	}
 	.flow-step.terminal {
 		background: var(--vc-accent-soft, rgba(0, 0, 0, 0.04));
+	}
+	.flow-step.active {
+		border-color: var(--vc-accent);
+		box-shadow: 0 0 0 2px var(--vc-accent-soft);
 	}
 	.flow-label {
 		font-size: 13px;

@@ -67,7 +67,7 @@
 ## 7. UI
 
 - [~] 7.1 Type management: admin service (`proposal-type-admin-service`: create / addTypeVersion / retire+restore / listVersions, requireAdmin-guarded, immutable versioning, binding-validated) + admin page at `/communities/[slug]/types` (list with method summary, create form, retire/restore) linked from Settings. 5 tests. Edit-method-via-new-version + version-history views: backend ready, UI pending
-- [x] 7.2 `MethodFlow.svelte` — read-only process-flow diagram (deliberation → voting → objection-window → result + reveal timing), derived from the method; shown on the type-management page (per type) and the create-proposal page (selected method). svelte-autofixer clean
+- [x] 7.2 `MethodFlow.svelte` — read-only process-flow diagram (deliberation → voting → objection-window → result + reveal timing). Abstract mode on type-management + create-proposal; **dated mode on the proposal detail** showing each phase's actual date range with the current phase highlighted. svelte-autofixer clean
 - [~] 7.3 Proposal creation: **type picker wired** end-to-end — `listProposalTypes` + `createProposal` pins a validated `typeVersionId`; create-proposal form has a Method `<select>` (passed svelte-autofixer). 4 backend tests. The "Advanced" per-proposal override UI is still pending
 - [~] 7.4 Results: proposal page surfaces the rich `tallyProposal` **outcome** (passed/failed/blocked/tie/…) via `getProposalOutcome`, with an outcome badge (svelte-autofixer-clean). Per-module **ballot** components (consent/multi-question input) still pending — they need a multi-ballot create flow
 - [ ] 7.5 Unified "Extensions" surface presenting method modules + event-plugins

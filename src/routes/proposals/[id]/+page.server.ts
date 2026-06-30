@@ -8,6 +8,7 @@ import {
 import { getCommunityById } from '$lib/server/services/community-service';
 import { getMember } from '$lib/server/services/membership-service';
 import { getUserVote, castVote, getProposalVoters } from '$lib/server/services/vote-service';
+import { resolveMethodSummary } from '$lib/server/services/proposal-type-service';
 import { ServiceError } from '$lib/server/services/errors';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
@@ -18,13 +19,14 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		const membership = userId ? await getMember(proposal.communityId, userId) : null;
 		const role = membership?.role ?? 'member';
 
-		const [results, outcome, community, userVote, voters] = await Promise.all([
+		const [results, outcome, community, userVote, voters, method] = await Promise.all([
 			getProposalResults(params.id, userId),
 			getProposalOutcome(params.id, userId, undefined, role),
 			getCommunityById(proposal.communityId, userId),
 			userId ? getUserVote(userId, params.id) : Promise.resolve(null),
 			// Secret ballots hide the voter list from non-facilitators — degrade to an empty list.
-			getProposalVoters(params.id, undefined, role).catch(() => [])
+			getProposalVoters(params.id, undefined, role).catch(() => []),
+			resolveMethodSummary(proposal)
 		]);
 
 		return {
@@ -34,7 +36,8 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 			community,
 			membership,
 			userVote,
-			voters
+			voters,
+			method
 		};
 	} catch (e) {
 		if (e instanceof ServiceError) {
