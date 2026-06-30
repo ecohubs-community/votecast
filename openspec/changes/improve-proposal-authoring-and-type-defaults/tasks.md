@@ -21,11 +21,11 @@
 
 ## 4. Create-proposal UX
 
-- [ ] 4.1 Relabel "Context" → "Proposal"; add optional Rationale (reveal on click); both use `MarkdownEditor`
-- [ ] 4.2 Defaults: voting opens now, closes +type voting days (3 default); default choices For/Against/Abstain when unset
-- [ ] 4.3 Readable edit-on-click timeline (creation · deliberation · voting start · voting end); hide Edit on locked segments
-- [ ] 4.4 Disable/hide inputs for locked type fields; pass rationale + resolved timings to `createProposal`
-- [ ] 4.5 svelte-autofixer clean
+- [x] 4.1 Body label "Context" → "Proposal"; both body and the optional Rationale (reveal-on-click `+ Add rationale`) use `MarkdownEditor`. Rationale plumbed end-to-end: `CreateProposalInput.rationale` → `proposal.rationale`; server action reads/echoes it
+- [x] 4.2 Defaults: voting opens now, closes = start + the type's `votingSeconds` (3d default); choices seed from `selectedType.defaultChoices` → For/Against/Abstain fallback
+- [x] 4.3 Readable edit-on-click timeline (Created now · Deliberation window from type · Voting opens · Voting closes); each voting segment shows formatted text + Edit, swaps to `datetime-local`, hidden input keeps it submitting. Edit hidden + "set by method" tag on locked segments
+- [x] 4.4 Lock-aware form: locked visibility → read-only value + hidden input; locked choices → read-only list + hidden inputs; locked voting → no Edit. Multi-question types hide the choice editor (questions configured post-create). Server still re-asserts every lock (Group 3)
+- [x] 4.5 svelte-autofixer clean (writable `$derived` for type-seeded fields; `untrack` for the sticky rationale-reveal). check + lint clean; 202 tests green
 
 ## 5. Proposal detail UX
 

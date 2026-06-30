@@ -1,36 +1,80 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
 	import MethodFlow from '$lib/components/MethodFlow.svelte';
+	import MarkdownEditor from '$lib/components/MarkdownEditor.svelte';
 	import type { PageData, ActionData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
-	let choices = $state<string[]>(['', '']);
-	let visibility = $state<'public' | 'community'>('public');
-	let typeVersionId = $state<string>('');
+	const FALLBACK_CHOICES = ['For', 'Against', 'Abstain'];
+	const DEFAULT_VOTING_SECONDS = 259_200; // 3 days
 
+	/** Format a Date for a `datetime-local` input (local time, no seconds/offset). */
+	function toLocalInput(d: Date): string {
+		const local = new Date(d.getTime() - d.getTimezoneOffset() * 60_000);
+		return local.toISOString().slice(0, 16);
+	}
+	function fmtDateTime(iso: string): string {
+		const d = new Date(iso);
+		if (Number.isNaN(d.getTime())) return '—';
+		return d.toLocaleString(undefined, {
+			weekday: 'short',
+			month: 'short',
+			day: 'numeric',
+			hour: '2-digit',
+			minute: '2-digit'
+		});
+	}
+	function fmtDuration(seconds: number): string {
+		if (seconds <= 0) return '';
+		const days = Math.round(seconds / 86_400);
+		if (days >= 1) return `${days} day${days > 1 ? 's' : ''}`;
+		const hours = Math.max(1, Math.round(seconds / 3_600));
+		return `${hours} hour${hours > 1 ? 's' : ''}`;
+	}
+
+	const nowIso = toLocalInput(new Date());
+
+	// The selected type drives every default and lock below. Writable $derived: a user choice
+	// reassigns it; it reseeds only when the form/data change.
+	let typeVersionId = $derived(form?.typeVersionId ?? data.types[0]?.currentVersionId ?? '');
 	const selectedType = $derived(data.types.find((t) => t.currentVersionId === typeVersionId));
+	const isMultiQuestion = $derived(selectedType?.ballotModuleId === 'multi-question');
 
-	const nowIso = new Date(Date.now() - new Date().getSeconds() * 1000).toISOString().slice(0, 16);
-	const defaultEndTime = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().slice(0, 16);
+	const lockChoices = $derived(selectedType?.lockChoices ?? false);
+	const lockVisibility = $derived(selectedType?.lockVisibility ?? false);
+	const lockVoting = $derived(selectedType?.lockVoting ?? false);
+	const deliberationSeconds = $derived(selectedType?.deliberationSeconds ?? 0);
 
-	$effect(() => {
-		if (form?.choices?.length) {
-			choices = [...form.choices];
-		}
-		if (form?.visibility === 'public' || form?.visibility === 'community') {
-			visibility = form.visibility;
-		}
-		if (!typeVersionId) {
-			typeVersionId = form?.typeVersionId ?? data.types[0]?.currentVersionId ?? '';
-		}
+	// Choices: form echo (error) → type defaults → For/Against/Abstain. Spread so we never mutate a
+	// shared array via bind:value.
+	let choices = $derived(
+		form?.choices?.length
+			? [...form.choices]
+			: [...(selectedType?.defaultChoices ?? FALLBACK_CHOICES)]
+	);
+
+	let visibility = $derived<'public' | 'community'>(
+		(form?.visibility as 'public' | 'community') ?? selectedType?.defaultVisibility ?? 'public'
+	);
+
+	// Timeline. Start defaults to now; end = start + the type's voting window (default 3 days).
+	let startTime = $derived(form?.startTime ?? nowIso);
+	let endTime = $derived.by(() => {
+		if (form?.endTime) return form.endTime;
+		const secs = selectedType?.votingSeconds ?? DEFAULT_VOTING_SECONDS;
+		return toLocalInput(new Date(new Date(startTime).getTime() + secs * 1000));
 	});
+
+	let editStart = $state(false);
+	let editEnd = $state(false);
+	let showRationale = $state(untrack(() => Boolean(form?.rationale)));
 
 	function addChoice() {
 		if (choices.length < 20) choices = [...choices, ''];
 	}
-
 	function removeChoice(index: number) {
 		if (choices.length > 2) choices = choices.filter((_, i) => i !== index);
 	}
@@ -50,7 +94,7 @@
 		<div>
 			<h1 class="page-title">Open a <em>proposal.</em></h1>
 			<p class="page-sub">
-				Write what's being decided. Add the options. Set when voting opens and closes.
+				Write what's being decided. Add the options. The method's defaults fill in the rest.
 			</p>
 		</div>
 	</header>
@@ -77,16 +121,34 @@
 				</div>
 
 				<div class="field">
-					<label for="body" class="label">Context</label>
-					<textarea
-						id="body"
+					<span class="label">Proposal</span>
+					<MarkdownEditor
 						name="body"
+						value={form?.body ?? ''}
+						rows={14}
 						required
-						rows="14"
-						class="textarea"
-						placeholder="Why this is up for a vote, what each option means, anything members should know before deciding…"
-						>{form?.body ?? ''}</textarea
-					>
+						placeholder="What's being voted on, what each option means, anything members should know before deciding…"
+					/>
+				</div>
+
+				<div class="field">
+					{#if showRationale}
+						<span class="label">Rationale <span class="label-optional">optional</span></span>
+						<MarkdownEditor
+							name="rationale"
+							value={form?.rationale ?? ''}
+							rows={8}
+							placeholder="The reasoning behind this proposal — context, trade-offs, why now. Kept separate from the text that's voted on."
+						/>
+					{:else}
+						<button
+							type="button"
+							class="btn btn-ghost btn-sm"
+							onclick={() => (showRationale = true)}
+						>
+							+ Add rationale <span class="label-optional">optional</span>
+						</button>
+					{/if}
 				</div>
 			</div>
 
@@ -114,107 +176,147 @@
 
 				<div class="field">
 					<span class="label">Who can see it</span>
-					<div class="toggle-group">
-						<label class="toggle-opt" class:selected={visibility === 'public'}>
-							<input type="radio" name="visibility" value="public" bind:group={visibility} />
-							<svg
-								width="14"
-								height="14"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="1.8"
-								aria-hidden="true"
-							>
-								<circle cx="12" cy="12" r="9" />
-								<path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" />
-							</svg>
-							Public
-						</label>
-						<label class="toggle-opt" class:selected={visibility === 'community'}>
-							<input type="radio" name="visibility" value="community" bind:group={visibility} />
-							<svg
-								width="14"
-								height="14"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="1.8"
-								aria-hidden="true"
-							>
-								<rect x="4" y="11" width="16" height="10" rx="2" />
-								<path d="M8 11V7a4 4 0 0 1 8 0v4" />
-							</svg>
-							Members
-						</label>
-					</div>
-					<p class="hint">
-						{visibility === 'public'
-							? 'Anyone — even non-members — can read this proposal and see the result.'
-							: 'Only people in this community can see it.'}
-					</p>
+					{#if lockVisibility && selectedType}
+						<p class="locked-value">
+							{selectedType.defaultVisibility === 'public' ? 'Public' : 'Members only'}
+							<span class="locked-tag">set by method</span>
+						</p>
+						<input type="hidden" name="visibility" value={selectedType.defaultVisibility} />
+					{:else}
+						<div class="toggle-group">
+							<label class="toggle-opt" class:selected={visibility === 'public'}>
+								<input type="radio" name="visibility" value="public" bind:group={visibility} />
+								Public
+							</label>
+							<label class="toggle-opt" class:selected={visibility === 'community'}>
+								<input type="radio" name="visibility" value="community" bind:group={visibility} />
+								Members
+							</label>
+						</div>
+						<p class="hint">
+							{visibility === 'public'
+								? 'Anyone — even non-members — can read this proposal and see the result.'
+								: 'Only people in this community can see it.'}
+						</p>
+					{/if}
 				</div>
 
 				<div class="field">
-					<label for="startTime" class="label">Voting opens</label>
-					<input
-						type="datetime-local"
-						id="startTime"
-						name="startTime"
-						required
-						value={form?.startTime ?? nowIso}
-						class="input"
-					/>
-				</div>
-
-				<div class="field">
-					<label for="endTime" class="label">Voting closes</label>
-					<input
-						type="datetime-local"
-						id="endTime"
-						name="endTime"
-						required
-						value={form?.endTime ?? defaultEndTime}
-						class="input"
-					/>
-				</div>
-
-				<div class="field">
-					<span class="label">Choices <span class="label-optional">2–20</span></span>
-					<div style="display: flex; flex-direction: column; gap: 8px;">
-						<!-- eslint-disable-next-line @typescript-eslint/no-unused-vars -- index-only loop; the value is bound via choices[i] since each-block primitives aren't writable refs -->
-						{#each choices as _, i (i)}
-							<div style="display: flex; gap: 8px;">
+					<span class="label">Timeline</span>
+					<ol class="timeline">
+						<li class="tl-row">
+							<span class="tl-when">Created</span>
+							<span class="tl-val">now</span>
+						</li>
+						{#if deliberationSeconds > 0}
+							<li class="tl-row">
+								<span class="tl-when">Deliberation</span>
+								<span class="tl-val">{fmtDuration(deliberationSeconds)} before voting opens</span>
+							</li>
+						{/if}
+						<li class="tl-row">
+							<span class="tl-when">Voting opens</span>
+							{#if editStart && !lockVoting}
 								<input
-									type="text"
-									name="choices"
-									required
-									maxlength="200"
-									bind:value={choices[i]}
-									class="input"
-									placeholder="Option {i + 1}"
+									type="datetime-local"
+									name="startTime"
+									bind:value={startTime}
+									class="input tl-input"
 								/>
-								{#if choices.length > 2}
-									<button
-										type="button"
-										onclick={() => removeChoice(i)}
-										class="btn btn-ghost btn-sm"
+							{:else}
+								<span class="tl-val">{fmtDateTime(startTime)}</span>
+								{#if lockVoting}
+									<span class="locked-tag">set by method</span>
+								{:else}
+									<button type="button" class="tl-edit" onclick={() => (editStart = true)}
+										>Edit</button
 									>
-										Remove
-									</button>
 								{/if}
-							</div>
+								<input type="hidden" name="startTime" value={startTime} />
+							{/if}
+						</li>
+						<li class="tl-row">
+							<span class="tl-when">Voting closes</span>
+							{#if editEnd && !lockVoting}
+								<input
+									type="datetime-local"
+									name="endTime"
+									bind:value={endTime}
+									class="input tl-input"
+								/>
+							{:else}
+								<span class="tl-val">{fmtDateTime(endTime)}</span>
+								{#if lockVoting}
+									<span class="locked-tag">set by method</span>
+								{:else}
+									<button type="button" class="tl-edit" onclick={() => (editEnd = true)}
+										>Edit</button
+									>
+								{/if}
+								<input type="hidden" name="endTime" value={endTime} />
+							{/if}
+						</li>
+					</ol>
+				</div>
+
+				<div class="field">
+					<span class="label">
+						Choices
+						{#if !lockChoices && !isMultiQuestion}<span class="label-optional">2–20</span>{/if}
+					</span>
+
+					{#if isMultiQuestion}
+						<p class="hint">
+							Common Ground proposals collect positions per question. Questions are set up after the
+							proposal is created.
+						</p>
+						{#each choices as choice, i (i)}
+							<input type="hidden" name="choices" value={choice} />
 						{/each}
-					</div>
-					{#if choices.length < 20}
-						<button
-							type="button"
-							onclick={addChoice}
-							class="btn btn-ghost btn-sm"
-							style="align-self: start; margin-top: 8px;"
-						>
-							+ Add a choice
-						</button>
+					{:else if lockChoices}
+						<ul class="locked-choices">
+							{#each choices as choice, i (i)}
+								<li>{choice}</li>
+								<input type="hidden" name="choices" value={choice} />
+							{/each}
+						</ul>
+						<p class="hint"><span class="locked-tag">set by method</span></p>
+					{:else}
+						<div style="display: flex; flex-direction: column; gap: 8px;">
+							<!-- eslint-disable-next-line @typescript-eslint/no-unused-vars -- index-only loop; the value is bound via choices[i] since each-block primitives aren't writable refs -->
+							{#each choices as _, i (i)}
+								<div style="display: flex; gap: 8px;">
+									<input
+										type="text"
+										name="choices"
+										required
+										maxlength="200"
+										bind:value={choices[i]}
+										class="input"
+										placeholder="Option {i + 1}"
+									/>
+									{#if choices.length > 2}
+										<button
+											type="button"
+											onclick={() => removeChoice(i)}
+											class="btn btn-ghost btn-sm"
+										>
+											Remove
+										</button>
+									{/if}
+								</div>
+							{/each}
+						</div>
+						{#if choices.length < 20}
+							<button
+								type="button"
+								onclick={addChoice}
+								class="btn btn-ghost btn-sm"
+								style="align-self: start; margin-top: 8px;"
+							>
+								+ Add a choice
+							</button>
+						{/if}
 					{/if}
 				</div>
 			</div>
@@ -234,5 +336,66 @@
 		.proposal-grid {
 			grid-template-columns: 1.4fr 1fr !important;
 		}
+	}
+	.timeline {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+	.tl-row {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		flex-wrap: wrap;
+	}
+	.tl-when {
+		min-width: 110px;
+		font-size: 13px;
+		color: var(--vc-muted);
+	}
+	.tl-val {
+		font-size: 14px;
+		color: var(--vc-ink);
+	}
+	.tl-input {
+		max-width: 230px;
+	}
+	.tl-edit {
+		font: inherit;
+		font-size: 13px;
+		background: none;
+		border: none;
+		color: var(--vc-accent-ink, var(--vc-accent));
+		cursor: pointer;
+		padding: 0;
+		border-bottom: 1px solid var(--vc-line-2);
+	}
+	.locked-value {
+		font-size: 14px;
+		color: var(--vc-ink);
+		display: flex;
+		align-items: center;
+		gap: 8px;
+	}
+	.locked-choices {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+		font-size: 14px;
+	}
+	.locked-tag {
+		font-size: 11px;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		color: var(--vc-muted);
+		border: 1px solid var(--vc-line);
+		border-radius: 5px;
+		padding: 1px 6px;
 	}
 </style>

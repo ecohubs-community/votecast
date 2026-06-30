@@ -46,6 +46,7 @@ export interface CreateProposalInput {
 	communityId: string;
 	title: string;
 	body: string;
+	rationale?: string; // optional markdown "why" — the body is what's voted on (design D2)
 	choices: string[];
 	startTime: Date | string;
 	endTime: Date | string;
@@ -149,6 +150,7 @@ export async function createProposal(
 				communityId: input.communityId,
 				title,
 				body,
+				rationale: input.rationale?.trim() || null,
 				createdBy: userId,
 				typeVersionId,
 				methodOverrideJson: input.method ? JSON.stringify(input.method) : null,

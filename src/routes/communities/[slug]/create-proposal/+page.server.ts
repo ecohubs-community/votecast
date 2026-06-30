@@ -40,6 +40,7 @@ export const actions: Actions = {
 
 		const title = formData.get('title') as string;
 		const body = formData.get('body') as string;
+		const rationale = ((formData.get('rationale') as string) || '').trim() || undefined;
 		const choices = formData
 			.getAll('choices')
 			.filter((c) => (c as string).trim() !== '') as string[];
@@ -55,6 +56,7 @@ export const actions: Actions = {
 				communityId: community.id,
 				title,
 				body,
+				rationale,
 				choices,
 				startTime: new Date(startTime),
 				endTime: new Date(endTime),
@@ -69,6 +71,7 @@ export const actions: Actions = {
 					error: e.message,
 					title,
 					body,
+					rationale,
 					choices,
 					startTime,
 					endTime,
