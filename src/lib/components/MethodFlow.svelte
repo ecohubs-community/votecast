@@ -65,25 +65,25 @@
 	);
 
 	const steps = $derived.by(() => {
-		// Compute actual phase boundaries when a window is given.
+		// In dated mode each box shows only its START (= the previous box's end); the final box is the
+		// conclusion time. In abstract mode the sub is the duration/method label.
 		const start = dated ? ms(startTime!) : 0;
 		const end = dated ? ms(endTime!) : 0;
-		const range = (from: number, to: number) => `${fmt(from)} → ${fmt(to)}`;
 
 		const out: Array<{ label: string; sub: string; phase: string }> = [];
 		if (deliberationSeconds > 0) {
 			out.push({
 				label: 'Deliberation',
 				phase: 'deliberation',
-				sub: dated ? range(start - deliberationSeconds * 1000, start) : days(deliberationSeconds)
+				sub: dated ? fmt(start - deliberationSeconds * 1000) : days(deliberationSeconds)
 			});
 		}
-		out.push({ label: 'Voting', phase: 'voting', sub: dated ? range(start, end) : ballotLabel });
+		out.push({ label: 'Voting', phase: 'voting', sub: dated ? fmt(start) : ballotLabel });
 		if (objectionWindowSeconds > 0) {
 			out.push({
 				label: 'Objection window',
 				phase: 'objection-window',
-				sub: dated ? range(end, end + objectionWindowSeconds * 1000) : days(objectionWindowSeconds)
+				sub: dated ? fmt(end) : days(objectionWindowSeconds)
 			});
 		}
 		out.push({
@@ -106,9 +106,12 @@
 </script>
 
 <div class="method-flow" aria-label="Method process flow">
-	<ol class="flow-steps">
+	<div class="flow-steps">
 		{#each steps as step, i (i)}
-			<li
+			{#if i > 0}
+				<span class="flow-arrow" aria-hidden="true">→</span>
+			{/if}
+			<div
 				class="flow-step"
 				class:terminal={i === steps.length - 1}
 				class:active={currentPhase === step.phase}
@@ -116,9 +119,9 @@
 			>
 				<span class="flow-label">{step.label}</span>
 				<span class="flow-sub">{step.sub}</span>
-			</li>
+			</div>
 		{/each}
-	</ol>
+	</div>
 	<p class="flow-note">{revealLabel}</p>
 </div>
 
@@ -129,11 +132,14 @@
 	.flow-steps {
 		display: flex;
 		flex-wrap: wrap;
-		align-items: stretch;
-		gap: 8px;
-		list-style: none;
+		align-items: center;
+		gap: 6px;
 		margin: 0;
 		padding: 0;
+	}
+	.flow-arrow {
+		color: var(--vc-muted);
+		flex: 0 0 auto;
 	}
 	.flow-step {
 		display: flex;
@@ -143,15 +149,6 @@
 		border: 1px solid var(--vc-line);
 		border-radius: var(--vc-radius-sm, 8px);
 		background: var(--vc-surface);
-		position: relative;
-	}
-	.flow-step:not(:last-child)::after {
-		content: '→';
-		position: absolute;
-		right: -12px;
-		top: 50%;
-		transform: translateY(-50%);
-		color: var(--vc-muted);
 	}
 	.flow-step.terminal {
 		background: var(--vc-accent-soft, rgba(0, 0, 0, 0.04));
