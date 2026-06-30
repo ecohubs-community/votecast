@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Read-only process-flow diagram for a configured method (task 7.2). Renders the phases a proposal
 	// passes through, derived from the method's timing — not an editor.
+	import { onMount } from 'svelte';
 	import { ballotLabel, ruleLabel, tallyRevealLabel } from '$lib/utils/method-labels';
 
 	interface Props {
@@ -55,36 +56,56 @@
 	};
 	const currentRank = $derived(currentPhase != null ? (PHASE_RANK[currentPhase] ?? -1) : -1);
 
+	// `now` stays 0 until mounted so SSR and first client render agree (no hydration mismatch); then the
+	// progress bars animate to their real fill and tick forward each minute.
+	let now = $state(0);
+	onMount(() => {
+		now = Date.now();
+		const id = setInterval(() => (now = Date.now()), 60_000);
+		return () => clearInterval(id);
+	});
+
 	const steps = $derived.by(() => {
 		// In dated mode each box shows only its START (= the previous box's end); the final box is the
-		// conclusion time. In abstract mode the sub is the duration/method label.
+		// conclusion time. In abstract mode the sub is the duration/method label. `from`/`to` bound each
+		// phase's window so a background bar can show how far `now` has progressed through it.
 		const start = dated ? ms(startTime!) : 0;
 		const end = dated ? ms(endTime!) : 0;
+		const delibFrom = start - deliberationSeconds * 1000;
+		const objectionTo = end + objectionWindowSeconds * 1000;
 
-		const out: Array<{ label: string; sub: string; phase: string }> = [];
+		const out: Array<{ label: string; sub: string; phase: string; from: number; to: number }> = [];
 		if (deliberationSeconds > 0) {
 			out.push({
 				label: 'Deliberation',
 				phase: 'deliberation',
-				sub: dated ? fmt(start - deliberationSeconds * 1000) : days(deliberationSeconds)
+				sub: dated ? fmt(delibFrom) : days(deliberationSeconds),
+				from: delibFrom,
+				to: start
 			});
 		}
 		out.push({
 			label: 'Voting',
 			phase: 'voting',
-			sub: dated ? fmt(start) : ballotLabel(ballotModuleId)
+			sub: dated ? fmt(start) : ballotLabel(ballotModuleId),
+			from: start,
+			to: end
 		});
 		if (objectionWindowSeconds > 0) {
 			out.push({
 				label: 'Objection window',
 				phase: 'objection-window',
-				sub: dated ? fmt(end) : days(objectionWindowSeconds)
+				sub: dated ? fmt(end) : days(objectionWindowSeconds),
+				from: end,
+				to: objectionTo
 			});
 		}
 		out.push({
 			label: 'Result',
 			phase: 'finalized',
-			sub: dated ? fmt(end + objectionWindowSeconds * 1000) : ruleLabel(decisionRuleId)
+			sub: dated ? fmt(objectionTo) : ruleLabel(decisionRuleId),
+			from: objectionTo,
+			to: objectionTo
 		});
 		return out;
 	});
@@ -101,7 +122,16 @@
 						? 'active'
 						: 'upcoming';
 			const isResult = isTerminal && showProgress && currentRank >= PHASE_RANK.finalized;
-			return { ...s, isTerminal, status, isResult };
+			// Fill the box by how far `now` sits through [from, to]; instant phases (result) are 0/100.
+			const span = s.to - s.from;
+			const progress = !showProgress
+				? 0
+				: span <= 0
+					? rank < currentRank || isResult
+						? 100
+						: 0
+					: Math.max(0, Math.min(1, (now - s.from) / span)) * 100;
+			return { ...s, isTerminal, status, isResult, progress };
 		})
 	);
 
@@ -123,6 +153,9 @@
 				class:result={step.isResult}
 				aria-current={step.status === 'active' ? 'step' : undefined}
 			>
+				{#if showProgress}
+					<span class="flow-progress" style="width: {step.progress}%" aria-hidden="true"></span>
+				{/if}
 				{#if step.status !== 'idle'}
 					<span class="flow-icon" aria-hidden="true">
 						{#if step.isResult}
@@ -169,6 +202,7 @@
 	}
 	.flow-step {
 		position: relative;
+		overflow: hidden;
 		display: flex;
 		flex-direction: column;
 		gap: 2px;
@@ -186,6 +220,7 @@
 	}
 	.flow-icon {
 		position: absolute;
+		z-index: 1;
 		top: 5px;
 		right: 6px;
 		width: 14px;
@@ -203,16 +238,28 @@
 	.flow-step.terminal {
 		background: var(--vc-accent-soft, rgba(0, 0, 0, 0.04));
 	}
-	/* Process-bar backgrounds, lightest → reached. */
-	.flow-step.upcoming {
-		background: var(--vc-surface);
+	/* Background progress fill (dated mode): grows left→right with `now` through the phase window. */
+	.flow-progress {
+		position: absolute;
+		left: 0;
+		top: 0;
+		bottom: 0;
+		width: 0;
+		z-index: 0;
+		transition: width 0.4s ease;
+	}
+	.flow-step.active .flow-progress {
+		background: var(--vc-accent-soft, rgba(0, 0, 0, 0.06));
+	}
+	.flow-step.done .flow-progress,
+	.flow-step.result .flow-progress {
+		background: var(--vc-success-soft, rgba(34, 160, 100, 0.16));
 	}
 	.flow-step.upcoming .flow-icon {
 		color: var(--vc-muted);
 		opacity: 0.55;
 	}
 	.flow-step.active {
-		background: var(--vc-accent-soft, rgba(0, 0, 0, 0.04));
 		border-color: var(--vc-accent);
 		box-shadow: 0 0 0 2px var(--vc-accent-soft);
 	}
@@ -220,22 +267,24 @@
 		color: var(--vc-muted);
 	}
 	.flow-step.done {
-		background: var(--vc-success-soft, rgba(34, 160, 100, 0.12));
 		border-color: var(--vc-success-soft, rgba(34, 160, 100, 0.3));
 	}
 	.flow-step.done .flow-icon {
 		color: var(--vc-success-ink, #1a7f53);
 	}
 	.flow-step.result {
-		background: var(--vc-success-soft, rgba(34, 160, 100, 0.12));
 		border-color: var(--vc-success-ink, #1a7f53);
 	}
 	.flow-label {
+		position: relative;
+		z-index: 1;
 		font-size: 13px;
 		font-weight: 600;
 		color: var(--vc-ink);
 	}
 	.flow-sub {
+		position: relative;
+		z-index: 1;
 		font-size: 12px;
 		color: var(--vc-muted);
 		font-family: var(--vc-font-mono, monospace);
