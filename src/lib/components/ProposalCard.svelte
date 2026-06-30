@@ -1,6 +1,7 @@
 <script lang="ts">
 	import StatusBadge from './StatusBadge.svelte';
 	import { formatRelativeTime } from '$lib/utils/format';
+	import { markdownToPlainText } from '$lib/utils/markdown-text';
 	import { PHASE_VARIANT, type ProposalPhase } from '$lib/utils/phase';
 	import { resolve } from '$app/paths';
 
@@ -28,6 +29,7 @@
 	});
 
 	const statusClass = $derived(`status-${PHASE_VARIANT[proposal.phase]}`);
+	const bodyExcerpt = $derived(markdownToPlainText(proposal.body));
 </script>
 
 {#snippet cardBody()}
@@ -87,8 +89,8 @@
 		</div>
 	</div>
 
-	{#if proposal.body}
-		<p class="proposal-row-body">{proposal.body}</p>
+	{#if bodyExcerpt}
+		<p class="proposal-row-body">{bodyExcerpt}</p>
 	{/if}
 
 	<p class="proposal-row-time">{timeContext}</p>

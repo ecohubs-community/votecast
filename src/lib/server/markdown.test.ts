@@ -4,10 +4,18 @@ import { renderMarkdown } from './markdown';
 describe('renderMarkdown', () => {
 	it('renders basic markdown', () => {
 		const html = renderMarkdown('# Title\n\n**bold** and *italic* and [link](https://example.com)');
-		expect(html).toContain('<h1');
 		expect(html).toContain('<strong>bold</strong>');
 		expect(html).toContain('<em>italic</em>');
 		expect(html).toContain('href="https://example.com"');
+	});
+
+	it('demotes headings one level so a proposal never emits a second page <h1>', () => {
+		const html = renderMarkdown('# One\n\n## Two\n\n###### Six');
+		expect(html).not.toContain('<h1');
+		expect(html).toContain('<h2>One</h2>');
+		expect(html).toContain('<h3>Two</h3>');
+		// h6 is already the floor — it stays h6.
+		expect(html).toContain('<h6>Six</h6>');
 	});
 
 	it('renders tables and images', () => {

@@ -46,7 +46,14 @@ const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
 	allowedSchemesByTag: { img: ['http', 'https'] },
 	transformTags: {
 		// Harden external links.
-		a: sanitizeHtml.simpleTransform('a', { rel: 'noopener nofollow ugc', target: '_blank' })
+		a: sanitizeHtml.simpleTransform('a', { rel: 'noopener nofollow ugc', target: '_blank' }),
+		// Demote every markdown heading one level so a proposal's `#` never emits a second page <h1>
+		// (the proposal title is the real <h1>). transformTags maps each source tag once — no cascade.
+		h1: sanitizeHtml.simpleTransform('h2', {}),
+		h2: sanitizeHtml.simpleTransform('h3', {}),
+		h3: sanitizeHtml.simpleTransform('h4', {}),
+		h4: sanitizeHtml.simpleTransform('h5', {}),
+		h5: sanitizeHtml.simpleTransform('h6', {})
 	}
 };
 

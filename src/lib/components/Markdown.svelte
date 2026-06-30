@@ -15,12 +15,35 @@
 		color: var(--vc-ink);
 		overflow-wrap: anywhere;
 	}
-	.markdown-body :global(h1),
+	/* Markdown headings are demoted one level server-side (# → h2), so the real page <h1> stays
+	   unique. Size them distinctly, all smaller than the page title. */
 	.markdown-body :global(h2),
-	.markdown-body :global(h3) {
+	.markdown-body :global(h3),
+	.markdown-body :global(h4),
+	.markdown-body :global(h5),
+	.markdown-body :global(h6) {
 		font-family: var(--vc-font-display, inherit);
+		font-weight: 600;
 		margin: 1.2em 0 0.5em;
 		line-height: 1.25;
+	}
+	.markdown-body :global(h2) {
+		font-size: 1.4em;
+	}
+	.markdown-body :global(h3) {
+		font-size: 1.2em;
+	}
+	.markdown-body :global(h4) {
+		font-size: 1.05em;
+	}
+	.markdown-body :global(h5) {
+		font-size: 0.95em;
+	}
+	.markdown-body :global(h6) {
+		font-size: 0.85em;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		color: var(--vc-muted);
 	}
 	.markdown-body :global(p) {
 		margin: 0 0 0.9em;

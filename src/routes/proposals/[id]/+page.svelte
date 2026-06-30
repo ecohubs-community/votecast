@@ -12,8 +12,6 @@
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 
-	let showRationale = $state(false);
-
 	const pageTitle = $derived(`${data.proposal.title} — VoteCast`);
 	const canonical = $derived(new URL(`/proposals/${data.proposal.id}`, page.url.origin).href);
 	const ogImage = $derived(new URL('/og-default.jpg', page.url.origin).href);
@@ -29,7 +27,7 @@
 
 	let selectedChoiceId = $state<string | null>(null);
 	let submitting = $state(false);
-	let activeTab = $state<'description' | 'voters'>('description');
+	let activeTab = $state<'description' | 'rationale' | 'voters'>('description');
 
 	const timeContext = $derived.by(() => {
 		if (data.proposal.phase === 'voting')
@@ -176,8 +174,17 @@
 					class:active={activeTab === 'description'}
 					onclick={() => (activeTab = 'description')}
 				>
-					Context
+					Proposal
 				</button>
+				{#if data.rationaleHtml}
+					<button
+						class="tab"
+						class:active={activeTab === 'rationale'}
+						onclick={() => (activeTab = 'rationale')}
+					>
+						Rationale
+					</button>
+				{/if}
 				<button
 					class="tab"
 					class:active={activeTab === 'voters'}
@@ -190,24 +197,8 @@
 
 			{#if activeTab === 'description'}
 				<Markdown html={data.bodyHtml} />
-
-				{#if data.rationaleHtml}
-					<div class="rationale">
-						<button
-							type="button"
-							class="rationale-toggle"
-							aria-expanded={showRationale}
-							onclick={() => (showRationale = !showRationale)}
-						>
-							{showRationale ? '▾' : '▸'} Rationale
-						</button>
-						{#if showRationale}
-							<div class="rationale-body">
-								<Markdown html={data.rationaleHtml} />
-							</div>
-						{/if}
-					</div>
-				{/if}
+			{:else if activeTab === 'rationale'}
+				<Markdown html={data.rationaleHtml ?? ''} />
 			{:else if data.voters.length === 0}
 				<div class="empty">
 					<p>No votes yet — be the first to weigh in.</p>
@@ -412,29 +403,6 @@
 		font-size: 13px;
 		font-weight: 600;
 		color: var(--vc-ink);
-	}
-	.rationale {
-		margin-top: 24px;
-		padding-top: 16px;
-		border-top: 1px solid var(--vc-line);
-	}
-	.rationale-toggle {
-		font: inherit;
-		font-size: 14px;
-		font-weight: 600;
-		background: none;
-		border: none;
-		padding: 0;
-		color: var(--vc-ink-2);
-		cursor: pointer;
-	}
-	.rationale-toggle:hover {
-		color: var(--vc-ink);
-	}
-	.rationale-body {
-		margin-top: 10px;
-		font-size: 14px;
-		color: var(--vc-ink-2);
 	}
 	.proposal-detail-grid {
 		display: grid;
