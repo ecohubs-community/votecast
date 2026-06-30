@@ -2,14 +2,7 @@ vi.mock('$lib/server/db', () => ({ db: null }));
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { createHmac } from 'node:crypto';
-import {
-	createTestDb,
-	seedUser,
-	seedCommunity,
-	seedMember,
-	seedProposal,
-	type TestDb
-} from './test-helpers';
+import { createTestDb, seedUser, seedCommunity, seedProposal, type TestDb } from './test-helpers';
 import {
 	createExecutionHandler,
 	getExecutionHandlers,
@@ -17,7 +10,7 @@ import {
 	executeProposalHandlers
 } from './execution-service';
 import { deliverWebhook } from './webhook-delivery';
-import { ServiceError, ErrorCode } from './errors';
+import { ServiceError } from './errors';
 
 // ─── Webhook delivery tests ─────────────────────────────────────────────────
 

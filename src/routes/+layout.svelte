@@ -5,9 +5,9 @@
 	import type { LayoutData } from './$types';
 	import { resolve } from '$app/paths';
 	import logo from '$lib/assets/logo.svg';
-	import { onMount } from 'svelte';
+	import { onMount, type Snippet } from 'svelte';
 
-	let { data, children }: { data: LayoutData; children: any } = $props();
+	let { data, children }: { data: LayoutData; children: Snippet } = $props();
 	let mobileMenuOpen = $state(false);
 	let avatarMenuOpen = $state(false);
 	let scrolled = $state(false);

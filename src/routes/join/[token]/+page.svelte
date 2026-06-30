@@ -66,6 +66,7 @@
 			<div
 				style="margin-top: 20px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;"
 			>
+				<!-- eslint-disable svelte/no-navigation-without-resolve -- paths are resolve()'d; only a query string is appended -->
 				<a
 					href={`${resolve('/login')}?redirect=${encodeURIComponent(`/join/${data.token}`)}`}
 					class="btn btn-accent"
@@ -78,6 +79,7 @@
 				>
 					Create account
 				</a>
+				<!-- eslint-enable svelte/no-navigation-without-resolve -->
 			</div>
 		{/if}
 	</div>

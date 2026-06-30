@@ -182,6 +182,7 @@
 				<div class="field">
 					<span class="label">Choices <span class="label-optional">2–20</span></span>
 					<div style="display: flex; flex-direction: column; gap: 8px;">
+						<!-- eslint-disable-next-line @typescript-eslint/no-unused-vars -- index-only loop; the value is bound via choices[i] since each-block primitives aren't writable refs -->
 						{#each choices as _, i (i)}
 							<div style="display: flex; gap: 8px;">
 								<input

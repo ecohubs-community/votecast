@@ -5,6 +5,7 @@
 	import { formatRelativeTime } from '$lib/utils/format';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
+	import { SvelteMap } from 'svelte/reactivity';
 	import type { PageData, ActionData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -43,7 +44,7 @@
 	});
 
 	const resultsByChoice = $derived.by(() => {
-		const map = new Map<string, { votes: number; pct: number }>();
+		const map = new SvelteMap<string, { votes: number; pct: number }>();
 		for (const r of data.results.results) {
 			const pct =
 				data.results.totalVotes > 0 ? Math.round((r.votes / data.results.totalVotes) * 100) : 0;

@@ -111,12 +111,14 @@
 
 		<p style="margin-top: 28px; text-align: center; font-size: 14px; color: var(--vc-muted);">
 			Already have an account?
+			<!-- eslint-disable svelte/no-navigation-without-resolve -- path is resolve()'d; only a query string is appended -->
 			<a
 				href={`${resolve('/login')}${redirectTo !== '/' ? `?redirect=${encodeURIComponent(redirectTo)}` : ''}`}
 				style="color: var(--vc-accent-ink); border-bottom: 1px solid var(--vc-line-2); padding-bottom: 1px;"
 			>
 				Sign in
 			</a>
+			<!-- eslint-enable svelte/no-navigation-without-resolve -->
 		</p>
 	</div>
 </div>

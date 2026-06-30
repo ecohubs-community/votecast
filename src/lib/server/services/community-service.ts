@@ -1,15 +1,6 @@
 import { eq, and, desc, lt, or, sql } from 'drizzle-orm';
 import { db as defaultDb } from '$lib/server/db';
-import {
-	community,
-	communityMember,
-	proposal,
-	proposalChoice,
-	vote,
-	webhook,
-	invite,
-	executionHandler
-} from '$lib/server/db/schema';
+import { community, communityMember, proposal, vote, webhook, invite } from '$lib/server/db/schema';
 import { ServiceError, ErrorCode } from './errors';
 import { seedPresetTypesSync } from './proposal-type-service';
 import { emit } from '../events';

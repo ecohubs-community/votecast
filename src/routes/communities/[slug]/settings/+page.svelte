@@ -9,18 +9,12 @@
 
 	let activeTab = $state<'general' | 'members' | 'webhooks' | 'danger'>('general');
 
-	let communityVisibility = $state<'public' | 'community'>('public');
-	$effect(() => {
-		communityVisibility = data.community.visibility as 'public' | 'community';
-	});
+	let communityVisibility = $derived(data.community.visibility as 'public' | 'community');
 
 	let showDeleteConfirm = $state(false);
 	let confirmName = $state('');
 
-	let webhooks = $state<typeof data.webhooks>([]);
-	$effect(() => {
-		webhooks = data.webhooks;
-	});
+	let webhooks = $derived(data.webhooks);
 	let newWebhookUrl = $state('');
 	let newWebhookEvents = $state<string[]>([]);
 	let webhookError = $state('');
