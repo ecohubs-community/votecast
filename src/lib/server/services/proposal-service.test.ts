@@ -49,7 +49,6 @@ describe('createProposal', () => {
 
 		expect(result.title).toBe('Install Solar Panels');
 		expect(result.status).toBe('draft');
-		expect(result.strategyId).toBe('onePersonOneVote');
 	});
 
 	it('rejects proposals with fewer than 2 choices', async () => {

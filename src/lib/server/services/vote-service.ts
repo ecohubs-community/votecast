@@ -93,15 +93,13 @@ export async function castVote(userId: string, input: CastVoteInput, db: Databas
 	// Voting power from the weight axis (1 for one-person-one-vote).
 	const votingPower = resolveVotingPower(snapshot.weight, {});
 
-	// Atomic: write the vote envelope + its selection. choiceId is dual-written on the envelope until
-	// the legacy column is dropped (task 4.6); the tally reads vote_selection.
+	// Atomic: write the vote envelope + its selection (the choice lives on vote_selection).
 	const created = db.transaction((tx) => {
 		const v = tx
 			.insert(vote)
 			.values({
 				proposalId: input.proposalId,
 				userId,
-				choiceId: input.choiceId,
 				votingPower,
 				signature: input.signature ?? null
 			})
@@ -124,13 +122,24 @@ export async function castVote(userId: string, input: CastVoteInput, db: Databas
 }
 
 /**
- * Get a user's vote on a specific proposal, if any.
- * Returns the vote record (including choiceId) or null.
+ * Get a user's vote on a specific proposal, if any. Returns the vote envelope plus the chosen
+ * `choiceId` from its selection (single-choice display), or null.
  */
 export async function getUserVote(userId: string, proposalId: string, db: Database = defaultDb) {
 	const [found] = await db
-		.select()
+		.select({
+			id: vote.id,
+			proposalId: vote.proposalId,
+			userId: vote.userId,
+			votingPower: vote.votingPower,
+			createdAt: vote.createdAt,
+			choiceId: voteSelection.choiceId
+		})
 		.from(vote)
+		.leftJoin(
+			voteSelection,
+			and(eq(voteSelection.proposalId, vote.proposalId), eq(voteSelection.userId, vote.userId))
+		)
 		.where(and(eq(vote.proposalId, proposalId), eq(vote.userId, userId)))
 		.limit(1);
 
@@ -180,22 +189,26 @@ export async function getProposalVoters(
 	const rows = await db
 		.select({
 			voteId: vote.id,
-			userId: vote.userId,
+			userId: voteSelection.userId,
 			displayName: user.displayName,
 			name: user.name,
-			choiceId: vote.choiceId,
+			choiceId: voteSelection.choiceId,
 			choiceLabel: proposalChoice.label,
 			votedAt: vote.createdAt
 		})
-		.from(vote)
-		.innerJoin(user, eq(user.id, vote.userId))
-		.innerJoin(proposalChoice, eq(proposalChoice.id, vote.choiceId))
-		.where(eq(vote.proposalId, proposalId))
+		.from(voteSelection)
+		.innerJoin(
+			vote,
+			and(eq(vote.proposalId, voteSelection.proposalId), eq(vote.userId, voteSelection.userId))
+		)
+		.innerJoin(user, eq(user.id, voteSelection.userId))
+		.innerJoin(proposalChoice, eq(proposalChoice.id, voteSelection.choiceId))
+		.where(eq(voteSelection.proposalId, proposalId))
 		.orderBy(desc(vote.createdAt));
 
 	return rows.map((r) => ({
 		...r,
-		choiceId: r.choiceId as string, // innerJoin on proposalChoice guarantees non-null (legacy path)
+		choiceId: r.choiceId as string, // innerJoin on proposalChoice guarantees non-null (choice ballots)
 		votedAt: r.votedAt ?? new Date()
 	}));
 }

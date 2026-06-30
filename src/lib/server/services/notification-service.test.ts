@@ -44,10 +44,7 @@ describe('notification sink', () => {
 	});
 
 	it('markNotificationRead only succeeds for the owning user', async () => {
-		await createNotification(
-			{ communityId, userId: adminId, event: 'x', title: 'mine' },
-			db
-		);
+		await createNotification({ communityId, userId: adminId, event: 'x', title: 'mine' }, db);
 		const [n] = await listNotifications(adminId, db);
 		const stranger = await seedUser(db);
 		expect(await markNotificationRead(n.id, stranger.id, db)).toBe(false);

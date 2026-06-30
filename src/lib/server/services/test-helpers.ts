@@ -138,7 +138,6 @@ export async function seedProposal(
 			title: proposalOverrides.title ?? 'Test Proposal',
 			body: proposalOverrides.body ?? 'Test body',
 			createdBy,
-			strategyId: proposalOverrides.strategyId ?? 'onePersonOneVote',
 			visibility: proposalOverrides.visibility ?? 'community',
 			status: proposalOverrides.status ?? 'draft',
 			startTime: proposalOverrides.startTime ?? new Date(Date.now() + 60_000),

@@ -35,7 +35,7 @@
 - [~] 4.3 Phase + outcome **columns** added to `proposals` (legacy `status` kept for transition). The status→phase/outcome **data back-fill** stages with group 6 (needs phase logic) — pending
 - [x] 4.4 Preset types (`voting/presets.ts`: Quick poll / Operational / Constitutional) seeded on community creation via `seedPresetTypesSync` (wired into `createCommunity`); `resolveMethodSnapshot` reads override → version → legacy
 - [x] 4.5 `backfillVotingMethods` built, tested, and **executed on `local.db`** (3 communities seeded, 4 proposals pinned to Quick poll v1, status→phase/outcome mapped, 0 skipped; DB backed up first)
-- [~] 4.6 Migration `0002` **APPLIED to local.db** (baselined drizzle's migration journal first — DB was built via `push`, so `0000`/`0001` weren't recorded; data preserved: 5 votes / 4 proposals intact). Still TODO in 4.6: remove legacy `proposal.strategyId`/`status` and `vote.choice_id`/`metadata_json` AFTER dispatch (group 5) + back-fill verify
+- [~] 4.6 Dropped legacy `proposal.strategy_id`, `vote.choice_id`, `vote.metadata_json` (migration `0004`, applied to local.db; data intact). Reads moved off `choice_id`: `aggregateResults`/`getProposalVoters`/`getUserVote` now use `vote_selection`; `castVote` writes only the selection; one-time `backfillVoteSelections` removed. **`proposal.status` deferred**: still drives the StatusBadge/ProposalCard/detail/community-filter UI + ~all proposal tests — drops trivially once the authoring change's phase-aware badge (its task 5.2) moves the UI to `phase`
 
 ## 5. Method Module registry & first modules
 

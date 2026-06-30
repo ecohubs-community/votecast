@@ -1,4 +1,4 @@
-import { eq, sql, asc, count } from 'drizzle-orm';
+import { eq, and, sql, asc, count } from 'drizzle-orm';
 import { db as defaultDb } from '$lib/server/db';
 import {
 	communityMember,
@@ -33,8 +33,8 @@ export interface ProposalResults {
  * Aggregate vote results for a proposal (no access checks). Leaf module — used by both the
  * access-checked `getProposalResults()` and event emission in `transitionProposalStatus()`.
  *
- * NOTE (legacy path): still tallies by `vote.choiceId`. The vote-path switch replaces this with the
- * voting-library `tallyBallots` over `vote_selection`.
+ * Tallies per choice over `vote_selection` (joined to `vote` for voting power) — the flat
+ * choice-count view used by the existing results UI. The rich engine path is `tallyProposal`.
  */
 export async function aggregateResults(
 	proposalId: string,
@@ -45,11 +45,15 @@ export async function aggregateResults(
 			choiceId: proposalChoice.id,
 			label: proposalChoice.label,
 			position: proposalChoice.position,
-			votes: sql<number>`count(${vote.id})`,
+			votes: sql<number>`count(${voteSelection.id})`,
 			votingPower: sql<number>`coalesce(sum(${vote.votingPower}), 0)`
 		})
 		.from(proposalChoice)
-		.leftJoin(vote, eq(proposalChoice.id, vote.choiceId))
+		.leftJoin(voteSelection, eq(proposalChoice.id, voteSelection.choiceId))
+		.leftJoin(
+			vote,
+			and(eq(vote.proposalId, voteSelection.proposalId), eq(vote.userId, voteSelection.userId))
+		)
 		.where(eq(proposalChoice.proposalId, proposalId))
 		.groupBy(proposalChoice.id)
 		.orderBy(asc(proposalChoice.position));

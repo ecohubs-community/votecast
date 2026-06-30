@@ -168,9 +168,8 @@ export const proposal = sqliteTable(
 		createdBy: text('created_by')
 			.notNull()
 			.references(() => user.id),
-		// LEGACY (D12 transition): kept until task 4.6 drops it once method dispatch is migrated.
-		strategyId: text('strategy_id').notNull().default('onePersonOneVote'),
-		// LEGACY (D12 transition): superseded by `phase`+`outcome`; dropped in 4.6 after back-fill.
+		// LEGACY: superseded by `phase`+`outcome`; dropped once the UI moves to phase (rides with the
+		// authoring change's phase-aware status badge).
 		status: text('status', { enum: ['draft', 'active', 'closed'] })
 			.notNull()
 			.default('draft'),
@@ -278,13 +277,9 @@ export const vote = sqliteTable(
 		userId: text('user_id')
 			.notNull()
 			.references(() => user.id),
-		// LEGACY (D11/D12 transition): single-choice link, kept until task 4.6 migrates the vote path
-		// to `vote_selection`. Stays here so existing vote-service code keeps compiling/working.
-		choiceId: text('choice_id').references(() => proposalChoice.id),
 		votingPower: integer('voting_power').notNull().default(1),
 		// Secret ballot: identity is stored for eligibility/mutability but never exposed (visibility axis).
 		secret: integer('secret', { mode: 'boolean' }).notNull().default(false),
-		metadataJson: text('metadata_json'), // LEGACY — strategy-specific metadata; superseded by vote_selection
 		signature: text('signature'), // nullable — wallet signature for vote verification (future)
 		createdAt: integer('created_at', { mode: 'timestamp_ms' }).default(timestampDefault).notNull(),
 		updatedAt: integer('updated_at', { mode: 'timestamp_ms' })

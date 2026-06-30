@@ -45,7 +45,6 @@ export interface CreateProposalInput {
 	startTime: Date | string;
 	endTime: Date | string;
 	visibility?: 'public' | 'community';
-	strategyId?: string; // legacy; retained for back-compat until the column is dropped (task 4.6)
 	typeVersionId?: string; // pin the proposal to a community type version (the proposer's type pick)
 	method?: MethodBinding; // ad-hoc per-proposal override (ballot + rule + config); supersedes the type
 }
@@ -103,8 +102,6 @@ export async function createProposal(
 			`Invalid voting method: ${bindingCheck.errors.join(' ')}`
 		);
 	}
-	const strategyId = input.strategyId ?? 'onePersonOneVote'; // legacy column, kept until task 4.6
-
 	// Pin the chosen type version (the proposer's type pick), validating it belongs to the community.
 	let typeVersionId: string | null = null;
 	if (input.typeVersionId) {
@@ -127,7 +124,6 @@ export async function createProposal(
 				title,
 				body,
 				createdBy: userId,
-				strategyId,
 				typeVersionId,
 				methodOverrideJson: input.method ? JSON.stringify(input.method) : null,
 				visibility: input.visibility ?? 'community',

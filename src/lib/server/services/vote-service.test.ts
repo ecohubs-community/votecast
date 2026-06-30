@@ -9,7 +9,7 @@ import {
 	seedProposal,
 	type TestDb
 } from './test-helpers';
-import { castVote } from './vote-service';
+import { castVote, getUserVote } from './vote-service';
 import { getProposalResults } from './proposal-service';
 import { ServiceError, ErrorCode } from './errors';
 
@@ -38,8 +38,10 @@ describe('castVote', () => {
 
 		expect(result.proposalId).toBe(prop.id);
 		expect(result.userId).toBe(voter.id);
-		expect(result.choiceId).toBe(choices[0].id);
 		expect(result.votingPower).toBe(1);
+		// The chosen option is recorded on the selection, retrievable via getUserVote.
+		const mine = await getUserVote(voter.id, prop.id, db);
+		expect(mine?.choiceId).toBe(choices[0].id);
 	});
 
 	it('rejects voting on draft proposal', async () => {
