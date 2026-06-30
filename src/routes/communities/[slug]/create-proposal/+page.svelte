@@ -60,13 +60,17 @@
 		(form?.visibility as 'public' | 'community') ?? selectedType?.defaultVisibility ?? 'public'
 	);
 
-	// Timeline. Start defaults to now; end = start + the type's voting window (default 3 days).
+	// Timeline. Start defaults to now; end = start + the type's voting window (default 3 days);
+	// deliberation opens that many seconds before voting (when the type defines one).
 	let startTime = $derived(form?.startTime ?? nowIso);
 	let endTime = $derived.by(() => {
 		if (form?.endTime) return form.endTime;
 		const secs = selectedType?.votingSeconds ?? DEFAULT_VOTING_SECONDS;
 		return toLocalInput(new Date(new Date(startTime).getTime() + secs * 1000));
 	});
+	const deliberationStart = $derived(
+		toLocalInput(new Date(new Date(startTime).getTime() - deliberationSeconds * 1000))
+	);
 
 	let editStart = $state(false);
 	let editEnd = $state(false);
@@ -121,6 +125,27 @@
 				</div>
 
 				<div class="field">
+					{#if showRationale}
+						<div class="rationale-head">
+							<span class="label">Rationale <span class="label-optional">optional</span></span>
+							<button type="button" class="link-muted" onclick={() => (showRationale = false)}>
+								Remove
+							</button>
+						</div>
+						<MarkdownEditor
+							name="rationale"
+							value={form?.rationale ?? ''}
+							rows={6}
+							placeholder="The reasoning behind this proposal — context, trade-offs, why now. Kept separate from the text that's voted on."
+						/>
+					{:else}
+						<button type="button" class="add-rationale" onclick={() => (showRationale = true)}>
+							+ Add rationale
+						</button>
+					{/if}
+				</div>
+
+				<div class="field">
 					<span class="label">Proposal</span>
 					<MarkdownEditor
 						name="body"
@@ -129,26 +154,6 @@
 						required
 						placeholder="What's being voted on, what each option means, anything members should know before deciding…"
 					/>
-				</div>
-
-				<div class="field">
-					{#if showRationale}
-						<span class="label">Rationale <span class="label-optional">optional</span></span>
-						<MarkdownEditor
-							name="rationale"
-							value={form?.rationale ?? ''}
-							rows={8}
-							placeholder="The reasoning behind this proposal — context, trade-offs, why now. Kept separate from the text that's voted on."
-						/>
-					{:else}
-						<button
-							type="button"
-							class="btn btn-ghost btn-sm"
-							onclick={() => (showRationale = true)}
-						>
-							+ Add rationale <span class="label-optional">optional</span>
-						</button>
-					{/if}
 				</div>
 			</div>
 
@@ -186,10 +191,34 @@
 						<div class="toggle-group">
 							<label class="toggle-opt" class:selected={visibility === 'public'}>
 								<input type="radio" name="visibility" value="public" bind:group={visibility} />
+								<svg
+									width="14"
+									height="14"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="1.8"
+									aria-hidden="true"
+								>
+									<circle cx="12" cy="12" r="9" />
+									<path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" />
+								</svg>
 								Public
 							</label>
 							<label class="toggle-opt" class:selected={visibility === 'community'}>
 								<input type="radio" name="visibility" value="community" bind:group={visibility} />
+								<svg
+									width="14"
+									height="14"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="1.8"
+									aria-hidden="true"
+								>
+									<rect x="4" y="11" width="16" height="10" rx="2" />
+									<path d="M8 11V7a4 4 0 0 1 8 0v4" />
+								</svg>
 								Members
 							</label>
 						</div>
@@ -206,55 +235,70 @@
 					<ol class="timeline">
 						<li class="tl-row">
 							<span class="tl-when">Created</span>
-							<span class="tl-val">now</span>
+							<span class="tl-line"><span class="tl-val">{fmtDateTime(nowIso)}</span></span>
 						</li>
 						{#if deliberationSeconds > 0}
 							<li class="tl-row">
-								<span class="tl-when">Deliberation</span>
-								<span class="tl-val">{fmtDuration(deliberationSeconds)} before voting opens</span>
+								<span class="tl-when">Deliberation opens</span>
+								<span class="tl-line">
+									<span class="tl-val">{fmtDateTime(deliberationStart)}</span>
+									<span class="tl-note">{fmtDuration(deliberationSeconds)} before voting</span>
+								</span>
 							</li>
 						{/if}
 						<li class="tl-row">
 							<span class="tl-when">Voting opens</span>
-							{#if editStart && !lockVoting}
-								<input
-									type="datetime-local"
-									name="startTime"
-									bind:value={startTime}
-									class="input tl-input"
-								/>
-							{:else}
-								<span class="tl-val">{fmtDateTime(startTime)}</span>
-								{#if lockVoting}
-									<span class="locked-tag">set by method</span>
+							<span class="tl-line">
+								{#if editStart && !lockVoting}
+									<input
+										type="datetime-local"
+										name="startTime"
+										bind:value={startTime}
+										min={nowIso}
+										class="input tl-input"
+									/>
+									<button type="button" class="tl-edit" onclick={() => (editStart = false)}>
+										Done
+									</button>
 								{:else}
-									<button type="button" class="tl-edit" onclick={() => (editStart = true)}
-										>Edit</button
-									>
+									<span class="tl-val">{fmtDateTime(startTime)}</span>
+									{#if lockVoting}
+										<span class="locked-tag">set by method</span>
+									{:else}
+										<button type="button" class="tl-edit" onclick={() => (editStart = true)}>
+											Edit
+										</button>
+									{/if}
+									<input type="hidden" name="startTime" value={startTime} />
 								{/if}
-								<input type="hidden" name="startTime" value={startTime} />
-							{/if}
+							</span>
 						</li>
 						<li class="tl-row">
 							<span class="tl-when">Voting closes</span>
-							{#if editEnd && !lockVoting}
-								<input
-									type="datetime-local"
-									name="endTime"
-									bind:value={endTime}
-									class="input tl-input"
-								/>
-							{:else}
-								<span class="tl-val">{fmtDateTime(endTime)}</span>
-								{#if lockVoting}
-									<span class="locked-tag">set by method</span>
+							<span class="tl-line">
+								{#if editEnd && !lockVoting}
+									<input
+										type="datetime-local"
+										name="endTime"
+										bind:value={endTime}
+										min={startTime}
+										class="input tl-input"
+									/>
+									<button type="button" class="tl-edit" onclick={() => (editEnd = false)}>
+										Done
+									</button>
 								{:else}
-									<button type="button" class="tl-edit" onclick={() => (editEnd = true)}
-										>Edit</button
-									>
+									<span class="tl-val">{fmtDateTime(endTime)}</span>
+									{#if lockVoting}
+										<span class="locked-tag">set by method</span>
+									{:else}
+										<button type="button" class="tl-edit" onclick={() => (editEnd = true)}>
+											Edit
+										</button>
+									{/if}
+									<input type="hidden" name="endTime" value={endTime} />
 								{/if}
-								<input type="hidden" name="endTime" value={endTime} />
-							{/if}
+							</span>
 						</li>
 					</ol>
 				</div>
@@ -337,28 +381,87 @@
 			grid-template-columns: 1.4fr 1fr !important;
 		}
 	}
+
+	/* Rationale — low-weight affordances */
+	.rationale-head {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 12px;
+	}
+	.add-rationale,
+	.link-muted {
+		font: inherit;
+		font-size: 13px;
+		background: none;
+		border: none;
+		padding: 0;
+		color: var(--vc-muted);
+		cursor: pointer;
+	}
+	.add-rationale:hover,
+	.link-muted:hover {
+		color: var(--vc-ink);
+	}
+
+	/* Vertical timeline with dots + connecting lines */
 	.timeline {
 		list-style: none;
 		margin: 0;
 		padding: 0;
-		display: flex;
-		flex-direction: column;
-		gap: 8px;
 	}
 	.tl-row {
-		display: flex;
-		align-items: center;
-		gap: 10px;
-		flex-wrap: wrap;
+		position: relative;
+		padding: 0 0 16px 22px;
+	}
+	.tl-row:last-child {
+		padding-bottom: 0;
+	}
+	.tl-row::before {
+		content: '';
+		position: absolute;
+		left: 2px;
+		top: 3px;
+		width: 10px;
+		height: 10px;
+		border-radius: 50%;
+		background: var(--vc-surface);
+		border: 2px solid var(--vc-accent);
+		box-sizing: border-box;
+	}
+	.tl-row::after {
+		content: '';
+		position: absolute;
+		left: 6px;
+		top: 14px;
+		bottom: -2px;
+		width: 2px;
+		background: var(--vc-line);
+	}
+	.tl-row:last-child::after {
+		display: none;
 	}
 	.tl-when {
-		min-width: 110px;
-		font-size: 13px;
+		display: block;
+		font-size: 12px;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
 		color: var(--vc-muted);
+		margin-bottom: 3px;
+	}
+	.tl-line {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		flex-wrap: wrap;
 	}
 	.tl-val {
 		font-size: 14px;
 		color: var(--vc-ink);
+	}
+	.tl-note {
+		font-size: 12px;
+		color: var(--vc-muted);
 	}
 	.tl-input {
 		max-width: 230px;
