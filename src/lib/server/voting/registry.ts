@@ -25,6 +25,15 @@ export function getDecisionRule(id: string): DecisionRule | undefined {
 	return decisionRules.get(id);
 }
 
+/** List registered ballot modules (id + tally family) — for the Extensions surface (task 7.5). */
+export function listBallotModules(): Array<{ id: string; tallyFamily: string }> {
+	return [...ballotModules.values()].map((m) => ({ id: m.id, tallyFamily: m.tallyFamily }));
+}
+/** List registered decision rules (id + accepted tally family) — for the Extensions surface. */
+export function listDecisionRules(): Array<{ id: string; accepts: string }> {
+	return [...decisionRules.values()].map((r) => ({ id: r.id, accepts: r.accepts }));
+}
+
 // Built-in registrations.
 for (const module of [singleChoiceModule, consentModule, multiQuestionModule]) {
 	registerBallotModule(module as BallotModule);

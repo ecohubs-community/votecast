@@ -245,6 +245,7 @@
 		</div>
 		<div class="footer-links">
 			<a href={resolve('/')}>Communities</a>
+			<a href={resolve('/extensions')}>Extensions</a>
 			<a href={resolve('/')}>About</a>
 		</div>
 		<div class="footer-meta">© {new Date().getFullYear()} · made for real communities</div>

@@ -68,3 +68,16 @@ export function clearPlugins(): void {
 export function getRegisteredPlugins(): readonly string[] {
 	return registeredPlugins.map((p) => p.name);
 }
+
+/**
+ * Describe registered plugins with the event names each one subscribes to — for the read-only
+ * Extensions surface (task 7.5).
+ */
+export function describeRegisteredPlugins(): Array<{ name: string; events: string[] }> {
+	return registeredPlugins.map((p) => ({
+		name: p.name,
+		events: Object.entries(p.handlers)
+			.filter(([, handler]) => handler)
+			.map(([eventName]) => eventName)
+	}));
+}
