@@ -18,6 +18,7 @@
 		showResults,
 		entries,
 		canAddQuestion,
+		questionNote,
 		form
 	}: {
 		questions: Question[];
@@ -27,6 +28,7 @@
 		showResults: boolean;
 		entries: Entry[] | null;
 		canAddQuestion: boolean;
+		questionNote: string | null;
 		form: { questionError?: string; questionAdded?: boolean } | null;
 	} = $props();
 
@@ -117,6 +119,8 @@
 				<button type="submit" class="btn btn-ghost btn-sm">Add</button>
 			</div>
 		</form>
+	{:else if questionNote}
+		<p class="mq-note">{questionNote}</p>
 	{/if}
 </div>
 
@@ -169,5 +173,12 @@
 		margin-top: 20px;
 		padding-top: 16px;
 		border-top: 1px solid var(--vc-line);
+	}
+	.mq-note {
+		margin: 20px 0 0;
+		padding-top: 16px;
+		border-top: 1px solid var(--vc-line);
+		font-size: 13px;
+		color: var(--vc-muted);
 	}
 </style>

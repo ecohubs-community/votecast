@@ -260,6 +260,7 @@
 						{showResults}
 						entries={data.outcome?.revealed ? (data.outcome.result?.entries ?? null) : null}
 						canAddQuestion={data.canAddQuestion}
+						questionNote={data.questionNote}
 						{form}
 					/>
 				{:else if votingState === 'can-vote'}

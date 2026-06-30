@@ -41,6 +41,8 @@
 	// New-type form: the chosen method decides whether choices or question-contribution config applies.
 	let methodOption = $state(untrack(() => methodOptions[0]?.id ?? ''));
 	const isMultiQuestion = $derived(methodOption.startsWith('multi-question'));
+	// "Who may add questions" only matters once we allow additions during deliberation.
+	let questionPhase = $state<'creation' | 'deliberation'>('creation');
 </script>
 
 <div class="vote-card-head">
@@ -215,20 +217,32 @@
 
 		{#if isMultiQuestion}
 			<div class="field">
-				<span class="label">Who may add questions</span>
-				<div class="grid-2">
-					<select name="questionContributors" class="input">
+				<label for="type-qphase" class="label">Questions can be added</label>
+				<select
+					id="type-qphase"
+					name="questionContributionPhase"
+					bind:value={questionPhase}
+					class="input"
+				>
+					<option value="creation">Only at creation (the proposer sets them)</option>
+					<option value="deliberation">During the deliberation phase</option>
+				</select>
+
+				{#if questionPhase === 'deliberation'}
+					<label for="type-qwho" class="label" style="margin-top: 12px;">Who may add them</label>
+					<select id="type-qwho" name="questionContributors" class="input">
 						<option value="proposer">Proposer only</option>
 						<option value="members">Any member</option>
 					</select>
-					<select name="questionContributionPhase" class="input">
-						<option value="creation">At creation</option>
-						<option value="deliberation">During deliberation</option>
-					</select>
-				</div>
+				{/if}
+
 				<label class="check-inline">
 					<input type="checkbox" name="lockQuestionContribution" /> Lock — proposers can't change
 				</label>
+				<p class="hint">
+					“Only at creation” fixes the questions in the new-proposal form. “During the deliberation
+					phase” also lets people propose more on the proposal page, until voting opens.
+				</p>
 			</div>
 		{:else}
 			<div class="field">

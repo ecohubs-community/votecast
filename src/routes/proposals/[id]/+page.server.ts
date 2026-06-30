@@ -19,7 +19,7 @@ import {
 	getUserMultiQuestionAnswers,
 	MQ_POSITION_LABELS
 } from '$lib/server/services/multi-question';
-import { addSubquestion, canAddSubquestion } from '$lib/server/services/subquestion-service';
+import { addSubquestion, contributionStatus } from '$lib/server/services/subquestion-service';
 import { renderMarkdown } from '$lib/server/markdown';
 import { ServiceError } from '$lib/server/services/errors';
 
@@ -47,7 +47,9 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 		const questions = isMultiQuestion ? await loadQuestions(params.id) : [];
 		const userAnswers =
 			isMultiQuestion && userId ? await getUserMultiQuestionAnswers(userId, params.id) : {};
-		const canAddQuestion = isMultiQuestion ? await canAddSubquestion(userId, params.id) : false;
+		const contribution = isMultiQuestion
+			? await contributionStatus(userId, params.id)
+			: { canAdd: false, note: null };
 
 		return {
 			proposal,
@@ -64,7 +66,8 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 			isMultiQuestion,
 			questions,
 			userAnswers,
-			canAddQuestion,
+			canAddQuestion: contribution.canAdd,
+			questionNote: contribution.note,
 			positionLabels: MQ_POSITION_LABELS
 		};
 	} catch (e) {

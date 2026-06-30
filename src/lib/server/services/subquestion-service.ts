@@ -40,7 +40,7 @@ async function evaluateContribution(
 		return {
 			ok: false,
 			code: 'invalid',
-			reason: 'This type only accepts questions when the proposal is created'
+			reason: 'Questions are fixed once the proposal is created.'
 		};
 	}
 	if (phase !== 'deliberation') {
@@ -114,4 +114,28 @@ export async function canAddSubquestion(
 	const membership = await getMember(p.communityId, userId, db);
 	if (!membership) return false;
 	return (await evaluateContribution(p, userId, db)).ok;
+}
+
+/**
+ * For the detail page: whether the viewer can add a question, and — when they can't — a friendly note
+ * explaining why (so a multi-question proposal never silently lacks the control). Returns a null note
+ * for non-members / non-multi-question proposals (nothing to explain).
+ */
+export async function contributionStatus(
+	userId: string | undefined,
+	proposalId: string,
+	db: Database = defaultDb
+): Promise<{ canAdd: boolean; note: string | null }> {
+	if (!userId) return { canAdd: false, note: null };
+	const [p] = await db.select().from(proposal).where(eq(proposal.id, proposalId)).limit(1);
+	if (!p) return { canAdd: false, note: null };
+
+	const { snapshot } = await resolveMethodContext(p, db);
+	if (snapshot.ballotModuleId !== 'multi-question') return { canAdd: false, note: null };
+
+	const membership = await getMember(p.communityId, userId, db);
+	if (!membership) return { canAdd: false, note: null };
+
+	const check = await evaluateContribution(p, userId, db);
+	return { canAdd: check.ok, note: check.ok ? null : check.reason };
 }
