@@ -72,6 +72,14 @@
 		toLocalInput(new Date(new Date(startTime).getTime() - deliberationSeconds * 1000))
 	);
 
+	// `min` on a datetime-local only flags invalidity on submit (and the time, not just the date, can
+	// still be set past it), so validate the window explicitly and block submit with a clear message.
+	const timelineError = $derived(
+		new Date(endTime).getTime() <= new Date(startTime).getTime()
+			? 'Voting needs to close after it opens.'
+			: null
+	);
+
 	let editStart = $state(false);
 	let editEnd = $state(false);
 	let showRationale = $state(untrack(() => Boolean(form?.rationale)));
@@ -301,6 +309,9 @@
 							</span>
 						</li>
 					</ol>
+					{#if timelineError}
+						<p class="field-error">{timelineError}</p>
+					{/if}
 				</div>
 
 				<div class="field">
@@ -367,7 +378,9 @@
 		</div>
 
 		<div class="form-actions">
-			<button type="submit" class="btn btn-accent btn-lg">Open proposal</button>
+			<button type="submit" class="btn btn-accent btn-lg" disabled={!!timelineError}>
+				Open proposal
+			</button>
 			<a href={resolve(`/communities/${data.community.slug}`)} class="btn btn-ghost btn-lg"
 				>Cancel</a
 			>
@@ -462,6 +475,11 @@
 	.tl-note {
 		font-size: 12px;
 		color: var(--vc-muted);
+	}
+	.field-error {
+		margin: 10px 0 0;
+		font-size: 13px;
+		color: var(--vc-danger, #c0392b);
 	}
 	.tl-input {
 		max-width: 230px;
