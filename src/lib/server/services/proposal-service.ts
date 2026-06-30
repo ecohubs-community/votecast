@@ -390,7 +390,10 @@ function canRevealTally(
 	phase: string,
 	viewerRole: CommunityRole
 ): boolean {
-	if (canSeeHiddenTally(viewerRole)) return true; // a facilitator always sees it
+	// No outcome exists until voting has started — never reveal one during draft/deliberation,
+	// even to a facilitator (otherwise a not-yet-started consensus proposal shows "Passed").
+	if (phase === 'draft' || phase === 'deliberation') return false;
+	if (canSeeHiddenTally(viewerRole)) return true; // a facilitator always sees it once voting is live
 	if (reveal === 'hidden-forever') return false;
 	if (reveal === 'live') return true;
 	return phase === 'objection-window' || phase === 'finalized'; // on-close: only once voting has closed

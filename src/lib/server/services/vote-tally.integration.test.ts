@@ -74,6 +74,20 @@ describe('vote/results flip: castVote → vote_selection → tallyProposal', () 
 		expect(rs.outcome).toBe('tie'); // 1 vs 1
 	});
 
+	it('does not reveal an outcome before voting starts (draft), even to an admin', async () => {
+		// A consensus proposal with no objections would tally "passed"; it must stay hidden while draft.
+		const map = seedPresetTypesSync(db, communityId, adminId); // Constitutional = consent/consensus
+		const { proposal: p } = await seedProposal(db, communityId, adminId, {
+			status: 'draft',
+			startTime: new Date(Date.now() + 4 * 3_600_000), // opens in 4h
+			endTime: new Date(Date.now() + 7 * 86_400_000),
+			typeVersionId: map['Constitutional'],
+			choices: ['Yes', 'No']
+		});
+		expect((await getProposalOutcome(p.id, adminId, db, 'admin')).revealed).toBe(false);
+		expect((await getProposalOutcome(p.id, adminId, db, 'member')).revealed).toBe(false);
+	});
+
 	it('getProposalOutcome reveals a live tally with the resolved outcome', async () => {
 		const { proposal: p, choices } = await openProposal(); // legacy method = live reveal
 		await castVote(adminId, { proposalId: p.id, choiceId: choices[0].id }, db);
