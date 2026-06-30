@@ -1,6 +1,8 @@
 <script lang="ts">
 	// Read-only process-flow diagram for a configured method (task 7.2). Renders the phases a proposal
 	// passes through, derived from the method's timing — not an editor.
+	import { ballotLabel, ruleLabel, tallyRevealLabel } from '$lib/utils/method-labels';
+
 	interface Props {
 		ballotModuleId: string;
 		decisionRuleId: string;
@@ -41,29 +43,6 @@
 	}
 	const dated = $derived(startTime != null && endTime != null);
 
-	const ballotLabel = $derived(
-		(
-			{
-				'single-choice': 'Single choice',
-				consent: 'Consent',
-				'multi-question': 'Common Ground'
-			} as Record<string, string>
-		)[ballotModuleId] ?? ballotModuleId
-	);
-	const ruleLabel = $derived(
-		(
-			{
-				'simple-majority': 'simple majority',
-				'absolute-majority': 'absolute majority',
-				'super-majority': 'two-thirds majority',
-				consensus: 'consensus',
-				'consensus-minus-1': 'consensus −1',
-				consent: 'consent',
-				'multi-question': 'per-question'
-			} as Record<string, string>
-		)[decisionRuleId] ?? decisionRuleId
-	);
-
 	const steps = $derived.by(() => {
 		// In dated mode each box shows only its START (= the previous box's end); the final box is the
 		// conclusion time. In abstract mode the sub is the duration/method label.
@@ -78,7 +57,11 @@
 				sub: dated ? fmt(start - deliberationSeconds * 1000) : days(deliberationSeconds)
 			});
 		}
-		out.push({ label: 'Voting', phase: 'voting', sub: dated ? fmt(start) : ballotLabel });
+		out.push({
+			label: 'Voting',
+			phase: 'voting',
+			sub: dated ? fmt(start) : ballotLabel(ballotModuleId)
+		});
 		if (objectionWindowSeconds > 0) {
 			out.push({
 				label: 'Objection window',
@@ -89,20 +72,12 @@
 		out.push({
 			label: 'Result',
 			phase: 'finalized',
-			sub: dated ? fmt(end + objectionWindowSeconds * 1000) : ruleLabel
+			sub: dated ? fmt(end + objectionWindowSeconds * 1000) : ruleLabel(decisionRuleId)
 		});
 		return out;
 	});
 
-	const revealLabel = $derived(
-		(
-			{
-				live: 'Results visible live',
-				'on-close': 'Results after voting closes',
-				'hidden-forever': 'Results hidden (facilitators only)'
-			} as Record<string, string>
-		)[tallyReveal]
-	);
+	const revealLabel = $derived(tallyRevealLabel(tallyReveal));
 </script>
 
 <div class="method-flow" aria-label="Method process flow">

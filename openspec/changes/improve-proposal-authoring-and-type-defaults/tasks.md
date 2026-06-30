@@ -29,10 +29,10 @@
 
 ## 5. Proposal detail UX
 
-- [ ] 5.1 Render body + rationale (reveal-on-click) via `Markdown`
+- [x] 5.1 Body + optional rationale rendered as sanitized markdown via `Markdown`. Load renders both server-side (`renderMarkdown` → `bodyHtml`/`rationaleHtml`); rationale is a reveal-on-click disclosure under the body
 - [x] 5.2 Phase-aware `StatusBadge` (phase → Draft/Deliberation/Voting open/Objection window/Closed) via `$lib/utils/phase`; migrated ProposalCard + community page + proposal-detail display/voting/results derives off `status` onto `phase`. (Remaining `status` readers before the column can drop: listProposals filter + lifecycle writes + update/execution draft-guards.)
-- [ ] 5.3 Show the proposal's method/type summary (D9)
-- [ ] 5.4 svelte-autofixer clean
+- [x] 5.3 Method summary shown above the dated flow diagram (`{ballotLabel} · {ruleLabel}`); label maps extracted to shared `$lib/utils/method-labels` and reused by `MethodFlow` so wording never drifts
+- [x] 5.4 svelte-autofixer clean (MethodFlow + proposal detail); check + lint clean; 202 tests green
 
 ## 5b. Common Ground questions (ballot-family-aware)
 

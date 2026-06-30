@@ -2,13 +2,17 @@
 	import { enhance } from '$app/forms';
 	import StatusBadge from '$lib/components/StatusBadge.svelte';
 	import MethodFlow from '$lib/components/MethodFlow.svelte';
+	import Markdown from '$lib/components/Markdown.svelte';
 	import { formatRelativeTime } from '$lib/utils/format';
+	import { ballotLabel, ruleLabel } from '$lib/utils/method-labels';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { SvelteMap } from 'svelte/reactivity';
 	import type { PageData, ActionData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
+
+	let showRationale = $state(false);
 
 	const pageTitle = $derived(`${data.proposal.title} — VoteCast`);
 	const canonical = $derived(new URL(`/proposals/${data.proposal.id}`, page.url.origin).href);
@@ -145,7 +149,12 @@
 	</header>
 
 	{#if data.method}
-		<section style="margin-bottom: 28px;">
+		<section class="method-summary">
+			<div class="method-summary-head">
+				<span class="method-name">
+					{ballotLabel(data.method.ballotModuleId)} · {ruleLabel(data.method.decisionRuleId)}
+				</span>
+			</div>
 			<MethodFlow
 				ballotModuleId={data.method.ballotModuleId}
 				decisionRuleId={data.method.decisionRuleId}
@@ -180,11 +189,25 @@
 			</nav>
 
 			{#if activeTab === 'description'}
-				<div
-					style="white-space: pre-wrap; font-size: 15px; line-height: 1.65; color: var(--vc-ink-2);"
-				>
-					{data.proposal.body}
-				</div>
+				<Markdown html={data.bodyHtml} />
+
+				{#if data.rationaleHtml}
+					<div class="rationale">
+						<button
+							type="button"
+							class="rationale-toggle"
+							aria-expanded={showRationale}
+							onclick={() => (showRationale = !showRationale)}
+						>
+							{showRationale ? '▾' : '▸'} Rationale
+						</button>
+						{#if showRationale}
+							<div class="rationale-body">
+								<Markdown html={data.rationaleHtml} />
+							</div>
+						{/if}
+					</div>
+				{/if}
 			{:else if data.voters.length === 0}
 				<div class="empty">
 					<p>No votes yet — be the first to weigh in.</p>
@@ -379,6 +402,40 @@
 </div>
 
 <style>
+	.method-summary {
+		margin-bottom: 28px;
+	}
+	.method-summary-head {
+		margin-bottom: 8px;
+	}
+	.method-name {
+		font-size: 13px;
+		font-weight: 600;
+		color: var(--vc-ink);
+	}
+	.rationale {
+		margin-top: 24px;
+		padding-top: 16px;
+		border-top: 1px solid var(--vc-line);
+	}
+	.rationale-toggle {
+		font: inherit;
+		font-size: 14px;
+		font-weight: 600;
+		background: none;
+		border: none;
+		padding: 0;
+		color: var(--vc-ink-2);
+		cursor: pointer;
+	}
+	.rationale-toggle:hover {
+		color: var(--vc-ink);
+	}
+	.rationale-body {
+		margin-top: 10px;
+		font-size: 14px;
+		color: var(--vc-ink-2);
+	}
 	.proposal-detail-grid {
 		display: grid;
 		gap: 40px;

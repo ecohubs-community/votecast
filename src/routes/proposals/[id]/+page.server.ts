@@ -9,6 +9,7 @@ import { getCommunityById } from '$lib/server/services/community-service';
 import { getMember } from '$lib/server/services/membership-service';
 import { getUserVote, castVote, getProposalVoters } from '$lib/server/services/vote-service';
 import { resolveMethodSummary } from '$lib/server/services/proposal-type-service';
+import { renderMarkdown } from '$lib/server/markdown';
 import { ServiceError } from '$lib/server/services/errors';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
@@ -31,6 +32,9 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 
 		return {
 			proposal,
+			// Server-rendered, sanitized markdown — the body is what's voted on; rationale is the "why".
+			bodyHtml: renderMarkdown(proposal.body),
+			rationaleHtml: proposal.rationale ? renderMarkdown(proposal.rationale) : null,
 			results,
 			outcome,
 			community,
