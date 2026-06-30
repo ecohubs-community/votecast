@@ -30,7 +30,7 @@
 ## 5. Proposal detail UX
 
 - [ ] 5.1 Render body + rationale (reveal-on-click) via `Markdown`
-- [ ] 5.2 Phase-aware status label (phase → Draft/Deliberation/Voting open/Objection window/Closed) — extend `StatusBadge` or add `PhaseBadge`
+- [x] 5.2 Phase-aware `StatusBadge` (phase → Draft/Deliberation/Voting open/Objection window/Closed) via `$lib/utils/phase`; migrated ProposalCard + community page + proposal-detail display/voting/results derives off `status` onto `phase`. (Remaining `status` readers before the column can drop: listProposals filter + lifecycle writes + update/execution draft-guards.)
 - [ ] 5.3 Show the proposal's method/type summary (D9)
 - [ ] 5.4 svelte-autofixer clean
 

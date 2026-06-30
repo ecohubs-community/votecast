@@ -1,15 +1,7 @@
 <script lang="ts">
-	type Props = {
-		status: 'draft' | 'active' | 'closed';
-	};
+	import { PHASE_LABEL, PHASE_VARIANT, type ProposalPhase } from '$lib/utils/phase';
 
-	let { status }: Props = $props();
-
-	const labels: Record<string, string> = {
-		draft: 'Draft',
-		active: 'Open',
-		closed: 'Closed'
-	};
+	let { phase }: { phase: ProposalPhase } = $props();
 </script>
 
-<span class="vc-badge vc-badge--{status}">{labels[status]}</span>
+<span class="vc-badge vc-badge--{PHASE_VARIANT[phase]}">{PHASE_LABEL[phase]}</span>

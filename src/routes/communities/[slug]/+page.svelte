@@ -247,7 +247,7 @@
 						proposal={{
 							id: proposal.id,
 							title: proposal.title,
-							status: proposal.status,
+							phase: proposal.phase,
 							startTime: proposal.startTime,
 							endTime: proposal.endTime,
 							body: proposal.body ?? undefined,

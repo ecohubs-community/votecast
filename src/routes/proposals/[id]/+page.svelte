@@ -27,15 +27,15 @@
 	let activeTab = $state<'description' | 'voters'>('description');
 
 	const timeContext = $derived.by(() => {
-		if (data.proposal.status === 'active')
+		if (data.proposal.phase === 'voting')
 			return `Voting closes ${formatRelativeTime(data.proposal.endTime)}`;
-		if (data.proposal.status === 'closed')
+		if (data.proposal.phase === 'finalized' || data.proposal.phase === 'objection-window')
 			return `Voting closed ${formatRelativeTime(data.proposal.endTime)}`;
 		return `Voting opens ${formatRelativeTime(data.proposal.startTime)}`;
 	});
 
 	const votingState = $derived.by(() => {
-		if (data.proposal.status !== 'active') return 'read-only' as const;
+		if (data.proposal.phase !== 'voting') return 'read-only' as const;
 		if (!data.user) return 'not-logged-in' as const;
 		if (!data.membership) return 'not-member' as const;
 		if (data.userVote) return 'already-voted' as const;
@@ -53,7 +53,7 @@
 	});
 
 	const showResults = $derived(
-		data.proposal.status === 'active' || data.proposal.status === 'closed'
+		data.proposal.phase !== 'draft' && data.proposal.phase !== 'deliberation'
 	);
 
 	const OUTCOME_LABELS: Record<string, string> = {
@@ -104,7 +104,7 @@
 			<div
 				style="margin-top: 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px;"
 			>
-				<StatusBadge status={data.proposal.status as 'draft' | 'active' | 'closed'} />
+				<StatusBadge phase={data.proposal.phase} />
 				{#if data.proposal.visibility === 'public'}
 					<span class="meta-pill">
 						<svg

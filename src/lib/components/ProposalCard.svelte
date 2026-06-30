@@ -1,13 +1,14 @@
 <script lang="ts">
 	import StatusBadge from './StatusBadge.svelte';
 	import { formatRelativeTime } from '$lib/utils/format';
+	import { PHASE_VARIANT, type ProposalPhase } from '$lib/utils/phase';
 	import { resolve } from '$app/paths';
 
 	type Props = {
 		proposal: {
 			id: string;
 			title: string;
-			status: string;
+			phase: ProposalPhase;
 			startTime: Date;
 			endTime: Date;
 			body?: string;
@@ -19,12 +20,14 @@
 	let { proposal, locked = false }: Props = $props();
 
 	const timeContext = $derived.by(() => {
-		if (proposal.status === 'active') return `Closes ${formatRelativeTime(proposal.endTime)}`;
-		if (proposal.status === 'closed') return `Closed ${formatRelativeTime(proposal.endTime)}`;
+		if (proposal.phase === 'voting') return `Closes ${formatRelativeTime(proposal.endTime)}`;
+		if (proposal.phase === 'finalized') return `Closed ${formatRelativeTime(proposal.endTime)}`;
+		if (proposal.phase === 'objection-window')
+			return `Objection window — closed ${formatRelativeTime(proposal.endTime)}`;
 		return `Opens ${formatRelativeTime(proposal.startTime)}`;
 	});
 
-	const statusClass = $derived(`status-${proposal.status}`);
+	const statusClass = $derived(`status-${PHASE_VARIANT[proposal.phase]}`);
 </script>
 
 {#snippet cardBody()}
@@ -53,7 +56,13 @@
 		<div class="proposal-row-meta">
 			{#if proposal.visibility === 'public'}
 				<span class="meta-pill" title="Public">
-					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+					<svg
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="1.8"
+						aria-hidden="true"
+					>
 						<circle cx="12" cy="12" r="9" />
 						<path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" />
 					</svg>
@@ -61,14 +70,20 @@
 				</span>
 			{:else if proposal.visibility === 'community' && !locked}
 				<span class="meta-pill" title="Members only">
-					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+					<svg
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="1.8"
+						aria-hidden="true"
+					>
 						<rect x="4" y="11" width="16" height="10" rx="2" />
 						<path d="M8 11V7a4 4 0 0 1 8 0v4" />
 					</svg>
 					Internal
 				</span>
 			{/if}
-			<StatusBadge status={proposal.status as 'draft' | 'active' | 'closed'} />
+			<StatusBadge phase={proposal.phase} />
 		</div>
 	</div>
 
