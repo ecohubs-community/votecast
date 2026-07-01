@@ -10,230 +10,172 @@
    values. If you need a value that isn't here, add it here first.
    ───────────────────────────────────────────────────────────── */
 
-@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Geist:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Geist:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
 
 :root {
-  /* ── Color: surface ───────────────────────────────────────── */
-  --vc-bg:        #faf8f4;   /* page background — warm off-white */
-  --vc-bg-2:      #f3efe6;   /* sunken / tinted surface         */
-  --vc-surface:   #ffffff;   /* cards, raised surfaces          */
+	/* ── Color: surface ───────────────────────────────────────── */
+	--vc-bg: #faf8f4; /* page background — warm off-white */
+	--vc-bg-2: #f3efe6; /* sunken / tinted surface         */
+	--vc-surface: #ffffff; /* cards, raised surfaces          */
 
-  /* ── Color: text ──────────────────────────────────────────── */
-  --vc-ink:       #1a1612;   /* primary text                    */
-  --vc-ink-2:     #4a4338;   /* secondary text, body copy       */
-  --vc-muted:     #8a8174;   /* tertiary text, metadata         */
-  --vc-disabled:  #b8b0a1;   /* disabled text                   */
+	/* ── Color: text ──────────────────────────────────────────── */
+	--vc-ink: #1a1612; /* primary text                    */
+	--vc-ink-2: #4a4338; /* secondary text, body copy       */
+	--vc-muted: #8a8174; /* tertiary text, metadata         */
+	--vc-disabled: #b8b0a1; /* disabled text                   */
 
-  /* ── Color: lines ─────────────────────────────────────────── */
-  --vc-line:      #e8e2d6;   /* default border, hairlines       */
-  --vc-line-2:    #d8d1c1;   /* hovered / emphasized borders    */
+	/* ── Color: lines ─────────────────────────────────────────── */
+	--vc-line: #e8e2d6; /* default border, hairlines       */
+	--vc-line-2: #d8d1c1; /* hovered / emphasized borders    */
 
-  /* ── Color: accent (indigo — the default brand accent) ────── */
-  --vc-accent:        #4d60bf;
-  --vc-accent-ink:    oklch(0.32 0.1 265);     /* on-light text on accent tints */
-  --vc-accent-soft:   oklch(0.5 0.13 265 / 0.08);
-  --vc-accent-strong: oklch(0.42 0.14 265);    /* hover / active accent */
+	/* ── Color: accent (indigo — the default brand accent) ────── */
+	--vc-accent: #4d60bf;
+	--vc-accent-ink: oklch(0.32 0.1 265); /* on-light text on accent tints */
+	--vc-accent-soft: oklch(0.5 0.13 265 / 0.08);
+	--vc-accent-strong: oklch(0.42 0.14 265); /* hover / active accent */
 
-  /* ── Color: semantic ──────────────────────────────────────── */
-  --vc-success:      oklch(0.55 0.09 150);
-  --vc-success-soft: oklch(0.55 0.09 150 / 0.10);
-  --vc-warning:      oklch(0.72 0.13 75);
-  --vc-warning-soft: oklch(0.72 0.13 75 / 0.12);
-  --vc-danger:       oklch(0.55 0.16 28);
-  --vc-danger-soft:  oklch(0.55 0.16 28 / 0.10);
-  --vc-info:         oklch(0.55 0.10 240);
-  --vc-info-soft:    oklch(0.55 0.10 240 / 0.10);
+	/* ── Color: semantic ──────────────────────────────────────── */
+	--vc-success: oklch(0.55 0.09 150);
+	--vc-success-soft: oklch(0.55 0.09 150 / 0.1);
+	--vc-warning: oklch(0.72 0.13 75);
+	--vc-warning-soft: oklch(0.72 0.13 75 / 0.12);
+	--vc-danger: oklch(0.55 0.16 28);
+	--vc-danger-soft: oklch(0.55 0.16 28 / 0.1);
+	--vc-info: oklch(0.55 0.1 240);
+	--vc-info-soft: oklch(0.55 0.1 240 / 0.1);
 
-  /* ── Color: status badges (proposal lifecycle) ────────────── */
-  --vc-status-draft-bg:    var(--vc-bg-2);
-  --vc-status-draft-fg:    var(--vc-ink-2);
-  --vc-status-active-bg:   var(--vc-accent-soft);
-  --vc-status-active-fg:   var(--vc-accent-ink);
-  --vc-status-closed-bg:   #ece6d7;
-  --vc-status-closed-fg:   var(--vc-muted);
-  --vc-status-upcoming-bg: var(--vc-info-soft);
-  --vc-status-upcoming-fg: oklch(0.4 0.08 240);
+	/* ── Color: status badges (proposal lifecycle) ────────────── */
+	--vc-status-draft-bg: var(--vc-bg-2);
+	--vc-status-draft-fg: var(--vc-ink-2);
+	--vc-status-active-bg: var(--vc-accent-soft);
+	--vc-status-active-fg: var(--vc-accent-ink);
+	--vc-status-closed-bg: #ece6d7;
+	--vc-status-closed-fg: var(--vc-muted);
+	--vc-status-upcoming-bg: var(--vc-info-soft);
+	--vc-status-upcoming-fg: oklch(0.4 0.08 240);
 
-  /* ── Typography: families ─────────────────────────────────── */
-  --vc-font-display: "Fraunces", "Newsreader", Georgia, serif;
-  --vc-font-body:    "Geist", "Inter Tight", system-ui, -apple-system, sans-serif;
-  --vc-font-mono:    "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+	/* ── Typography: families ─────────────────────────────────── */
+	--vc-font-display: 'Fraunces', 'Newsreader', Georgia, serif;
+	--vc-font-body: 'Geist', 'Inter Tight', system-ui, -apple-system, sans-serif;
+	--vc-font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
 
-  /* ── Typography: scale (px — clamp() where it adapts) ─────── */
-  --vc-text-xs:   12px;   /* metadata, mono labels        */
-  --vc-text-sm:   13px;   /* secondary copy, badges       */
-  --vc-text-base: 15px;   /* body                         */
-  --vc-text-md:   17px;   /* lede, larger body            */
-  --vc-text-lg:   22px;   /* card titles                  */
-  --vc-text-xl:   26px;   /* H3 / dialog titles           */
-  --vc-text-2xl:  clamp(28px, 3.6vw, 40px);   /* H2  */
-  --vc-text-3xl:  clamp(32px, 4.4vw, 52px);   /* H1 on inner pages */
-  --vc-text-hero: clamp(48px, 6.2vw, 88px);   /* hero display */
+	/* ── Typography: scale (px — clamp() where it adapts) ─────── */
+	--vc-text-xs: 12px; /* metadata, mono labels        */
+	--vc-text-sm: 13px; /* secondary copy, badges       */
+	--vc-text-base: 15px; /* body                         */
+	--vc-text-md: 17px; /* lede, larger body            */
+	--vc-text-lg: 22px; /* card titles                  */
+	--vc-text-xl: 26px; /* H3 / dialog titles           */
+	--vc-text-2xl: clamp(28px, 3.6vw, 40px); /* H2  */
+	--vc-text-3xl: clamp(32px, 4.4vw, 52px); /* H1 on inner pages */
+	--vc-text-hero: clamp(48px, 6.2vw, 88px); /* hero display */
 
-  /* ── Typography: weights ──────────────────────────────────── */
-  --vc-weight-display: 400;   /* serif display is set in Regular */
-  --vc-weight-body:    400;
-  --vc-weight-medium:  500;
-  --vc-weight-semi:    600;
+	/* ── Typography: weights ──────────────────────────────────── */
+	--vc-weight-display: 400; /* serif display is set in Regular */
+	--vc-weight-body: 400;
+	--vc-weight-medium: 500;
+	--vc-weight-semi: 600;
 
-  /* ── Typography: leading / tracking ───────────────────────── */
-  --vc-leading-tight:  1.05;
-  --vc-leading-snug:   1.2;
-  --vc-leading-body:   1.55;
-  --vc-leading-prose:  1.65;
-  --vc-tracking-tight: -0.02em;
-  --vc-tracking-mono:   0.04em;
-  --vc-tracking-eyebrow: 0.06em;
+	/* ── Typography: leading / tracking ───────────────────────── */
+	--vc-leading-tight: 1.05;
+	--vc-leading-snug: 1.2;
+	--vc-leading-body: 1.55;
+	--vc-leading-prose: 1.65;
+	--vc-tracking-tight: -0.02em;
+	--vc-tracking-mono: 0.04em;
+	--vc-tracking-eyebrow: 0.06em;
 
-  /* ── Spacing scale (4px base) ─────────────────────────────── */
-  --vc-space-1:   4px;
-  --vc-space-2:   8px;
-  --vc-space-3:  12px;
-  --vc-space-4:  16px;
-  --vc-space-5:  20px;
-  --vc-space-6:  24px;
-  --vc-space-7:  32px;
-  --vc-space-8:  40px;
-  --vc-space-9:  56px;
-  --vc-space-10: 72px;
-  --vc-space-11: clamp(48px, 6vw, 80px);   /* section vertical rhythm */
+	/* ── Spacing scale (4px base) ─────────────────────────────── */
+	--vc-space-1: 4px;
+	--vc-space-2: 8px;
+	--vc-space-3: 12px;
+	--vc-space-4: 16px;
+	--vc-space-5: 20px;
+	--vc-space-6: 24px;
+	--vc-space-7: 32px;
+	--vc-space-8: 40px;
+	--vc-space-9: 56px;
+	--vc-space-10: 72px;
+	--vc-space-11: clamp(48px, 6vw, 80px); /* section vertical rhythm */
 
-  /* ── Radii ────────────────────────────────────────────────── */
-  --vc-radius-sm:   6px;    /* tight chrome (mono tags)            */
-  --vc-radius-md:  10px;    /* inputs                              */
-  --vc-radius-lg:  12px;    /* ballot options, list items          */
-  --vc-radius-xl:  16px;    /* cards                               */
-  --vc-radius-2xl: 18px;    /* hero ballot, dialogs                */
-  --vc-radius-pill: 999px;  /* buttons, badges, avatars            */
+	/* ── Radii ────────────────────────────────────────────────── */
+	--vc-radius-sm: 6px; /* tight chrome (mono tags)            */
+	--vc-radius-md: 10px; /* inputs                              */
+	--vc-radius-lg: 12px; /* ballot options, list items          */
+	--vc-radius-xl: 16px; /* cards                               */
+	--vc-radius-2xl: 18px; /* hero ballot, dialogs                */
+	--vc-radius-pill: 999px; /* buttons, badges, avatars            */
 
-  /* ── Borders ──────────────────────────────────────────────── */
-  --vc-border-width: 1px;
-  --vc-border:       1px solid var(--vc-line);
-  --vc-border-soft:  1px solid var(--vc-line-2);
+	/* ── Borders ──────────────────────────────────────────────── */
+	--vc-border-width: 1px;
+	--vc-border: 1px solid var(--vc-line);
+	--vc-border-soft: 1px solid var(--vc-line-2);
 
-  /* ── Shadows (warm, very low — never neon blue tints) ─────── */
-  --vc-shadow-xs:  0 1px 0 rgba(26, 22, 18, 0.02);
-  --vc-shadow-sm:  0 1px 2px rgba(26, 22, 18, 0.04), 0 1px 0 rgba(26, 22, 18, 0.02);
-  --vc-shadow-md:  0 12px 28px -18px rgba(26, 22, 18, 0.18);
-  --vc-shadow-lg:  0 24px 60px -24px rgba(26, 22, 18, 0.18);
+	/* ── Shadows (warm, very low — never neon blue tints) ─────── */
+	--vc-shadow-xs: 0 1px 0 rgba(26, 22, 18, 0.02);
+	--vc-shadow-sm: 0 1px 2px rgba(26, 22, 18, 0.04), 0 1px 0 rgba(26, 22, 18, 0.02);
+	--vc-shadow-md: 0 12px 28px -18px rgba(26, 22, 18, 0.18);
+	--vc-shadow-lg: 0 24px 60px -24px rgba(26, 22, 18, 0.18);
 
-  /* ── Layout ───────────────────────────────────────────────── */
-  --vc-container:   1180px;
-  --vc-pad-x:       clamp(20px, 5vw, 64px);
-  --vc-grid-gap:    16px;
+	/* ── Layout ───────────────────────────────────────────────── */
+	--vc-container: 1180px;
+	--vc-pad-x: clamp(20px, 5vw, 64px);
+	--vc-grid-gap: 16px;
 
-  /* ── Motion ───────────────────────────────────────────────── */
-  --vc-ease:           cubic-bezier(0.2, 0.6, 0.2, 1);   /* default */
-  --vc-ease-out:       cubic-bezier(0.16, 1, 0.3, 1);    /* "settle" */
-  --vc-duration-fast:  120ms;
-  --vc-duration-base:  180ms;
-  --vc-duration-slow:  320ms;
+	/* ── Motion ───────────────────────────────────────────────── */
+	--vc-ease: cubic-bezier(0.2, 0.6, 0.2, 1); /* default */
+	--vc-ease-out: cubic-bezier(0.16, 1, 0.3, 1); /* "settle" */
+	--vc-duration-fast: 120ms;
+	--vc-duration-base: 180ms;
+	--vc-duration-slow: 320ms;
 
-  /* ── Z-index scale ────────────────────────────────────────── */
-  --vc-z-nav:      40;
-  --vc-z-dropdown: 50;
-  --vc-z-modal:    60;
-  --vc-z-toast:    70;
+	/* ── Z-index scale ────────────────────────────────────────── */
+	--vc-z-nav: 40;
+	--vc-z-dropdown: 50;
+	--vc-z-modal: 60;
+	--vc-z-toast: 70;
 }
 
-/* ─────────────────────────────────────────────────────────────
-   Element-level resets (opt-in — apply on a per-page basis if
-   you want the warm-minimal defaults without writing component
-   CSS by hand).
-   ───────────────────────────────────────────────────────────── */
-
-.vc-root {
-  background: var(--vc-bg);
-  color: var(--vc-ink);
-  font-family: var(--vc-font-body);
-  font-size: var(--vc-text-base);
-  line-height: var(--vc-leading-body);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-}
-
-.vc-display { font-family: var(--vc-font-display); font-weight: var(--vc-weight-display); letter-spacing: var(--vc-tracking-tight); }
-.vc-mono    { font-family: var(--vc-font-mono); letter-spacing: var(--vc-tracking-mono); text-transform: uppercase; font-size: var(--vc-text-xs); color: var(--vc-muted); }
-
-/* H1–H3 — semantic, page-level type */
-.vc-h1 { font: var(--vc-weight-display) var(--vc-text-hero)/var(--vc-leading-tight) var(--vc-font-display); letter-spacing: var(--vc-tracking-tight); margin: 0; text-wrap: balance; }
-.vc-h2 { font: var(--vc-weight-display) var(--vc-text-3xl)/var(--vc-leading-tight) var(--vc-font-display); letter-spacing: var(--vc-tracking-tight); margin: 0; }
-.vc-h3 { font: var(--vc-weight-display) var(--vc-text-xl)/var(--vc-leading-snug) var(--vc-font-display); letter-spacing: -0.01em; margin: 0; }
-
-/* Eyebrow — small mono label above a section title */
-.vc-eyebrow {
-  font-family: var(--vc-font-mono);
-  font-size: var(--vc-text-xs);
-  letter-spacing: var(--vc-tracking-eyebrow);
-  text-transform: uppercase;
-  color: var(--vc-muted);
-}
-
-/* Body text */
-.vc-body  { color: var(--vc-ink-2); }
-.vc-muted { color: var(--vc-muted); }
-
-/* Surfaces */
-.vc-card {
-  background: var(--vc-surface);
-  border: var(--vc-border);
-  border-radius: var(--vc-radius-xl);
-  padding: var(--vc-space-6);
-  box-shadow: var(--vc-shadow-xs);
-}
-
-/* Buttons — composable primitives */
-.vc-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--vc-space-2);
-  padding: 10px 18px;
-  border-radius: var(--vc-radius-pill);
-  font: var(--vc-weight-medium) 14px/1 var(--vc-font-body);
-  border: 0;
-  cursor: pointer;
-  transition:
-    background var(--vc-duration-fast) var(--vc-ease),
-    color var(--vc-duration-fast) var(--vc-ease),
-    transform var(--vc-duration-fast) var(--vc-ease),
-    border-color var(--vc-duration-fast) var(--vc-ease);
-}
-.vc-btn:active { transform: translateY(1px); }
-
-.vc-btn--primary { background: var(--vc-ink); color: var(--vc-bg); }
-.vc-btn--primary:hover { background: color-mix(in oklab, var(--vc-ink) 88%, var(--vc-accent)); }
-
-.vc-btn--accent  { background: var(--vc-accent); color: #fff; }
-.vc-btn--accent:hover { background: var(--vc-accent-strong); }
-
-.vc-btn--ghost   { background: transparent; color: var(--vc-ink); border: 1px solid var(--vc-line-2); }
-.vc-btn--ghost:hover { background: var(--vc-bg-2); border-color: var(--vc-ink-2); }
-
-.vc-btn--lg { padding: 14px 24px; font-size: 15px; }
-
-/* Status badge */
+/* Status badge (used by StatusBadge.svelte) */
 .vc-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border-radius: var(--vc-radius-pill);
-  font: var(--vc-weight-medium) var(--vc-text-xs)/1.4 var(--vc-font-body);
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 4px 10px;
+	border-radius: var(--vc-radius-pill);
+	font: var(--vc-weight-medium) var(--vc-text-xs)/1.4 var(--vc-font-body);
 }
-.vc-badge--draft    { background: var(--vc-status-draft-bg);    color: var(--vc-status-draft-fg); }
-.vc-badge--active   { background: var(--vc-status-active-bg);   color: var(--vc-status-active-fg); }
-.vc-badge--closed   { background: var(--vc-status-closed-bg);   color: var(--vc-status-closed-fg); }
-.vc-badge--upcoming { background: var(--vc-status-upcoming-bg); color: var(--vc-status-upcoming-fg); }
+.vc-badge--draft {
+	background: var(--vc-status-draft-bg);
+	color: var(--vc-status-draft-fg);
+}
+.vc-badge--active {
+	background: var(--vc-status-active-bg);
+	color: var(--vc-status-active-fg);
+}
+.vc-badge--closed {
+	background: var(--vc-status-closed-bg);
+	color: var(--vc-status-closed-fg);
+}
+.vc-badge--upcoming {
+	background: var(--vc-status-upcoming-bg);
+	color: var(--vc-status-upcoming-fg);
+}
 
 .vc-badge--active::before {
-  content: "";
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: var(--vc-accent);
-  animation: vc-pulse 1.8s infinite;
+	content: '';
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background: var(--vc-accent);
+	animation: vc-pulse 1.8s infinite;
 }
 @keyframes vc-pulse {
-  0%, 100% { opacity: 1; }
-  50%      { opacity: 0.4; }
+	0%,
+	100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.4;
+	}
 }

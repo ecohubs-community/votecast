@@ -6,6 +6,7 @@
 	import Alert from '$lib/components/Alert.svelte';
 	import VoteCard from '$lib/components/VoteCard.svelte';
 	import PageSub from '$lib/components/PageSub.svelte';
+	import MetaPill from '$lib/components/MetaPill.svelte';
 
 	type TypeSummary = {
 		ballotModuleId: string;
@@ -85,7 +86,7 @@
 			<div class="type-main">
 				<div class="type-head">
 					<strong>{t.name}</strong>
-					{#if t.retired}<span class="meta-pill">Retired</span>{/if}
+					{#if t.retired}<MetaPill>Retired</MetaPill>{/if}
 				</div>
 				{#if t.description}
 					<PageSub class="!mt-1">{t.description}</PageSub>

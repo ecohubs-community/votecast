@@ -8,6 +8,7 @@
 	import Tab from '$lib/components/Tab.svelte';
 	import VoteCard from '$lib/components/VoteCard.svelte';
 	import MemberRow from '$lib/components/MemberRow.svelte';
+	import MetaPill from '$lib/components/MetaPill.svelte';
 	import Page from '$lib/components/Page.svelte';
 	import PageHead from '$lib/components/PageHead.svelte';
 	import PageTitle from '$lib/components/PageTitle.svelte';
@@ -223,13 +224,14 @@
 	</Tabs>
 
 	{#if activeTab === 'proposals'}
-		<div class="chips">
+		<div class="mb-5 flex flex-wrap gap-2">
 			{#each statuses as { label, value } (label)}
 				{@const isActive = data.phaseFilter === value}
 				<a
 					href={resolve(`/communities/${data.community.slug}${value ? `?phase=${value}` : ''}`)}
-					class="chip"
-					class:active={isActive}
+					class="inline-flex items-center rounded-full border border-transparent px-3.5 py-1.5 text-[13px] font-medium no-underline transition-[background,color] duration-[var(--vc-duration-fast)] ease-[var(--vc-ease)] {isActive
+						? 'bg-ink text-bg'
+						: 'bg-bg-2 text-ink-2 hover:bg-line hover:text-ink'}"
 				>
 					{label}
 				</a>
@@ -288,7 +290,7 @@
 						{#snippet name()}
 							<span class="overflow-hidden text-ellipsis">{memberName}</span>
 							{#if member.role === 'admin'}
-								<span class="meta-pill bg-accent-soft text-accent-ink">Admin</span>
+								<MetaPill variant="accent">Admin</MetaPill>
 							{/if}
 						{/snippet}
 						{#snippet meta()}

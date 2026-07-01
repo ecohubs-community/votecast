@@ -13,6 +13,7 @@
 	import VoteCard from '$lib/components/VoteCard.svelte';
 	import MemberRow from '$lib/components/MemberRow.svelte';
 	import VisibilityPill from '$lib/components/VisibilityPill.svelte';
+	import MetaPill from '$lib/components/MetaPill.svelte';
 	import Page from '$lib/components/Page.svelte';
 	import PageHead from '$lib/components/PageHead.svelte';
 	import PageTitle from '$lib/components/PageTitle.svelte';
@@ -205,7 +206,7 @@
 							{/snippet}
 							{#snippet trailing()}
 								{#if voter.choiceLabel}
-									<span class="meta-pill">{voter.choiceLabel}</span>
+									<MetaPill>{voter.choiceLabel}</MetaPill>
 								{/if}
 							{/snippet}
 						</MemberRow>

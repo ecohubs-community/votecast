@@ -2,6 +2,7 @@
 	import CommunityCard from '$lib/components/CommunityCard.svelte';
 	import BallotPreview from '$lib/components/BallotPreview.svelte';
 	import Button from '$lib/components/Button.svelte';
+	import Wrap from '$lib/components/Wrap.svelte';
 	import type { PageData } from './$types';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
@@ -69,8 +70,8 @@
 
 <!-- Hero -->
 <section class="relative pt-[clamp(56px,9vw,120px)] pb-[clamp(40px,6vw,80px)]">
-	<div
-		class="wrap grid grid-cols-[1.05fr_1fr] items-center gap-[clamp(40px,6vw,80px)] max-[1020px]:grid-cols-1"
+	<Wrap
+		class="grid grid-cols-[1.05fr_1fr] items-center gap-[clamp(40px,6vw,80px)] max-[1020px]:grid-cols-1"
 	>
 		<div>
 			<div
@@ -119,13 +120,13 @@
 		<div>
 			<BallotPreview />
 		</div>
-	</div>
+	</Wrap>
 </section>
 
 <!-- How it works strip -->
 <section class="border-y border-line py-[clamp(32px,5vw,56px)]">
-	<div
-		class="wrap grid grid-cols-3 gap-[clamp(24px,4vw,56px)] max-[720px]:grid-cols-1 max-[720px]:gap-6 [&_h3]:mt-0 [&_h3]:mb-2 [&_h3]:font-display [&_h3]:text-[24px] [&_h3]:leading-[1.15] [&_h3]:font-normal [&_h3]:tracking-[-0.01em] [&_h3]:text-ink [&_p]:m-0 [&_p]:max-w-[32ch] [&_p]:text-[14px] [&_p]:text-ink-2"
+	<Wrap
+		class="grid grid-cols-3 gap-[clamp(24px,4vw,56px)] max-[720px]:grid-cols-1 max-[720px]:gap-6 [&_h3]:mt-0 [&_h3]:mb-2 [&_h3]:font-display [&_h3]:text-[24px] [&_h3]:leading-[1.15] [&_h3]:font-normal [&_h3]:tracking-[-0.01em] [&_h3]:text-ink [&_p]:m-0 [&_p]:max-w-[32ch] [&_p]:text-[14px] [&_p]:text-ink-2"
 	>
 		<div>
 			<div class="mb-3 font-mono text-xs text-muted">01</div>
@@ -142,13 +143,13 @@
 			<h3>Decide, together</h3>
 			<p>Members vote in a tap. Results are visible to everyone, the moment voting closes.</p>
 		</div>
-	</div>
+	</Wrap>
 </section>
 
 <!-- My Communities (logged in only) -->
 {#if data.user && data.myCommunities}
 	<section id="mine" class="py-[var(--vc-space-11)]">
-		<div class="wrap">
+		<Wrap>
 			<div class="mb-[clamp(28px,4vw,48px)] flex items-end justify-between gap-6">
 				<div>
 					<p
@@ -196,13 +197,13 @@
 					</div>
 				</a>
 			</div>
-		</div>
+		</Wrap>
 	</section>
 {/if}
 
 <!-- New Communities -->
 <section id="communities" class="py-[var(--vc-space-11)]">
-	<div class="wrap">
+	<Wrap>
 		<div class="mb-[clamp(28px,4vw,48px)] flex items-end justify-between gap-6">
 			<div>
 				<p
@@ -234,13 +235,13 @@
 				{/if}
 			</div>
 		{/if}
-	</div>
+	</Wrap>
 </section>
 
 <!-- Most Active -->
 {#if data.mostActive.length > 0}
 	<section id="active" class="py-[var(--vc-space-11)]">
-		<div class="wrap">
+		<Wrap>
 			<div class="mb-[clamp(28px,4vw,48px)] flex items-end justify-between gap-6">
 				<div>
 					<p
@@ -263,6 +264,6 @@
 					<CommunityCard {community} />
 				{/each}
 			</div>
-		</div>
+		</Wrap>
 	</section>
 {/if}

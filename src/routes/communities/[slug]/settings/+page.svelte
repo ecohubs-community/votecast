@@ -12,6 +12,7 @@
 	import Tab from '$lib/components/Tab.svelte';
 	import VoteCard from '$lib/components/VoteCard.svelte';
 	import MemberRow from '$lib/components/MemberRow.svelte';
+	import MetaPill from '$lib/components/MetaPill.svelte';
 	import Page from '$lib/components/Page.svelte';
 	import PageHead from '$lib/components/PageHead.svelte';
 	import PageTitle from '$lib/components/PageTitle.svelte';
@@ -259,7 +260,7 @@
 					{#snippet name()}
 						<span>{memberDisplayName(member)}</span>
 						{#if member.role === 'admin'}
-							<span class="meta-pill bg-accent-soft text-accent-ink">Admin</span>
+							<MetaPill variant="accent">Admin</MetaPill>
 						{/if}
 						{#if member.userId === data.user?.id}
 							<span class="text-[12px] font-normal text-muted">(you)</span>

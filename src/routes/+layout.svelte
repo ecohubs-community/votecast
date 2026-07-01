@@ -6,6 +6,8 @@
 	import { resolve } from '$app/paths';
 	import logo from '$lib/assets/logo.svg';
 	import Button from '$lib/components/Button.svelte';
+	import Avatar from '$lib/components/Avatar.svelte';
+	import Wrap from '$lib/components/Wrap.svelte';
 	import { onMount, type Snippet } from 'svelte';
 
 	let { data, children }: { data: LayoutData; children: Snippet } = $props();
@@ -103,18 +105,19 @@
 				<a href={resolve('/')} class="nav-link">Activity</a>
 
 				<div class="relative" data-avatar-menu>
-					<button
-						onclick={(e) => {
+					<Avatar
+						as="button"
+						type="button"
+						onclick={(e: MouseEvent) => {
 							e.stopPropagation();
 							avatarMenuOpen = !avatarMenuOpen;
 						}}
-						class="avatar"
 						aria-label="User menu"
 						aria-expanded={avatarMenuOpen}
 						title={displayName}
 					>
 						{initials}
-					</button>
+					</Avatar>
 
 					{#if avatarMenuOpen}
 						<div
@@ -218,7 +221,7 @@
 		>
 			{#if data.user}
 				<div class="flex items-center gap-3 px-3.5 pt-2 pb-3.5">
-					<div class="avatar">{initials}</div>
+					<Avatar>{initials}</Avatar>
 					<div class="min-w-0">
 						<p class="m-0 text-[14px] font-medium text-ink">
 							{displayName}
@@ -252,7 +255,7 @@
 </main>
 
 <footer class="mt-[clamp(40px,6vw,80px)] border-t border-line pt-12 pb-14">
-	<div class="wrap flex flex-wrap items-center justify-between gap-6">
+	<Wrap class="flex flex-wrap items-center justify-between gap-6">
 		<div class="brand text-[18px]">
 			<img src={logo} alt="" class="brand-logo" />
 			VoteCast
@@ -267,5 +270,5 @@
 		<div class="font-mono text-xs tracking-[var(--vc-tracking-mono)] text-muted">
 			© {new Date().getFullYear()} · made for real communities
 		</div>
-	</div>
+	</Wrap>
 </footer>

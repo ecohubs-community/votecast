@@ -1,4 +1,6 @@
 <script lang="ts">
+	import MetaPill from './MetaPill.svelte';
+
 	// The Public / Members pill — its globe/lock SVG was duplicated across ProposalCard, the proposal
 	// detail, the community page and settings. One place now.
 	let {
@@ -7,7 +9,7 @@
 	}: { visibility: 'public' | 'community'; memberLabel?: string } = $props();
 </script>
 
-<span class="meta-pill" title={visibility === 'public' ? 'Public' : memberLabel}>
+<MetaPill title={visibility === 'public' ? 'Public' : memberLabel}>
 	{#if visibility === 'public'}
 		<svg
 			viewBox="0 0 24 24"
@@ -33,4 +35,4 @@
 		</svg>
 		{memberLabel}
 	{/if}
-</span>
+</MetaPill>
