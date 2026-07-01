@@ -58,6 +58,9 @@
 		{ label: 'HR', title: 'Divider', run: () => insert('\n\n---\n\n') }
 	];
 
+	const btnClass =
+		'cursor-pointer rounded-md border border-line bg-surface px-2.5 py-1 text-[13px] text-ink-2 enabled:hover:border-line-2 enabled:hover:text-ink disabled:cursor-default disabled:opacity-50';
+
 	async function togglePreview() {
 		previewing = !previewing;
 		if (previewing) {
@@ -78,17 +81,16 @@
 	}
 </script>
 
-<div class="md-editor">
-	<div class="md-toolbar">
+<div>
+	<div class="mb-1.5 flex flex-wrap gap-1">
 		{#each actions as a (a.title)}
-			<button type="button" class="md-btn" title={a.title} onclick={a.run} disabled={previewing}>
+			<button type="button" class={btnClass} title={a.title} onclick={a.run} disabled={previewing}>
 				{a.label}
 			</button>
 		{/each}
 		<button
 			type="button"
-			class="md-btn md-preview-toggle"
-			class:on={previewing}
+			class="{btnClass} ml-auto {previewing ? 'border-accent text-accent-ink' : ''}"
 			onclick={togglePreview}
 		>
 			{previewing ? 'Edit' : 'Preview'}
@@ -96,7 +98,9 @@
 	</div>
 
 	{#if previewing}
-		<div class="md-preview">
+		<div
+			class="min-h-[120px] rounded-[var(--vc-radius-md)] border border-line bg-surface px-3.5 py-[11px]"
+		>
 			{#if previewLoading}
 				<p class="hint">Rendering…</p>
 			{:else}
@@ -119,44 +123,3 @@
 		<input type="hidden" {name} value={text} />
 	{/if}
 </div>
-
-<style>
-	.md-toolbar {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 4px;
-		margin-bottom: 6px;
-	}
-	.md-btn {
-		font: inherit;
-		font-size: 13px;
-		padding: 4px 10px;
-		border: 1px solid var(--vc-line);
-		border-radius: 6px;
-		background: var(--vc-surface);
-		color: var(--vc-ink-2);
-		cursor: pointer;
-	}
-	.md-btn:hover:not(:disabled) {
-		border-color: var(--vc-line-2);
-		color: var(--vc-ink);
-	}
-	.md-btn:disabled {
-		opacity: 0.5;
-		cursor: default;
-	}
-	.md-preview-toggle {
-		margin-left: auto;
-	}
-	.md-preview-toggle.on {
-		border-color: var(--vc-accent);
-		color: var(--vc-accent-ink, var(--vc-accent));
-	}
-	.md-preview {
-		min-height: 120px;
-		padding: 11px 14px;
-		border: 1px solid var(--vc-line);
-		border-radius: var(--vc-radius-md);
-		background: var(--vc-surface);
-	}
-</style>

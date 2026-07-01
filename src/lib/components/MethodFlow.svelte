@@ -138,26 +138,55 @@
 	const revealLabel = $derived(tallyRevealLabel(tallyReveal));
 </script>
 
-<div class="method-flow" aria-label="Method process flow">
-	<div class="flow-steps">
+<div class="mt-2" aria-label="Method process flow">
+	<div class="m-0 flex flex-wrap items-center gap-1.5 p-0">
 		{#each stepViews as step, i (i)}
 			{#if i > 0}
-				<span class="flow-arrow" aria-hidden="true">→</span>
+				<span class="flex-none text-muted" aria-hidden="true">→</span>
 			{/if}
+			{@const box =
+				step.status === 'idle'
+					? step.isTerminal
+						? 'border-line bg-accent-soft'
+						: 'border-line'
+					: step.isResult
+						? 'border-[#1a7f53]'
+						: step.status === 'active'
+							? 'border-accent shadow-[0_0_0_2px_var(--vc-accent-soft)]'
+							: step.status === 'done'
+								? 'border-success-soft'
+								: 'border-line'}
+			{@const iconColor =
+				step.status === 'done'
+					? 'text-[#1a7f53]'
+					: step.status === 'active'
+						? 'text-muted'
+						: step.status === 'upcoming'
+							? 'text-muted opacity-55'
+							: ''}
 			<div
-				class="flow-step"
-				class:terminal={step.isTerminal && !showProgress}
-				class:done={step.status === 'done'}
-				class:active={step.status === 'active' && !step.isResult}
-				class:upcoming={step.status === 'upcoming'}
-				class:result={step.isResult}
+				class="relative flex flex-col gap-0.5 overflow-hidden rounded-[var(--vc-radius-sm)] border bg-surface py-2 pl-3 {showProgress
+					? 'pr-7'
+					: 'pr-3'} {box}"
 				aria-current={step.status === 'active' ? 'step' : undefined}
 			>
 				{#if showProgress}
-					<span class="flow-progress" style="width: {step.progress}%" aria-hidden="true"></span>
+					<span
+						class="absolute top-0 bottom-0 left-0 z-0 w-0 transition-[width] duration-[400ms] ease-[ease] {step.status ===
+						'active'
+							? 'bg-accent-soft'
+							: step.status === 'done' || step.isResult
+								? 'bg-success-soft'
+								: ''}"
+						style="width: {step.progress}%"
+						aria-hidden="true"
+					></span>
 				{/if}
 				{#if step.status !== 'idle'}
-					<span class="flow-icon" aria-hidden="true">
+					<span
+						class="absolute top-[5px] right-1.5 z-[1] inline-flex size-3.5 items-center justify-center text-[12px] leading-none [&_svg]:size-3.5 {iconColor}"
+						aria-hidden="true"
+					>
 						{#if step.isResult}
 							🎉
 						{:else if step.status === 'done'}
@@ -176,122 +205,10 @@
 						{/if}
 					</span>
 				{/if}
-				<span class="flow-label">{step.label}</span>
-				<span class="flow-sub">{step.sub}</span>
+				<span class="relative z-[1] text-[13px] font-semibold text-ink">{step.label}</span>
+				<span class="relative z-[1] font-mono text-[12px] text-muted">{step.sub}</span>
 			</div>
 		{/each}
 	</div>
-	<p class="flow-note">{revealLabel}</p>
+	<p class="mt-2 mb-0 text-[12px] text-muted">{revealLabel}</p>
 </div>
-
-<style>
-	.method-flow {
-		margin-top: 8px;
-	}
-	.flow-steps {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 6px;
-		margin: 0;
-		padding: 0;
-	}
-	.flow-arrow {
-		color: var(--vc-muted);
-		flex: 0 0 auto;
-	}
-	.flow-step {
-		position: relative;
-		overflow: hidden;
-		display: flex;
-		flex-direction: column;
-		gap: 2px;
-		padding: 8px 12px;
-		border: 1px solid var(--vc-line);
-		border-radius: var(--vc-radius-sm, 8px);
-		background: var(--vc-surface);
-	}
-	/* Progress chips share a corner icon and need room for it. */
-	.flow-step.done,
-	.flow-step.active,
-	.flow-step.upcoming,
-	.flow-step.result {
-		padding-right: 28px;
-	}
-	.flow-icon {
-		position: absolute;
-		z-index: 1;
-		top: 5px;
-		right: 6px;
-		width: 14px;
-		height: 14px;
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		font-size: 12px;
-		line-height: 1;
-	}
-	.flow-icon :global(svg) {
-		width: 14px;
-		height: 14px;
-	}
-	.flow-step.terminal {
-		background: var(--vc-accent-soft, rgba(0, 0, 0, 0.04));
-	}
-	/* Background progress fill (dated mode): grows left→right with `now` through the phase window. */
-	.flow-progress {
-		position: absolute;
-		left: 0;
-		top: 0;
-		bottom: 0;
-		width: 0;
-		z-index: 0;
-		transition: width 0.4s ease;
-	}
-	.flow-step.active .flow-progress {
-		background: var(--vc-accent-soft, rgba(0, 0, 0, 0.06));
-	}
-	.flow-step.done .flow-progress,
-	.flow-step.result .flow-progress {
-		background: var(--vc-success-soft, rgba(34, 160, 100, 0.16));
-	}
-	.flow-step.upcoming .flow-icon {
-		color: var(--vc-muted);
-		opacity: 0.55;
-	}
-	.flow-step.active {
-		border-color: var(--vc-accent);
-		box-shadow: 0 0 0 2px var(--vc-accent-soft);
-	}
-	.flow-step.active .flow-icon {
-		color: var(--vc-muted);
-	}
-	.flow-step.done {
-		border-color: var(--vc-success-soft, rgba(34, 160, 100, 0.3));
-	}
-	.flow-step.done .flow-icon {
-		color: var(--vc-success-ink, #1a7f53);
-	}
-	.flow-step.result {
-		border-color: var(--vc-success-ink, #1a7f53);
-	}
-	.flow-label {
-		position: relative;
-		z-index: 1;
-		font-size: 13px;
-		font-weight: 600;
-		color: var(--vc-ink);
-	}
-	.flow-sub {
-		position: relative;
-		z-index: 1;
-		font-size: 12px;
-		color: var(--vc-muted);
-		font-family: var(--vc-font-mono, monospace);
-	}
-	.flow-note {
-		margin: 8px 0 0;
-		font-size: 12px;
-		color: var(--vc-muted);
-	}
-</style>

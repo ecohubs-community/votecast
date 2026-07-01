@@ -150,9 +150,9 @@
 	</PageHead>
 
 	{#if data.method}
-		<section class="method-summary">
-			<div class="method-summary-head">
-				<span class="method-name">
+		<section class="mb-7">
+			<div class="mb-2">
+				<span class="text-[13px] font-semibold text-ink">
 					{ballotLabel(data.method.ballotModuleId)} · {ruleLabel(data.method.decisionRuleId)}
 				</span>
 			</div>
@@ -169,7 +169,7 @@
 		</section>
 	{/if}
 
-	<div class="proposal-detail-grid">
+	<div class="grid grid-cols-1 gap-10 min-[960px]:grid-cols-[1.6fr_1fr] min-[960px]:items-start">
 		<div>
 			<Tabs>
 				<Tab active={activeTab === 'description'} onclick={() => (activeTab = 'description')}>
@@ -227,7 +227,10 @@
 				{/snippet}
 
 				{#if resultHeadline && !data.isMultiQuestion}
-					<div class="outcome-badge" data-outcome={resultHeadline.dataOutcome}>
+					<div
+						class="mb-4 rounded-[var(--vc-radius-sm)] bg-black/[0.04] px-3 py-2 text-[14px] text-ink-2 data-[outcome=blocked]:bg-[rgba(200,60,60,0.12)] data-[outcome=blocked]:text-[#b23b3b] data-[outcome=failed]:bg-[rgba(200,60,60,0.12)] data-[outcome=failed]:text-[#b23b3b] data-[outcome=passed]:bg-success-soft data-[outcome=passed]:text-[#1a7f53]"
+						data-outcome={resultHeadline.dataOutcome}
+					>
 						{resultHeadline.prefix}
 						<strong>{resultHeadline.value}</strong>
 					</div>
@@ -367,45 +370,3 @@
 		</aside>
 	</div>
 </Page>
-
-<style>
-	.method-summary {
-		margin-bottom: 28px;
-	}
-	.method-summary-head {
-		margin-bottom: 8px;
-	}
-	.method-name {
-		font-size: 13px;
-		font-weight: 600;
-		color: var(--vc-ink);
-	}
-	.proposal-detail-grid {
-		display: grid;
-		gap: 40px;
-		grid-template-columns: 1fr;
-	}
-	@media (min-width: 960px) {
-		.proposal-detail-grid {
-			grid-template-columns: 1.6fr 1fr;
-			align-items: start;
-		}
-	}
-	.outcome-badge {
-		margin-bottom: 16px;
-		padding: 8px 12px;
-		border-radius: var(--vc-radius-sm, 8px);
-		background: var(--vc-surface-2, rgba(0, 0, 0, 0.04));
-		font-size: 14px;
-		color: var(--vc-ink-2);
-	}
-	.outcome-badge[data-outcome='passed'] {
-		background: var(--vc-success-soft, rgba(34, 160, 100, 0.12));
-		color: var(--vc-success-ink, #1a7f53);
-	}
-	.outcome-badge[data-outcome='failed'],
-	.outcome-badge[data-outcome='blocked'] {
-		background: var(--vc-error-soft, rgba(200, 60, 60, 0.12));
-		color: var(--vc-error-ink, #b23b3b);
-	}
-</style>

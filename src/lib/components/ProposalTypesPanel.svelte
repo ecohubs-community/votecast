@@ -50,6 +50,8 @@
 	const isApproval = $derived(methodOption.includes('approval'));
 	// "Who may add questions" only matters once we allow additions during deliberation.
 	let questionPhase = $state<'creation' | 'deliberation'>('creation');
+
+	const checkInline = 'mt-2 flex items-center gap-1.5 text-[13px] text-ink-2';
 </script>
 
 <div class="mb-[18px] flex items-baseline justify-between gap-3">
@@ -71,20 +73,20 @@
 	<Alert variant="success" class="mb-4">{form.typeSuccess}</Alert>
 {/if}
 
-<div class="types-filter">
-	<label class="check-inline">
+<div class="mb-4">
+	<label class={checkInline}>
 		<input type="checkbox" bind:checked={showRetired} />
 		Show retired
 	</label>
 </div>
 
-<section class="types-list">
+<section class="flex flex-col gap-3">
 	{#each visibleTypes as t (t.id)}
 		<div
-			class="type-card rounded-[var(--vc-radius-xl)] border border-line bg-surface p-6 shadow-[var(--vc-shadow-xs)]"
+			class="flex items-start gap-4 rounded-[var(--vc-radius-xl)] border border-line bg-surface p-6 shadow-[var(--vc-shadow-xs)]"
 		>
-			<div class="type-main">
-				<div class="type-head">
+			<div class="min-w-0 flex-1">
+				<div class="flex items-center gap-2.5">
 					<strong>{t.name}</strong>
 					{#if t.retired}<MetaPill>Retired</MetaPill>{/if}
 				</div>
@@ -99,7 +101,7 @@
 						objectionWindowSeconds={t.summary.objectionWindowSeconds}
 						tallyReveal={t.summary.tallyReveal}
 					/>
-					<p class="type-defaults">
+					<p class="mt-2 mb-0 text-[12px] text-muted">
 						{#if t.summary.defaultChoices}
 							Choices: {t.summary.defaultChoices.join(', ')}{t.summary.lockChoices ? ' 🔒' : ''} ·
 						{/if}
@@ -111,7 +113,7 @@
 				{/if}
 			</div>
 
-			<div class="type-actions">
+			<div class="flex shrink-0 flex-col gap-2">
 				<form method="POST" action="?/retireType" use:enhance>
 					<input type="hidden" name="typeId" value={t.id} />
 					<input type="hidden" name="retired" value={t.retired ? 'false' : 'true'} />
@@ -183,7 +185,7 @@
 			</select>
 		</div>
 
-		<div class="grid-2">
+		<div class="grid grid-cols-2 gap-3">
 			<div class="field">
 				<label for="type-delib" class="label">Deliberation (days)</label>
 				<input
@@ -208,7 +210,7 @@
 					value="3"
 					class="input"
 				/>
-				<label class="check-inline">
+				<label class={checkInline}>
 					<input type="checkbox" name="lockVoting" /> Lock — proposers can't change
 				</label>
 			</div>
@@ -220,7 +222,7 @@
 				<option value="community">Members only</option>
 				<option value="public">Public</option>
 			</select>
-			<label class="check-inline">
+			<label class={checkInline}>
 				<input type="checkbox" name="lockVisibility" /> Lock — proposers can't change
 			</label>
 		</div>
@@ -246,7 +248,7 @@
 					</select>
 				{/if}
 
-				<label class="check-inline">
+				<label class={checkInline}>
 					<input type="checkbox" name="lockQuestionContribution" /> Lock — proposers can't change
 				</label>
 				<p class="hint">
@@ -273,7 +275,7 @@
 					class="input"
 					placeholder="For, Against, Abstain"
 				/>
-				<label class="check-inline">
+				<label class={checkInline}>
 					<input type="checkbox" name="lockChoices" /> Lock — proposers can't change
 				</label>
 			</div>
@@ -282,52 +284,3 @@
 		<Button type="submit" variant="accent" class="self-start">Create type</Button>
 	</form>
 </VoteCard>
-
-<style>
-	.types-filter {
-		margin-bottom: 16px;
-	}
-	.types-list {
-		display: flex;
-		flex-direction: column;
-		gap: 12px;
-	}
-	.type-card {
-		display: flex;
-		align-items: flex-start;
-		gap: 16px;
-	}
-	.type-main {
-		flex: 1;
-		min-width: 0;
-	}
-	.type-head {
-		display: flex;
-		align-items: center;
-		gap: 10px;
-	}
-	.type-defaults {
-		margin: 8px 0 0;
-		font-size: 12px;
-		color: var(--vc-muted);
-	}
-	.type-actions {
-		display: flex;
-		flex-direction: column;
-		gap: 8px;
-		flex-shrink: 0;
-	}
-	.check-inline {
-		display: flex;
-		align-items: center;
-		gap: 6px;
-		margin-top: 8px;
-		font-size: 13px;
-		color: var(--vc-ink-2);
-	}
-	.grid-2 {
-		display: grid;
-		gap: 12px;
-		grid-template-columns: 1fr 1fr;
-	}
-</style>

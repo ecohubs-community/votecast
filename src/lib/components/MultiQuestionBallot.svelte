@@ -45,9 +45,13 @@
 	function outcomeLabel(o: string): string {
 		return o === 'passed' ? 'Agreed' : o === 'failed' ? 'Not agreed' : o === 'tie' ? 'Split' : o;
 	}
+
+	const optBase =
+		'inline-flex cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[14px]';
+	const promptCls = 'm-0 mb-2 p-0 text-[15px] font-semibold text-ink';
 </script>
 
-<div class="mq">
+<div>
 	{#if canVote}
 		<form
 			method="POST"
@@ -61,11 +65,15 @@
 			}}
 		>
 			{#each questions as q (q.id)}
-				<fieldset class="mq-q">
-					<legend>{q.prompt}</legend>
+				<fieldset class="m-0 mb-[18px] border-none p-0">
+					<legend class={promptCls}>{q.prompt}</legend>
 					<div class="mq-options">
 						{#each q.choices as c (c.id)}
-							<label class="mq-opt" class:selected={answers[q.id] === c.id}>
+							<label
+								class="{optBase} {answers[q.id] === c.id
+									? 'border-accent bg-accent-soft'
+									: 'border-line'}"
+							>
 								<input type="radio" name={`q_${q.id}`} value={c.id} bind:group={answers[q.id]} />
 								{c.label}
 							</label>
@@ -79,23 +87,31 @@
 		</form>
 	{:else}
 		{#if !hasVoted && voteHint}
-			<p class="mq-hint">{voteHint}</p>
+			<p class="m-0 mb-4 text-[14px] text-muted">{voteHint}</p>
 		{/if}
 		{#each questions as q (q.id)}
 			{@const entry = entryByQuestion.get(q.id)}
-			<div class="mq-q">
-				<p class="mq-prompt">{q.prompt}</p>
+			<div class="m-0 mb-[18px] border-none p-0">
+				<p class={promptCls}>{q.prompt}</p>
 				<div class="mq-options">
 					{#each q.choices as c (c.id)}
-						<span class="mq-opt" class:selected={hasVoted && userAnswers[q.id] === c.id}>
+						<span
+							class="{optBase} {hasVoted && userAnswers[q.id] === c.id
+								? 'border-accent bg-accent-soft'
+								: 'border-line'}"
+						>
 							{c.label}
-							{#if hasVoted && userAnswers[q.id] === c.id}<span class="mq-you">your answer</span
+							{#if hasVoted && userAnswers[q.id] === c.id}<span class="text-[11px] text-muted"
+									>your answer</span
 								>{/if}
 						</span>
 					{/each}
 				</div>
 				{#if showResults && entry}
-					<p class="mq-result" data-outcome={entry.outcome}>
+					<p
+						class="mt-2 mb-0 text-[13px] text-muted data-[outcome=passed]:text-[#1a7f53]"
+						data-outcome={entry.outcome}
+					>
 						{outcomeLabel(entry.outcome)} — {entry.tallyForWeight} agree · {entry.tallyAgainstWeight ??
 							0} disagree
 					</p>
@@ -105,7 +121,7 @@
 	{/if}
 
 	{#if canAddQuestion}
-		<form method="POST" action="?/addQuestion" use:enhance class="mq-add">
+		<form method="POST" action="?/addQuestion" use:enhance class="mt-5 border-t border-line pt-4">
 			{#if form?.questionError}
 				<Alert variant="error" class="mb-2">{form.questionError}</Alert>
 			{/if}
@@ -127,70 +143,6 @@
 			</div>
 		</form>
 	{:else if questionNote}
-		<p class="mq-note">{questionNote}</p>
+		<p class="mt-5 border-t border-line pt-4 text-[13px] text-muted">{questionNote}</p>
 	{/if}
 </div>
-
-<style>
-	.mq-q {
-		border: none;
-		padding: 0;
-		margin: 0 0 18px;
-	}
-	.mq-q legend,
-	.mq-prompt {
-		font-size: 15px;
-		font-weight: 600;
-		color: var(--vc-ink);
-		margin: 0 0 8px;
-		padding: 0;
-	}
-	.mq-options {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 8px;
-	}
-	.mq-opt {
-		display: inline-flex;
-		align-items: center;
-		gap: 6px;
-		padding: 6px 12px;
-		border: 1px solid var(--vc-line);
-		border-radius: 8px;
-		font-size: 14px;
-		cursor: pointer;
-	}
-	.mq-opt.selected {
-		border-color: var(--vc-accent);
-		background: var(--vc-accent-soft);
-	}
-	.mq-you {
-		font-size: 11px;
-		color: var(--vc-muted);
-	}
-	.mq-result {
-		margin: 8px 0 0;
-		font-size: 13px;
-		color: var(--vc-muted);
-	}
-	.mq-result[data-outcome='passed'] {
-		color: var(--vc-success-ink, #1a7f53);
-	}
-	.mq-add {
-		margin-top: 20px;
-		padding-top: 16px;
-		border-top: 1px solid var(--vc-line);
-	}
-	.mq-note {
-		margin: 20px 0 0;
-		padding-top: 16px;
-		border-top: 1px solid var(--vc-line);
-		font-size: 13px;
-		color: var(--vc-muted);
-	}
-	.mq-hint {
-		margin: 0 0 16px;
-		font-size: 14px;
-		color: var(--vc-muted);
-	}
-</style>

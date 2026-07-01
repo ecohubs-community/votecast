@@ -119,6 +119,19 @@
 	function removeQuestion(index: number) {
 		if (questions.length > 1) questions = questions.filter((_, i) => i !== index);
 	}
+
+	const mutedBtn =
+		'cursor-pointer border-none bg-transparent p-0 text-[13px] text-muted hover:text-ink';
+	const tlRow =
+		"relative pb-4 pl-[22px] last:pb-0 before:absolute before:top-[3px] before:left-0.5 before:size-2.5 before:rounded-full before:border-2 before:border-accent before:bg-surface before:box-border before:content-[''] after:absolute after:top-[14px] after:bottom-[-2px] after:left-1.5 after:w-0.5 after:bg-line after:content-[''] last:after:hidden";
+	const tlWhen = 'mb-[3px] block text-[12px] tracking-[0.04em] text-muted uppercase';
+	const tlLine = 'flex flex-wrap items-center gap-2';
+	const tlVal = 'text-[14px] text-ink';
+	const tlEdit =
+		'cursor-pointer border-b border-line-2 bg-transparent p-0 text-[13px] text-accent-ink';
+	const lockedTag =
+		'rounded-[5px] border border-line px-1.5 py-px text-[11px] tracking-[0.05em] text-muted uppercase';
+	const lockedValue = 'flex items-center gap-2 text-[14px] text-ink';
 </script>
 
 <svelte:head>
@@ -145,7 +158,7 @@
 	{/if}
 
 	<form method="POST" use:enhance>
-		<div class="proposal-grid grid grid-cols-1 gap-8">
+		<div class="grid grid-cols-1 gap-8 min-[960px]:grid-cols-[1.4fr_1fr]">
 			<div class="form-stack">
 				<div class="field">
 					<label for="title" class="label">Title</label>
@@ -163,9 +176,9 @@
 
 				<div class="field">
 					{#if showRationale}
-						<div class="rationale-head">
+						<div class="flex items-baseline justify-between gap-3">
 							<span class="label">Rationale <span class="label-optional">optional</span></span>
-							<button type="button" class="link-muted" onclick={() => (showRationale = false)}>
+							<button type="button" class={mutedBtn} onclick={() => (showRationale = false)}>
 								Remove
 							</button>
 						</div>
@@ -176,7 +189,7 @@
 							placeholder="The reasoning behind this proposal — context, trade-offs, why now. Kept separate from the text that's voted on."
 						/>
 					{:else}
-						<button type="button" class="add-rationale" onclick={() => (showRationale = true)}>
+						<button type="button" class={mutedBtn} onclick={() => (showRationale = true)}>
 							+ Add rationale
 						</button>
 					{/if}
@@ -219,9 +232,9 @@
 				<div class="field">
 					<span class="label">Who can see it</span>
 					{#if lockVisibility && selectedType}
-						<p class="locked-value">
+						<p class={lockedValue}>
 							{selectedType.defaultVisibility === 'public' ? 'Public' : 'Members only'}
-							<span class="locked-tag">set by method</span>
+							<span class={lockedTag}>set by method</span>
 						</p>
 						<input type="hidden" name="visibility" value={selectedType.defaultVisibility} />
 					{:else}
@@ -236,40 +249,42 @@
 
 				<div class="field">
 					<span class="label">Timeline</span>
-					<ol class="timeline">
-						<li class="tl-row">
-							<span class="tl-when">Created</span>
-							<span class="tl-line"><span class="tl-val">{fmtDateTime(nowIso)}</span></span>
+					<ol class="m-0 list-none p-0">
+						<li class={tlRow}>
+							<span class={tlWhen}>Created</span>
+							<span class={tlLine}><span class={tlVal}>{fmtDateTime(nowIso)}</span></span>
 						</li>
 						{#if deliberationSeconds > 0}
-							<li class="tl-row">
-								<span class="tl-when">Deliberation opens</span>
-								<span class="tl-line">
-									<span class="tl-val">{fmtDateTime(deliberationStart)}</span>
-									<span class="tl-note">{fmtDuration(deliberationSeconds)} before voting</span>
+							<li class={tlRow}>
+								<span class={tlWhen}>Deliberation opens</span>
+								<span class={tlLine}>
+									<span class={tlVal}>{fmtDateTime(deliberationStart)}</span>
+									<span class="text-[12px] text-muted"
+										>{fmtDuration(deliberationSeconds)} before voting</span
+									>
 								</span>
 							</li>
 						{/if}
-						<li class="tl-row">
-							<span class="tl-when">Voting opens</span>
-							<span class="tl-line">
+						<li class={tlRow}>
+							<span class={tlWhen}>Voting opens</span>
+							<span class={tlLine}>
 								{#if editStart && !lockVoting}
 									<input
 										type="datetime-local"
 										name="startTime"
 										bind:value={startTime}
 										min={minStart}
-										class="input tl-input"
+										class="input max-w-[230px]"
 									/>
-									<button type="button" class="tl-edit" onclick={() => (editStart = false)}>
+									<button type="button" class={tlEdit} onclick={() => (editStart = false)}>
 										Done
 									</button>
 								{:else}
-									<span class="tl-val">{fmtDateTime(startTime)}</span>
+									<span class={tlVal}>{fmtDateTime(startTime)}</span>
 									{#if lockVoting}
-										<span class="locked-tag">set by method</span>
+										<span class={lockedTag}>set by method</span>
 									{:else}
-										<button type="button" class="tl-edit" onclick={() => (editStart = true)}>
+										<button type="button" class={tlEdit} onclick={() => (editStart = true)}>
 											Edit
 										</button>
 									{/if}
@@ -277,26 +292,26 @@
 								{/if}
 							</span>
 						</li>
-						<li class="tl-row">
-							<span class="tl-when">Voting closes</span>
-							<span class="tl-line">
+						<li class={tlRow}>
+							<span class={tlWhen}>Voting closes</span>
+							<span class={tlLine}>
 								{#if editEnd && !lockVoting}
 									<input
 										type="datetime-local"
 										name="endTime"
 										bind:value={endTime}
 										min={startTime}
-										class="input tl-input"
+										class="input max-w-[230px]"
 									/>
-									<button type="button" class="tl-edit" onclick={() => (editEnd = false)}>
+									<button type="button" class={tlEdit} onclick={() => (editEnd = false)}>
 										Done
 									</button>
 								{:else}
-									<span class="tl-val">{fmtDateTime(endTime)}</span>
+									<span class={tlVal}>{fmtDateTime(endTime)}</span>
 									{#if lockVoting}
-										<span class="locked-tag">set by method</span>
+										<span class={lockedTag}>set by method</span>
 									{:else}
-										<button type="button" class="tl-edit" onclick={() => (editEnd = true)}>
+										<button type="button" class={tlEdit} onclick={() => (editEnd = true)}>
 											Edit
 										</button>
 									{/if}
@@ -306,7 +321,7 @@
 						</li>
 					</ol>
 					{#if timelineError}
-						<p class="field-error">{timelineError}</p>
+						<p class="mt-2.5 mb-0 text-[13px] text-danger">{timelineError}</p>
 					{/if}
 				</div>
 
@@ -359,14 +374,14 @@
 							</Button>
 						{/if}
 
-						<div class="mq-contrib">
+						<div class="mt-4 flex flex-col gap-1.5">
 							<span class="label">Adding more questions later</span>
 							{#if lockQuestionContribution}
-								<p class="locked-value">
+								<p class={lockedValue}>
 									{qPhase === 'creation'
 										? 'Fixed at creation'
 										: `During deliberation — ${qWho === 'members' ? 'any member' : 'proposer only'}`}
-									<span class="locked-tag">set by method</span>
+									<span class={lockedTag}>set by method</span>
 								</p>
 								<input type="hidden" name="questionContributionPhase" value={qPhase} />
 								<input type="hidden" name="questionContributors" value={qWho} />
@@ -384,13 +399,13 @@
 							{/if}
 						</div>
 					{:else if lockChoices}
-						<ul class="locked-choices">
+						<ul class="m-0 flex list-none flex-col gap-1.5 p-0 text-[14px]">
 							{#each choices as choice, i (i)}
 								<li>{choice}</li>
 								<input type="hidden" name="choices" value={choice} />
 							{/each}
 						</ul>
-						<p class="hint"><span class="locked-tag">set by method</span></p>
+						<p class="hint"><span class={lockedTag}>set by method</span></p>
 					{:else}
 						<div class="flex flex-col gap-2">
 							<!-- eslint-disable-next-line @typescript-eslint/no-unused-vars -- index-only loop; the value is bound via choices[i] since each-block primitives aren't writable refs -->
@@ -440,142 +455,3 @@
 		</div>
 	</form>
 </Page>
-
-<style>
-	@media (min-width: 960px) {
-		.proposal-grid {
-			grid-template-columns: 1.4fr 1fr !important;
-		}
-	}
-
-	/* Rationale — low-weight affordances */
-	.rationale-head {
-		display: flex;
-		align-items: baseline;
-		justify-content: space-between;
-		gap: 12px;
-	}
-	.add-rationale,
-	.link-muted {
-		font: inherit;
-		font-size: 13px;
-		background: none;
-		border: none;
-		padding: 0;
-		color: var(--vc-muted);
-		cursor: pointer;
-	}
-	.add-rationale:hover,
-	.link-muted:hover {
-		color: var(--vc-ink);
-	}
-
-	/* Vertical timeline with dots + connecting lines */
-	.timeline {
-		list-style: none;
-		margin: 0;
-		padding: 0;
-	}
-	.tl-row {
-		position: relative;
-		padding: 0 0 16px 22px;
-	}
-	.tl-row:last-child {
-		padding-bottom: 0;
-	}
-	.tl-row::before {
-		content: '';
-		position: absolute;
-		left: 2px;
-		top: 3px;
-		width: 10px;
-		height: 10px;
-		border-radius: 50%;
-		background: var(--vc-surface);
-		border: 2px solid var(--vc-accent);
-		box-sizing: border-box;
-	}
-	.tl-row::after {
-		content: '';
-		position: absolute;
-		left: 6px;
-		top: 14px;
-		bottom: -2px;
-		width: 2px;
-		background: var(--vc-line);
-	}
-	.tl-row:last-child::after {
-		display: none;
-	}
-	.tl-when {
-		display: block;
-		font-size: 12px;
-		text-transform: uppercase;
-		letter-spacing: 0.04em;
-		color: var(--vc-muted);
-		margin-bottom: 3px;
-	}
-	.tl-line {
-		display: flex;
-		align-items: center;
-		gap: 8px;
-		flex-wrap: wrap;
-	}
-	.tl-val {
-		font-size: 14px;
-		color: var(--vc-ink);
-	}
-	.tl-note {
-		font-size: 12px;
-		color: var(--vc-muted);
-	}
-	.field-error {
-		margin: 10px 0 0;
-		font-size: 13px;
-		color: var(--vc-danger, #c0392b);
-	}
-	.tl-input {
-		max-width: 230px;
-	}
-	.tl-edit {
-		font: inherit;
-		font-size: 13px;
-		background: none;
-		border: none;
-		color: var(--vc-accent-ink, var(--vc-accent));
-		cursor: pointer;
-		padding: 0;
-		border-bottom: 1px solid var(--vc-line-2);
-	}
-	.mq-contrib {
-		margin-top: 16px;
-		display: flex;
-		flex-direction: column;
-		gap: 6px;
-	}
-	.locked-value {
-		font-size: 14px;
-		color: var(--vc-ink);
-		display: flex;
-		align-items: center;
-		gap: 8px;
-	}
-	.locked-choices {
-		list-style: none;
-		margin: 0;
-		padding: 0;
-		display: flex;
-		flex-direction: column;
-		gap: 6px;
-		font-size: 14px;
-	}
-	.locked-tag {
-		font-size: 11px;
-		text-transform: uppercase;
-		letter-spacing: 0.05em;
-		color: var(--vc-muted);
-		border: 1px solid var(--vc-line);
-		border-radius: 5px;
-		padding: 1px 6px;
-	}
-</style>

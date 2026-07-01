@@ -9,7 +9,7 @@
 </script>
 
 <div
-	class="ballot relative overflow-hidden rounded-[var(--vc-radius-2xl)] border border-line bg-surface p-7 shadow-[var(--vc-shadow-xs),var(--vc-shadow-lg)] max-[1020px]:max-w-[520px]"
+	class="relative overflow-hidden rounded-[var(--vc-radius-2xl)] border border-line bg-surface p-7 shadow-[var(--vc-shadow-xs),var(--vc-shadow-lg)] before:pointer-events-none before:absolute before:inset-0 before:bg-[radial-gradient(120%_50%_at_100%_0%,var(--vc-accent-soft),transparent_60%)] before:content-[''] max-[1020px]:max-w-[520px]"
 	role="group"
 	aria-label="Sample proposal"
 >
@@ -18,7 +18,7 @@
 			Proposal · 014
 		</span>
 		<span
-			class="ballot-status inline-flex items-center gap-1.5 rounded-full bg-accent-soft px-2.5 py-1 text-xs text-accent-ink"
+			class="inline-flex items-center gap-1.5 rounded-full bg-accent-soft px-2.5 py-1 text-xs text-accent-ink before:size-1.5 before:animate-[vc-pulse_1.8s_infinite] before:rounded-full before:bg-accent before:content-['']"
 		>
 			Open · 2 days left
 		</span>
@@ -31,92 +31,23 @@
 	<p class="relative mb-[22px] text-[13px] text-muted">41 members eligible · 28 votes cast</p>
 	<div class="relative grid gap-2.5">
 		{#each options as option (option.id)}
+			{@const isSel = selected === option.id}
 			<button
 				type="button"
-				class="ballot-opt"
-				class:selected={selected === option.id}
+				class="flex w-full cursor-pointer items-center gap-3.5 rounded-[var(--vc-radius-lg)] border bg-bg px-4 py-3.5 text-left transition-[border-color,background,transform] duration-[var(--vc-duration-base)] ease-[var(--vc-ease)] {isSel
+					? 'border-accent bg-accent-soft'
+					: 'border-line hover:border-line-2'}"
 				onclick={() => (selected = option.id)}
 			>
-				<span class="radio" aria-hidden="true"></span>
-				<span class="label">{option.label}</span>
-				<span class="pct">{option.pct}%</span>
+				<span
+					class="inline-flex size-[18px] shrink-0 items-center justify-center rounded-full border-[1.5px] transition-[border-color] duration-[var(--vc-duration-base)] ease-[var(--vc-ease)] {isSel
+						? "border-accent after:size-2 after:rounded-full after:bg-accent after:content-['']"
+						: 'border-line-2'}"
+					aria-hidden="true"
+				></span>
+				<span class="text-[15px] font-medium">{option.label}</span>
+				<span class="ml-auto font-mono text-[12px] text-muted">{option.pct}%</span>
 			</button>
 		{/each}
 	</div>
 </div>
-
-<style>
-	/* Only the bits utilities can't express cleanly: a radial-gradient sheen, the pulsing status dot,
-	   and the interactive option + radio (state-driven child + ::after fill). */
-	.ballot::before {
-		content: '';
-		position: absolute;
-		inset: 0;
-		background: radial-gradient(120% 50% at 100% 0%, var(--vc-accent-soft), transparent 60%);
-		pointer-events: none;
-	}
-	.ballot-status::before {
-		content: '';
-		width: 6px;
-		height: 6px;
-		border-radius: 50%;
-		background: var(--vc-accent);
-		animation: vc-pulse 1.8s infinite;
-	}
-	.ballot-opt {
-		display: flex;
-		align-items: center;
-		gap: 14px;
-		padding: 14px 16px;
-		border: var(--vc-border);
-		border-radius: var(--vc-radius-lg);
-		background: var(--vc-bg);
-		transition:
-			border-color var(--vc-duration-base) var(--vc-ease),
-			background var(--vc-duration-base) var(--vc-ease),
-			transform var(--vc-duration-fast) var(--vc-ease);
-		cursor: pointer;
-		font: inherit;
-		color: inherit;
-		text-align: left;
-		width: 100%;
-	}
-	.ballot-opt:hover {
-		border-color: var(--vc-line-2);
-	}
-	.ballot-opt.selected {
-		border-color: var(--vc-accent);
-		background: var(--vc-accent-soft);
-	}
-	.ballot-opt .radio {
-		width: 18px;
-		height: 18px;
-		border-radius: 50%;
-		border: 1.5px solid var(--vc-line-2);
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		flex-shrink: 0;
-		transition: border-color var(--vc-duration-base) var(--vc-ease);
-	}
-	.ballot-opt.selected .radio {
-		border-color: var(--vc-accent);
-	}
-	.ballot-opt.selected .radio::after {
-		content: '';
-		width: 8px;
-		height: 8px;
-		border-radius: 50%;
-		background: var(--vc-accent);
-	}
-	.ballot-opt .label {
-		font-size: 15px;
-		font-weight: var(--vc-weight-medium);
-	}
-	.ballot-opt .pct {
-		margin-left: auto;
-		font-family: var(--vc-font-mono);
-		font-size: 12px;
-		color: var(--vc-muted);
-	}
-</style>

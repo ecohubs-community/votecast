@@ -6,6 +6,11 @@
 	import PageSub from '$lib/components/PageSub.svelte';
 	import type { PageData } from './$types';
 	let { data }: { data: PageData } = $props();
+
+	const subhead = 'mt-4 mb-2 text-[13px] tracking-[0.06em] text-muted uppercase';
+	const list =
+		'm-0 flex list-none flex-col gap-1.5 p-0 [&_code]:font-mono [&_code]:text-[13px] [&_li]:flex [&_li]:flex-wrap [&_li]:items-center [&_li]:gap-2.5';
+	const tag = 'text-[12px] text-muted';
 </script>
 
 <svelte:head>
@@ -26,61 +31,29 @@
 	</PageHead>
 
 	<VoteCard as="section" title="Method modules" class="mb-6">
-		<h3 class="ext-subhead">Ballots</h3>
-		<ul class="ext-list">
+		<h3 class={subhead}>Ballots</h3>
+		<ul class={list}>
 			{#each data.ballotModules as m (m.id)}
-				<li><code>{m.id}</code><span class="ext-tag">{m.tallyFamily}</span></li>
+				<li><code>{m.id}</code><span class={tag}>{m.tallyFamily}</span></li>
 			{/each}
 		</ul>
 
-		<h3 class="ext-subhead">Decision rules</h3>
-		<ul class="ext-list">
+		<h3 class={subhead}>Decision rules</h3>
+		<ul class={list}>
 			{#each data.decisionRules as r (r.id)}
-				<li><code>{r.id}</code><span class="ext-tag">accepts {r.accepts}</span></li>
+				<li><code>{r.id}</code><span class={tag}>accepts {r.accepts}</span></li>
 			{/each}
 		</ul>
 	</VoteCard>
 
 	<VoteCard as="section" title="Event plugins">
-		<ul class="ext-list">
+		<ul class={list}>
 			{#each data.plugins as p (p.name)}
 				<li>
 					<code>{p.name}</code>
-					<span class="ext-tag">{p.events.join(', ')}</span>
+					<span class={tag}>{p.events.join(', ')}</span>
 				</li>
 			{/each}
 		</ul>
 	</VoteCard>
 </Page>
-
-<style>
-	.ext-subhead {
-		font-size: 13px;
-		text-transform: uppercase;
-		letter-spacing: 0.06em;
-		color: var(--vc-muted);
-		margin: 16px 0 8px;
-	}
-	.ext-list {
-		list-style: none;
-		margin: 0;
-		padding: 0;
-		display: flex;
-		flex-direction: column;
-		gap: 6px;
-	}
-	.ext-list li {
-		display: flex;
-		align-items: center;
-		gap: 10px;
-		flex-wrap: wrap;
-	}
-	.ext-list code {
-		font-family: var(--vc-font-mono, monospace);
-		font-size: 13px;
-	}
-	.ext-tag {
-		font-size: 12px;
-		color: var(--vc-muted);
-	}
-</style>
