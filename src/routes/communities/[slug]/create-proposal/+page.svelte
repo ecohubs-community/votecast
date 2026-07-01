@@ -118,7 +118,7 @@
 	<meta name="robots" content="noindex, nofollow" />
 </svelte:head>
 
-<div class="page" style="max-width: 1100px;">
+<div class="page">
 	<a href={resolve(`/communities/${data.community.slug}`)} class="breadcrumb"
 		>{data.community.name}</a
 	>

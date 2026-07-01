@@ -757,6 +757,10 @@ body {
 
 /* ─────────────────────────────────────────────────────────────
    Page chrome — wrappers, headers, breadcrumbs
+
+   Content width is owned HERE, not per page. Every page wraps its content in `.page` (full container
+   width), `.page-narrow` (forms), or `.page-wide`. Do NOT set an inline `max-width` on a page wrapper
+   — that silently drifts from the shared width and is why detail/create pages used to look narrower.
    ───────────────────────────────────────────────────────────── */
 .page {
 	max-width: var(--vc-container);
