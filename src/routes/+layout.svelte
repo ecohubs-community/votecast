@@ -237,17 +237,21 @@
 	{@render children()}
 </main>
 
-<footer class="site-footer">
-	<div class="wrap footer-inner">
+<footer class="mt-[clamp(40px,6vw,80px)] border-t border-line pt-12 pb-14">
+	<div class="wrap flex flex-wrap items-center justify-between gap-6">
 		<div class="brand" style="font-size:18px;">
 			<img src={logo} alt="" class="brand-logo" />
 			VoteCast
 		</div>
-		<div class="footer-links">
+		<div
+			class="flex gap-5 [&_a]:text-[13px] [&_a]:text-ink-2 [&_a]:no-underline [&_a]:transition-colors [&_a]:duration-[var(--vc-duration-fast)] [&_a]:ease-[var(--vc-ease)] [&_a:hover]:text-accent-ink"
+		>
 			<a href={resolve('/')}>Communities</a>
 			<a href={resolve('/extensions')}>Extensions</a>
 			<a href={resolve('/')}>About</a>
 		</div>
-		<div class="footer-meta">© {new Date().getFullYear()} · made for real communities</div>
+		<div class="font-mono text-xs tracking-[var(--vc-tracking-mono)] text-muted">
+			© {new Date().getFullYear()} · made for real communities
+		</div>
 	</div>
 </footer>

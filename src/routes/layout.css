@@ -529,39 +529,6 @@ body {
 	max-width: 32ch;
 }
 
-/* ---------- Footer ---------- */
-.site-footer {
-	border-top: 1px solid var(--vc-line);
-	padding: 48px 0 56px;
-	margin-top: clamp(40px, 6vw, 80px);
-}
-.footer-inner {
-	display: flex;
-	gap: var(--vc-space-6);
-	justify-content: space-between;
-	align-items: center;
-	flex-wrap: wrap;
-}
-.footer-meta {
-	font-size: 12px;
-	color: var(--vc-muted);
-	font-family: var(--vc-font-mono);
-	letter-spacing: var(--vc-tracking-mono);
-}
-.footer-links {
-	display: flex;
-	gap: var(--vc-space-5);
-}
-.footer-links a {
-	font-size: 13px;
-	color: var(--vc-ink-2);
-	transition: color var(--vc-duration-fast) var(--vc-ease);
-	text-decoration: none;
-}
-.footer-links a:hover {
-	color: var(--vc-accent-ink);
-}
-
 /* ---------- Avatar menu ---------- */
 .avatar-menu {
 	position: absolute;
