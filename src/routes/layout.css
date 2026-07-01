@@ -436,33 +436,6 @@ select.input,
 	flex-shrink: 0;
 }
 /* ─────────────────────────────────────────────────────────────
-   Voting card (proposal detail)
-   ───────────────────────────────────────────────────────────── */
-.vote-card {
-	background: var(--vc-surface);
-	border: 1px solid var(--vc-line);
-	border-radius: var(--vc-radius-xl);
-	padding: 24px;
-	box-shadow: var(--vc-shadow-xs);
-}
-.vote-card-head {
-	display: flex;
-	align-items: baseline;
-	justify-content: space-between;
-	gap: var(--vc-space-3);
-	margin-bottom: 18px;
-}
-.vote-card-title {
-	font-family: var(--vc-font-display);
-	font-weight: var(--vc-weight-display);
-	font-size: var(--vc-text-xl);
-	line-height: 1.2;
-	letter-spacing: -0.01em;
-	color: var(--vc-ink);
-	margin: 0;
-}
-
-/* ─────────────────────────────────────────────────────────────
    Visibility/meta inline badges
    ───────────────────────────────────────────────────────────── */
 .meta-pill {

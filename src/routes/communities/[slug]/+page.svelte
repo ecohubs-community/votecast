@@ -6,6 +6,7 @@
 	import Alert from '$lib/components/Alert.svelte';
 	import Tabs from '$lib/components/Tabs.svelte';
 	import Tab from '$lib/components/Tab.svelte';
+	import VoteCard from '$lib/components/VoteCard.svelte';
 	import { formatRelativeTime } from '$lib/utils/format';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
@@ -155,11 +156,7 @@
 	</header>
 
 	{#if showInviteForm && data.membership?.role === 'admin'}
-		<section class="vote-card" style="margin-bottom: 32px;">
-			<div class="vote-card-head">
-				<h3 class="vote-card-title">Generate an invite link</h3>
-			</div>
-
+		<VoteCard as="section" title="Generate an invite link" titleAs="h3" class="mb-8">
 			{#if form?.inviteError}
 				<Alert variant="error" class="mb-4">{form.inviteError}</Alert>
 			{/if}
@@ -207,7 +204,7 @@
 
 				<Button type="submit" variant="primary">Generate link</Button>
 			</form>
-		</section>
+		</VoteCard>
 	{/if}
 
 	<Tabs>

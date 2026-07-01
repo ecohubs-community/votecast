@@ -10,6 +10,7 @@
 	import Alert from '$lib/components/Alert.svelte';
 	import Tabs from '$lib/components/Tabs.svelte';
 	import Tab from '$lib/components/Tab.svelte';
+	import VoteCard from '$lib/components/VoteCard.svelte';
 	import VisibilityPill from '$lib/components/VisibilityPill.svelte';
 	import { formatRelativeTime } from '$lib/utils/format';
 	import { ballotLabel, ruleLabel } from '$lib/utils/method-labels';
@@ -215,18 +216,15 @@
 		</div>
 
 		<aside>
-			<div class="vote-card">
-				<div class="vote-card-head">
-					<h2 class="vote-card-title">
-						{votingState === 'can-vote' ? 'Your vote' : 'Result'}
-					</h2>
+			<VoteCard title={votingState === 'can-vote' ? 'Your vote' : 'Result'}>
+				{#snippet actions()}
 					{#if showResults}
 						<span class="font-mono text-xs tracking-[var(--vc-tracking-mono)] text-muted uppercase">
 							{data.results.totalVotes}
 							{data.results.totalVotes === 1 ? 'vote' : 'votes'}
 						</span>
 					{/if}
-				</div>
+				{/snippet}
 
 				{#if resultHeadline && !data.isMultiQuestion}
 					<div class="outcome-badge" data-outcome={resultHeadline.dataOutcome}>
@@ -368,7 +366,7 @@
 						</p>
 					{/if}
 				{/if}
-			</div>
+			</VoteCard>
 		</aside>
 	</div>
 </div>

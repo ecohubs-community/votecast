@@ -1,4 +1,5 @@
 <script lang="ts">
+	import VoteCard from '$lib/components/VoteCard.svelte';
 	import type { PageData } from './$types';
 	let { data }: { data: PageData } = $props();
 </script>
@@ -20,9 +21,7 @@
 		</div>
 	</header>
 
-	<section class="vote-card" style="margin-bottom: 24px;">
-		<div class="vote-card-head"><h2 class="vote-card-title">Method modules</h2></div>
-
+	<VoteCard as="section" title="Method modules" class="mb-6">
 		<h3 class="ext-subhead">Ballots</h3>
 		<ul class="ext-list">
 			{#each data.ballotModules as m (m.id)}
@@ -36,10 +35,9 @@
 				<li><code>{r.id}</code><span class="ext-tag">accepts {r.accepts}</span></li>
 			{/each}
 		</ul>
-	</section>
+	</VoteCard>
 
-	<section class="vote-card">
-		<div class="vote-card-head"><h2 class="vote-card-title">Event plugins</h2></div>
+	<VoteCard as="section" title="Event plugins">
 		<ul class="ext-list">
 			{#each data.plugins as p (p.name)}
 				<li>
@@ -48,7 +46,7 @@
 				</li>
 			{/each}
 		</ul>
-	</section>
+	</VoteCard>
 </div>
 
 <style>

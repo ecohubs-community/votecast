@@ -10,6 +10,7 @@
 	import Alert from '$lib/components/Alert.svelte';
 	import Tabs from '$lib/components/Tabs.svelte';
 	import Tab from '$lib/components/Tab.svelte';
+	import VoteCard from '$lib/components/VoteCard.svelte';
 	import type { PageData, ActionData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -324,7 +325,7 @@
 		{#if webhooks.length > 0}
 			<div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px;">
 				{#each webhooks as wh (wh.id)}
-					<div class="vote-card" style="padding: 18px 20px;">
+					<VoteCard padded={false} class="px-5 py-[18px]">
 						<div
 							style="display: flex; gap: 16px; align-items: start; justify-content: space-between;"
 						>
@@ -354,7 +355,7 @@
 								>
 							</div>
 						</div>
-					</div>
+					</VoteCard>
 				{/each}
 			</div>
 		{:else}
@@ -363,11 +364,7 @@
 			</div>
 		{/if}
 
-		<div class="vote-card">
-			<div class="vote-card-head">
-				<h3 class="vote-card-title">Add a webhook</h3>
-			</div>
-
+		<VoteCard title="Add a webhook" titleAs="h3">
 			{#if webhookError}
 				<Alert variant="error" class="mb-4">{webhookError}</Alert>
 			{/if}
@@ -418,7 +415,7 @@
 					</Button>
 				</div>
 			</form>
-		</div>
+		</VoteCard>
 	{:else if activeTab === 'danger'}
 		{#if form?.dangerError}
 			<Alert variant="error" class="mb-5">{form.dangerError}</Alert>

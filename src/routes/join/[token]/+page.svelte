@@ -3,6 +3,7 @@
 	import { resolve } from '$app/paths';
 	import Button from '$lib/components/Button.svelte';
 	import Alert from '$lib/components/Alert.svelte';
+	import VoteCard from '$lib/components/VoteCard.svelte';
 	import type { PageData, ActionData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -14,7 +15,7 @@
 </svelte:head>
 
 <div class="page-narrow">
-	<div class="vote-card" style="text-align: center; padding: 40px 32px;">
+	<VoteCard padded={false} class="px-8 py-10 text-center">
 		<p
 			style="font-family: var(--vc-font-mono); font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--vc-muted); margin: 0 0 16px;"
 		>
@@ -83,5 +84,5 @@
 				</Button>
 			</div>
 		{/if}
-	</div>
+	</VoteCard>
 </div>

@@ -4,6 +4,7 @@
 	import MethodFlow from './MethodFlow.svelte';
 	import Button from '$lib/components/Button.svelte';
 	import Alert from '$lib/components/Alert.svelte';
+	import VoteCard from '$lib/components/VoteCard.svelte';
 
 	type TypeSummary = {
 		ballotModuleId: string;
@@ -49,8 +50,12 @@
 	let questionPhase = $state<'creation' | 'deliberation'>('creation');
 </script>
 
-<div class="vote-card-head">
-	<h2 class="vote-card-title">Proposal types</h2>
+<div class="mb-[18px] flex items-baseline justify-between gap-3">
+	<h2
+		class="m-0 font-display text-[length:var(--vc-text-xl)] leading-[1.2] font-normal tracking-[-0.01em] text-ink"
+	>
+		Proposal types
+	</h2>
 	<p class="page-sub" style="margin: 4px 0 0;">
 		Types bundle a voting method, timings, and defaults. Editing a method makes a new version;
 		existing proposals keep the version they were created with.
@@ -73,7 +78,9 @@
 
 <section class="types-list">
 	{#each visibleTypes as t (t.id)}
-		<div class="vote-card type-card">
+		<div
+			class="type-card rounded-[var(--vc-radius-xl)] border border-line bg-surface p-6 shadow-[var(--vc-shadow-xs)]"
+		>
 			<div class="type-main">
 				<div class="type-head">
 					<strong>{t.name}</strong>
@@ -134,9 +141,7 @@
 	{/if}
 </section>
 
-<section class="vote-card" style="margin-top: 24px;">
-	<div class="vote-card-head"><h3 class="vote-card-title">New type</h3></div>
-
+<VoteCard as="section" title="New type" titleAs="h3" class="mt-6">
 	<form method="POST" action="?/createType" use:enhance class="form-stack">
 		<div class="field">
 			<label for="type-name" class="label">Name</label>
@@ -274,7 +279,7 @@
 
 		<Button type="submit" variant="accent" class="self-start">Create type</Button>
 	</form>
-</section>
+</VoteCard>
 
 <style>
 	.types-filter {
