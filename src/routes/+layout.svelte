@@ -75,8 +75,6 @@
 		}
 	}
 
-	const brand = 'inline-flex items-center gap-2.5 font-display tracking-[-0.01em] text-ink';
-	const brandLogo = 'inline-block size-6 object-contain';
 	const navLinkBase =
 		'cursor-pointer rounded-full border-0 bg-transparent text-[14px] text-ink-2 no-underline transition-[background,color] duration-[var(--vc-duration-fast)] ease-[var(--vc-ease)] hover:bg-bg-2 hover:text-ink';
 	const navLink = `${navLinkBase} px-3 py-2`;
@@ -101,8 +99,8 @@
 	<div
 		class="mx-auto flex max-w-[var(--vc-container)] items-center justify-between gap-6 px-[var(--vc-pad-x)] py-[18px]"
 	>
-		<a href={resolve('/')} class="{brand} text-[22px]">
-			<img src={logo} alt="" class={brandLogo} />
+		<a href={resolve('/')} class="inline-flex items-center gap-2.5 font-display tracking-[-0.01em] text-ink text-[22px]">
+			<img src={logo} alt="" class="inline-block size-6 object-contain" />
 			VoteCast
 		</a>
 
@@ -263,8 +261,8 @@
 
 <footer class="mt-[clamp(40px,6vw,80px)] border-t border-line pt-12 pb-14">
 	<Wrap class="flex flex-wrap items-center justify-between gap-6">
-		<div class="{brand} text-[18px]">
-			<img src={logo} alt="" class={brandLogo} />
+		<div class="inline-flex items-center gap-2.5 font-display tracking-[-0.01em] text-ink text-[18px]">
+			<img src={logo} alt="" class="inline-block size-6 object-contain" />
 			VoteCast
 		</div>
 		<div

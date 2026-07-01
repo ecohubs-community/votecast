@@ -46,9 +46,6 @@
 		return o === 'passed' ? 'Agreed' : o === 'failed' ? 'Not agreed' : o === 'tie' ? 'Split' : o;
 	}
 
-	const optBase =
-		'inline-flex cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[14px]';
-	const promptCls = 'm-0 mb-2 p-0 text-[15px] font-semibold text-ink';
 </script>
 
 <div>
@@ -66,11 +63,11 @@
 		>
 			{#each questions as q (q.id)}
 				<fieldset class="m-0 mb-[18px] border-none p-0">
-					<legend class={promptCls}>{q.prompt}</legend>
-					<div class="mq-options">
+					<legend class="m-0 mb-2 p-0 text-[15px] font-semibold text-ink">{q.prompt}</legend>
+					<div class="flex flex-wrap gap-2">
 						{#each q.choices as c (c.id)}
 							<label
-								class="{optBase} {answers[q.id] === c.id
+								class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[14px] {answers[q.id] === c.id
 									? 'border-accent bg-accent-soft'
 									: 'border-line'}"
 							>
@@ -91,12 +88,12 @@
 		{/if}
 		{#each questions as q (q.id)}
 			{@const entry = entryByQuestion.get(q.id)}
-			<div class="m-0 mb-[18px] border-none p-0">
-				<p class={promptCls}>{q.prompt}</p>
-				<div class="mq-options">
+			<div class="m-0 mb-4.5 border-none p-0">
+				<p class="m-0 mb-2 p-0 text-[15px] font-semibold text-ink">{q.prompt}</p>
+				<div class="flex flex-wrap gap-2">
 					{#each q.choices as c (c.id)}
 						<span
-							class="{optBase} {hasVoted && userAnswers[q.id] === c.id
+							class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[14px] {hasVoted && userAnswers[q.id] === c.id
 								? 'border-accent bg-accent-soft'
 								: 'border-line'}"
 						>
