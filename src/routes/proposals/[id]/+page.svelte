@@ -254,7 +254,7 @@
 						{votingState === 'can-vote' ? 'Your vote' : 'Result'}
 					</h2>
 					{#if showResults}
-						<span class="vote-card-count">
+						<span class="font-mono text-xs tracking-[var(--vc-tracking-mono)] text-muted uppercase">
 							{data.results.totalVotes}
 							{data.results.totalVotes === 1 ? 'vote' : 'votes'}
 						</span>

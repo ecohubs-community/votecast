@@ -190,8 +190,8 @@ body {
    Page chrome — wrappers, headers, breadcrumbs
 
    Content width is owned HERE, not per page. Every page wraps its content in `.page` (full container
-   width), `.page-narrow` (forms), or `.page-wide`. Do NOT set an inline `max-width` on a page wrapper
-   — that silently drifts from the shared width and is why detail/create pages used to look narrower.
+   width) or `.page-narrow` (forms). Do NOT set an inline `max-width` on a page wrapper — that silently
+   drifts from the shared width and is why detail/create pages used to look narrower.
    ───────────────────────────────────────────────────────────── */
 .page {
 	max-width: var(--vc-container);
@@ -202,11 +202,6 @@ body {
 	max-width: 560px;
 	margin: 0 auto;
 	padding: clamp(48px, 7vw, 96px) var(--vc-pad-x) clamp(40px, 6vw, 80px);
-}
-.page-wide {
-	max-width: var(--vc-container);
-	margin: 0 auto;
-	padding: clamp(24px, 4vw, 48px) var(--vc-pad-x) clamp(40px, 6vw, 80px);
 }
 
 .page-head {
@@ -636,13 +631,6 @@ select.input,
 	letter-spacing: -0.01em;
 	color: var(--vc-ink);
 	margin: 0;
-}
-.vote-card-count {
-	font-family: var(--vc-font-mono);
-	font-size: var(--vc-text-xs);
-	letter-spacing: var(--vc-tracking-mono);
-	text-transform: uppercase;
-	color: var(--vc-muted);
 }
 
 .choice {
