@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { createTestDb, seedUser, seedCommunity, seedMember, type TestDb } from './test-helpers';
 import { createProposalType, listTypeVersions } from './proposal-type-admin-service';
-import { createProposal } from './proposal-service';
-import { castMultiQuestionVote } from './vote-service';
-import { tallyProposal } from './proposal-results';
+import { createProposal, updateProposal } from './proposal-service';
+import { castMultiQuestionVote, getProposalVoters } from './vote-service';
+import { tallyProposal, aggregateResults } from './proposal-results';
 import { addSubquestion } from './subquestion-service';
 import { loadQuestions } from './multi-question';
 
@@ -131,6 +131,64 @@ describe('multi-question tally end-to-end (5b.1)', () => {
 		expect(rs.outcome).toBe('recorded');
 		expect(rs.entries.find((e) => e.key === q1.id)?.outcome).toBe('passed'); // 2 agree
 		expect(rs.entries.find((e) => e.key === q2.id)?.outcome).toBe('tie'); // 1 agree, 1 disagree
+	});
+
+	it('counts ballots (voters), not per-question selections, in aggregateResults (review fix)', async () => {
+		const typeVersionId = await mqTypeVersion();
+		const p = await createProposal(
+			adminId,
+			{
+				communityId,
+				title: 'Count me once',
+				body: 'Body text here',
+				choices: [],
+				questions: ['Q1', 'Q2', 'Q3'],
+				startTime: new Date(Date.now() - 1000),
+				endTime: future(3_600_000),
+				typeVersionId
+			},
+			db
+		);
+		const qs = await loadQuestions(p.id, db);
+		const answerAll = async (uid: string) =>
+			castMultiQuestionVote(
+				uid,
+				{ proposalId: p.id, answers: qs.map((q) => ({ questionId: q.id, choiceId: q.choices[0].id })) },
+				db
+			);
+		await answerAll(adminId);
+		const u2 = await seedUser(db);
+		await seedMember(db, communityId, u2.id);
+		await answerAll(u2.id);
+
+		// 2 voters × 3 questions = 6 selections, but the headline count must be 2 voters.
+		expect((await aggregateResults(p.id, db)).totalVotes).toBe(2);
+
+		// Voter list shows each voter once (not once per question), with no flat choice label.
+		const voters = await getProposalVoters(p.id, db, 'admin');
+		expect(voters).toHaveLength(2);
+		expect(voters.every((v) => v.choiceLabel === null)).toBe(true);
+	});
+
+	it('rejects editing choices on a multi-question proposal (review fix)', async () => {
+		const typeVersionId = await mqTypeVersion();
+		const p = await createProposal(
+			adminId,
+			{
+				communityId,
+				title: 'No choice edits',
+				body: 'Body text here',
+				choices: [],
+				questions: ['Q1'],
+				startTime: future(60_000),
+				endTime: future(3_600_000),
+				typeVersionId
+			},
+			db
+		);
+		await expect(
+			updateProposal(adminId, p.id, { choices: ['Yes', 'No'] }, db)
+		).rejects.toThrow(/questions, not choices/i);
 	});
 
 	it('rejects a selection that does not belong to its question', async () => {

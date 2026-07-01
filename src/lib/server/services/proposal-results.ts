@@ -78,6 +78,42 @@ export async function aggregateResults(
 	};
 }
 
+type SelectionRow = {
+	userId: string;
+	choiceId: string | null;
+	questionId: string | null;
+	rank: number | null;
+	score: number | null;
+	consentPosition: 'consent' | 'stand-aside' | 'object' | null;
+	reason: string | null;
+};
+
+/**
+ * Map flat choices + raw selection rows onto the engine encoding (count / consent / ranked / scored).
+ * The multi-question peer is `buildMqTallyInputs`; keeping both as named helpers lets `tallyProposal`
+ * stay a thin dispatcher instead of hand-rolling each family's mapping inline.
+ */
+function buildFlatTallyInputs(
+	choices: Array<{ id: string; label: string; questionId: string | null }>,
+	selRows: SelectionRow[]
+) {
+	const options = choices.map((c) => ({
+		optionId: c.id,
+		label: c.label,
+		group: c.questionId ?? undefined
+	}));
+	const selectionsByUser = new Map<string, unknown[]>();
+	for (const s of selRows) {
+		const selection = s.consentPosition
+			? { position: s.consentPosition, reason: s.reason ?? undefined }
+			: { choiceId: s.choiceId, questionId: s.questionId ?? undefined, rank: s.rank, score: s.score };
+		const list = selectionsByUser.get(s.userId) ?? [];
+		list.push(selection);
+		selectionsByUser.set(s.userId, list);
+	}
+	return { options, selectionsByUser };
+}
+
 /**
  * Tally a proposal through the voting library (ballot module + decision rule) over `vote_selection`,
  * returning a rich `ResultSet` with the resolved outcome. This is the real engine path; the public
@@ -132,25 +168,9 @@ export async function tallyProposal(
 			.from(proposalChoice)
 			.where(eq(proposalChoice.proposalId, proposalId))
 			.orderBy(asc(proposalChoice.position));
-		options = choices.map((c) => ({
-			optionId: c.id,
-			label: c.label,
-			group: c.questionId ?? undefined
-		}));
-
-		for (const s of selRows) {
-			const selection = s.consentPosition
-				? { position: s.consentPosition, reason: s.reason ?? undefined }
-				: {
-						choiceId: s.choiceId,
-						questionId: s.questionId ?? undefined,
-						rank: s.rank,
-						score: s.score
-					};
-			const list = selectionsByUser.get(s.userId) ?? [];
-			list.push(selection);
-			selectionsByUser.set(s.userId, list);
-		}
+		const flat = buildFlatTallyInputs(choices, selRows);
+		options = flat.options;
+		for (const [uid, sels] of flat.selectionsByUser) selectionsByUser.set(uid, sels);
 	}
 
 	const ballots: BallotRecord[] = voteRows.map((v) => ({

@@ -16,7 +16,7 @@ import {
 	listTypeVersions,
 	listAllProposalTypes
 } from './proposal-type-admin-service';
-import { listProposalTypes } from './proposal-type-service';
+import { listProposalTypes, resolveMethodSnapshot } from './proposal-type-service';
 import { createProposal, getProposal } from './proposal-service';
 
 let db: TestDb;
@@ -77,6 +77,35 @@ describe('addTypeVersion (immutable versioning)', () => {
 		expect(versions.map((v) => v.version)).toEqual([2, 1]);
 		const v1After = versions.find((v) => v.version === 1)!;
 		expect(v1After.methodSnapshotJson).toBe(v1.methodSnapshotJson); // frozen
+	});
+
+	it('a proposal pinned to v1 keeps v1 method after the type is edited to v2 (design D4)', async () => {
+		const type = await createProposalType(adminId, communityId, { name: 'Pinned', method }, db);
+		const [v1] = await listTypeVersions(type.id, db);
+
+		const created = await createProposal(
+			adminId,
+			{
+				communityId,
+				title: 'Pinned to v1',
+				body: 'Body text here',
+				choices: ['Yes', 'No'],
+				startTime: new Date(Date.now() + 60_000),
+				endTime: new Date(Date.now() + 3_600_000),
+				typeVersionId: v1.id
+			},
+			db
+		);
+
+		// Edit the type's rule → v2.
+		await addTypeVersion(adminId, type.id, { ...method, decisionRuleId: 'super-majority' }, {}, db);
+
+		// The proposal still resolves v1's simple-majority rule, not v2's super-majority.
+		const snap = await resolveMethodSnapshot(
+			{ methodOverrideJson: null, typeVersionId: created.typeVersionId },
+			db
+		);
+		expect(snap.decisionRuleId).toBe('simple-majority');
 	});
 });
 

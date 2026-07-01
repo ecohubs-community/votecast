@@ -17,7 +17,8 @@ import {
 	validateBody,
 	validateChoices,
 	toDate,
-	validateVisibility
+	validateVisibility,
+	resolveQuestionContributionPolicy
 } from './proposal-validation';
 import { transitionProposalStatus } from './proposal-lifecycle';
 import { insertQuestion } from './multi-question';
@@ -145,21 +146,12 @@ export async function createProposal(
 		}
 	}
 
-	// Common Ground: freeze the proposal's question-contribution policy at creation — a locked type
-	// wins; otherwise the proposer's pick, else the type default, else proposer-at-creation.
-	let questionContributors: 'proposer' | 'members' | null = null;
-	let questionContributionPhase: 'creation' | 'deliberation' | null = null;
-	if (isMultiQuestion) {
-		const locked = defaults?.lockQuestionContribution ?? false;
-		questionContributors =
-			(locked ? defaults?.questionContributors : input.questionContributors) ??
-			defaults?.questionContributors ??
-			'proposer';
-		questionContributionPhase =
-			(locked ? defaults?.questionContributionPhase : input.questionContributionPhase) ??
-			defaults?.questionContributionPhase ??
-			'creation';
-	}
+	// Common Ground: freeze the proposal's question-contribution policy at creation (pure helper).
+	const { questionContributors, questionContributionPhase } = resolveQuestionContributionPolicy(
+		isMultiQuestion,
+		defaults,
+		input
+	);
 
 	let questions: string[] = [];
 	if (isMultiQuestion) {

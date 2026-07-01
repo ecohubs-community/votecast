@@ -56,3 +56,44 @@ export function validateVisibility(v: unknown): asserts v is 'public' | 'communi
 		throw new ServiceError(ErrorCode.INVALID_REQUEST, 'Visibility must be "public" or "community"');
 	}
 }
+
+export type QuestionContributors = 'proposer' | 'members';
+export type QuestionContributionPhase = 'creation' | 'deliberation';
+
+interface ContributionDefaults {
+	questionContributors?: QuestionContributors | null;
+	questionContributionPhase?: QuestionContributionPhase | null;
+	lockQuestionContribution?: boolean;
+}
+
+/**
+ * Freeze a proposal's Common Ground question-contribution policy at creation (design D8): for a
+ * non-multi-question ballot it's null (nothing to store); otherwise a locked type wins, else the
+ * proposer's override, else the type default, else proposer-at-creation. Pure — unit-tested.
+ */
+export function resolveQuestionContributionPolicy(
+	isMultiQuestion: boolean,
+	typeDefaults: ContributionDefaults | null,
+	override: {
+		questionContributors?: QuestionContributors;
+		questionContributionPhase?: QuestionContributionPhase;
+	}
+): {
+	questionContributors: QuestionContributors | null;
+	questionContributionPhase: QuestionContributionPhase | null;
+} {
+	if (!isMultiQuestion) {
+		return { questionContributors: null, questionContributionPhase: null };
+	}
+	const locked = typeDefaults?.lockQuestionContribution ?? false;
+	return {
+		questionContributors:
+			(locked ? typeDefaults?.questionContributors : override.questionContributors) ??
+			typeDefaults?.questionContributors ??
+			'proposer',
+		questionContributionPhase:
+			(locked ? typeDefaults?.questionContributionPhase : override.questionContributionPhase) ??
+			typeDefaults?.questionContributionPhase ??
+			'creation'
+	};
+}
