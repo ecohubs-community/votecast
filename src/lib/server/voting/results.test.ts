@@ -9,7 +9,7 @@ function ballot(voterId: string, selections: unknown[], votingPower = 1): Ballot
 	return { voterId, votingPower, selections, submittedAt: 0 };
 }
 function tallyCtx(
-	options: Array<{ optionId: string; group?: string; label?: string }>,
+	options: Array<{ optionId: string; group?: string; label?: string; position?: number }>,
 	eligibleVoterCount: number,
 	config: Record<string, unknown> = {}
 ): TallyContext {
@@ -194,5 +194,89 @@ describe('multi-question correctness', () => {
 		expect(q1?.outcome).toBe('passed'); // 3 agree vs 1 disagree; the power-10 pass is ignored
 		expect(q1?.tallyForWeight).toBe(3);
 		expect(q1?.tallyAgainstWeight).toBe(1);
+	});
+});
+
+describe('approval rule (approve vs reject, abstain is present-but-not-deciding)', () => {
+	// position 0 = approve, 1 = reject, 2 = abstain (label-independent).
+	const APPROVAL = [
+		{ optionId: 'yes', label: 'Approve', position: 0 },
+		{ optionId: 'no', label: 'Reject', position: 1 },
+		{ optionId: 'abs', label: 'Abstain', position: 2 }
+	];
+	const vote = (id: string, opt: string, power = 1) => ballot(id, [{ choiceId: opt }], power);
+
+	it('passes when the approve side wins a majority', () => {
+		const r = tallyBallots(
+			single('approval-majority'),
+			[vote('1', 'yes'), vote('2', 'yes'), vote('3', 'yes'), vote('4', 'no')],
+			tallyCtx(APPROVAL, 4)
+		);
+		expect(r.outcome).toBe('passed');
+		expect(r.entries.find((e) => e.key === 'yes')?.outcome).toBe('passed');
+		expect(r.entries.find((e) => e.key === 'no')?.outcome).toBe('failed');
+	});
+
+	it('fails when reject wins — not "passed" just because an option won', () => {
+		const r = tallyBallots(
+			single('approval-majority'),
+			[vote('1', 'no'), vote('2', 'no'), vote('3', 'no'), vote('4', 'yes')],
+			tallyCtx(APPROVAL, 4)
+		);
+		expect(r.outcome).toBe('failed');
+	});
+
+	it('excludes abstain from the approve/reject share', () => {
+		// 2 approve, 1 reject, 5 abstain → approve share 2/3 > 1/2 → passes.
+		const r = tallyBallots(
+			single('approval-majority'),
+			[
+				vote('1', 'yes'),
+				vote('2', 'yes'),
+				vote('3', 'no'),
+				vote('4', 'abs'),
+				vote('5', 'abs'),
+				vote('6', 'abs'),
+				vote('7', 'abs'),
+				vote('8', 'abs')
+			],
+			tallyCtx(APPROVAL, 8)
+		);
+		expect(r.outcome).toBe('passed');
+		expect(r.participation.ballotsCast).toBe(8); // abstains still count as ballots (quorum)
+	});
+
+	it('a 50/50 split fails a strict majority but a two-thirds needs ≥ 2/3', () => {
+		const even = [vote('1', 'yes'), vote('2', 'no')];
+		expect(tallyBallots(single('approval-majority'), even, tallyCtx(APPROVAL, 2)).outcome).toBe(
+			'failed'
+		);
+		const twoThirds = [vote('1', 'yes'), vote('2', 'yes'), vote('3', 'no')];
+		expect(tallyBallots(single('approval-super'), twoThirds, tallyCtx(APPROVAL, 3)).outcome).toBe(
+			'passed'
+		);
+		const belowTwoThirds = [
+			vote('1', 'yes'),
+			vote('2', 'yes'),
+			vote('3', 'yes'),
+			vote('4', 'no'),
+			vote('5', 'no')
+		];
+		expect(
+			tallyBallots(single('approval-super'), belowTwoThirds, tallyCtx(APPROVAL, 5)).outcome
+		).toBe('failed');
+	});
+
+	it('reports quorum-not-met when participation is too low', () => {
+		const r = tallyBallots(
+			{
+				ballotModuleId: 'single-choice',
+				decisionRuleId: 'approval-majority',
+				config: { quorum: 0.5 }
+			},
+			[vote('1', 'yes')],
+			tallyCtx(APPROVAL, 10)
+		);
+		expect(r.outcome).toBe('quorum-not-met');
 	});
 });

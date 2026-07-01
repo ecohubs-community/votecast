@@ -94,19 +94,25 @@ type SelectionRow = {
  * stay a thin dispatcher instead of hand-rolling each family's mapping inline.
  */
 function buildFlatTallyInputs(
-	choices: Array<{ id: string; label: string; questionId: string | null }>,
+	choices: Array<{ id: string; label: string; questionId: string | null; position: number }>,
 	selRows: SelectionRow[]
 ) {
 	const options = choices.map((c) => ({
 		optionId: c.id,
 		label: c.label,
-		group: c.questionId ?? undefined
+		group: c.questionId ?? undefined,
+		position: c.position
 	}));
 	const selectionsByUser = new Map<string, unknown[]>();
 	for (const s of selRows) {
 		const selection = s.consentPosition
 			? { position: s.consentPosition, reason: s.reason ?? undefined }
-			: { choiceId: s.choiceId, questionId: s.questionId ?? undefined, rank: s.rank, score: s.score };
+			: {
+					choiceId: s.choiceId,
+					questionId: s.questionId ?? undefined,
+					rank: s.rank,
+					score: s.score
+				};
 		const list = selectionsByUser.get(s.userId) ?? [];
 		list.push(selection);
 		selectionsByUser.set(s.userId, list);
@@ -163,7 +169,8 @@ export async function tallyProposal(
 			.select({
 				id: proposalChoice.id,
 				label: proposalChoice.label,
-				questionId: proposalChoice.questionId
+				questionId: proposalChoice.questionId,
+				position: proposalChoice.position
 			})
 			.from(proposalChoice)
 			.where(eq(proposalChoice.proposalId, proposalId))

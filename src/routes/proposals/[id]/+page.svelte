@@ -76,7 +76,10 @@
 	const resultHeadline = $derived.by(() => {
 		const r = data.outcome?.revealed ? data.outcome.result : null;
 		if (!r) return null;
-		if (data.method?.ballotModuleId === 'single-choice') {
+		// A plurality single-choice vote names its winner; an approval vote (approve vs reject) has a
+		// true verdict, so it keeps Passed/Failed like the consensus/consent ballots.
+		const isApproval = data.method?.decisionRuleId?.startsWith('approval') ?? false;
+		if (data.method?.ballotModuleId === 'single-choice' && !isApproval) {
 			if (r.outcome === 'tie') return { prefix: '', value: 'Tie', dataOutcome: 'tie' };
 			const winner = r.entries.find((e) => e.outcome === 'passed');
 			if (winner) return { prefix: 'Result:', value: winner.label, dataOutcome: undefined };

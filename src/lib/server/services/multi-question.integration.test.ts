@@ -153,7 +153,10 @@ describe('multi-question tally end-to-end (5b.1)', () => {
 		const answerAll = async (uid: string) =>
 			castMultiQuestionVote(
 				uid,
-				{ proposalId: p.id, answers: qs.map((q) => ({ questionId: q.id, choiceId: q.choices[0].id })) },
+				{
+					proposalId: p.id,
+					answers: qs.map((q) => ({ questionId: q.id, choiceId: q.choices[0].id }))
+				},
 				db
 			);
 		await answerAll(adminId);
@@ -186,9 +189,9 @@ describe('multi-question tally end-to-end (5b.1)', () => {
 			},
 			db
 		);
-		await expect(
-			updateProposal(adminId, p.id, { choices: ['Yes', 'No'] }, db)
-		).rejects.toThrow(/questions, not choices/i);
+		await expect(updateProposal(adminId, p.id, { choices: ['Yes', 'No'] }, db)).rejects.toThrow(
+			/questions, not choices/i
+		);
 	});
 
 	it('rejects a selection that does not belong to its question', async () => {

@@ -3,6 +3,7 @@ import { singleChoiceModule } from './ballot-modules/single-choice';
 import { consentModule } from './ballot-modules/consent';
 import { multiQuestionModule } from './ballot-modules/multi-question';
 import { simpleMajorityRule, absoluteMajorityRule, twoThirdsRule } from './decision-rules/majority';
+import { approvalMajorityRule, approvalSuperRule } from './decision-rules/approval';
 import { consensusRule, consentRule, makeConsensusRule } from './decision-rules/consensus';
 import { multiQuestionRule } from './decision-rules/multi-question';
 
@@ -42,6 +43,8 @@ for (const rule of [
 	simpleMajorityRule,
 	absoluteMajorityRule,
 	twoThirdsRule,
+	approvalMajorityRule,
+	approvalSuperRule,
 	consensusRule,
 	consentRule,
 	makeConsensusRule('consensus-minus-1', 1), // common preset; parameterized variants register as needed

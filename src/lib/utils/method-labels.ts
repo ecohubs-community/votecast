@@ -11,6 +11,8 @@ const RULE_LABELS: Record<string, string> = {
 	'simple-majority': 'simple majority',
 	'absolute-majority': 'absolute majority',
 	'super-majority': 'two-thirds majority',
+	'approval-majority': 'majority approval',
+	'approval-super': 'two-thirds approval',
 	consensus: 'consensus',
 	'consensus-minus-1': 'consensus −1',
 	consent: 'consent',

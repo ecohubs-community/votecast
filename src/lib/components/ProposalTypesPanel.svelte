@@ -41,6 +41,8 @@
 	// New-type form: the chosen method decides whether choices or question-contribution config applies.
 	let methodOption = $state(untrack(() => methodOptions[0]?.id ?? ''));
 	const isMultiQuestion = $derived(methodOption.startsWith('multi-question'));
+	// Approval methods use a fixed Approve/Reject/Abstain ballot — no free-form choices to enter.
+	const isApproval = $derived(methodOption.includes('approval'));
 	// "Who may add questions" only matters once we allow additions during deliberation.
 	let questionPhase = $state<'creation' | 'deliberation'>('creation');
 </script>
@@ -240,6 +242,13 @@
 				<p class="hint">
 					“Only at creation” fixes the questions in the new-proposal form. “During the deliberation
 					phase” also lets people propose more on the proposal page, until voting opens.
+				</p>
+			</div>
+		{:else if isApproval}
+			<div class="field">
+				<span class="label">Ballot</span>
+				<p class="hint">
+					Approval votes use a fixed <strong>Approve / Reject / Abstain</strong> ballot.
 				</p>
 			</div>
 		{:else}

@@ -127,7 +127,9 @@ export interface TallyContext {
 	config: Record<string, unknown>; // the method-config snapshot for this proposal/version
 	phase: VoteContext['phase'];
 	eligibleVoterCount: number; // needed for quorum AND absence-as-consent
-	options: Array<{ optionId: string; group?: string; label?: string }>; // the frozen ballot options
+	// The frozen ballot options. `position` lets order-sensitive rules (e.g. approval: position 0 =
+	// the approve option) identify options without depending on their labels.
+	options: Array<{ optionId: string; group?: string; label?: string; position?: number }>;
 	now: number;
 }
 

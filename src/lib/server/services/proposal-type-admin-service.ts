@@ -44,6 +44,8 @@ export const METHOD_OPTIONS = [
 	{ id: 'single-choice|simple-majority', label: 'Single choice — simple majority' },
 	{ id: 'single-choice|absolute-majority', label: 'Single choice — absolute majority' },
 	{ id: 'single-choice|super-majority', label: 'Single choice — two-thirds majority' },
+	{ id: 'single-choice|approval-majority', label: 'Approval — majority (approve vs reject)' },
+	{ id: 'single-choice|approval-super', label: 'Approval — two-thirds' },
 	{ id: 'consent|consensus', label: 'Consent — consensus' },
 	{ id: 'consent|consensus-minus-1', label: 'Consent — consensus minus one' },
 	{ id: 'multi-question|multi-question', label: 'Common Ground (multi-question)' }
@@ -92,6 +94,10 @@ function buildVersionValues(method: TypeMethodInput, defaults: TypeDefaultsInput
 	assertValidBinding(snapshot);
 
 	const isMultiQuestion = method.ballotModuleId === 'multi-question';
+	// Approval methods have a fixed, ordered ballot: position 0 = the approve option, 1 = reject,
+	// 2 = abstain. Force + lock it so the approval rule can trust the positions (design D-approval).
+	const isApproval = method.decisionRuleId.startsWith('approval');
+
 	let defaultChoices = defaults.defaultChoices?.map((c) => c.trim()).filter(Boolean) ?? null;
 	if (defaultChoices && defaultChoices.length > 0) {
 		if (isMultiQuestion) {
@@ -110,6 +116,10 @@ function buildVersionValues(method: TypeMethodInput, defaults: TypeDefaultsInput
 		defaultChoices = null;
 	}
 
+	if (isApproval) {
+		defaultChoices = ['Approve', 'Reject', 'Abstain'];
+	}
+
 	const votingSeconds =
 		defaults.votingDays != null
 			? Math.max(1, Math.round(defaults.votingDays * 86_400))
@@ -121,7 +131,7 @@ function buildVersionValues(method: TypeMethodInput, defaults: TypeDefaultsInput
 		votingSeconds,
 		defaultChoicesJson: defaultChoices ? JSON.stringify(defaultChoices) : null,
 		defaultVisibility: defaults.defaultVisibility ?? 'community',
-		lockChoices: defaults.lockChoices ?? false,
+		lockChoices: isApproval ? true : (defaults.lockChoices ?? false),
 		lockDeliberation: defaults.lockDeliberation ?? false,
 		lockVoting: defaults.lockVoting ?? false,
 		lockVisibility: defaults.lockVisibility ?? false,
