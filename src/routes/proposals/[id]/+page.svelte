@@ -5,6 +5,7 @@
 	import Markdown from '$lib/components/Markdown.svelte';
 	import MultiQuestionBallot from '$lib/components/MultiQuestionBallot.svelte';
 	import BallotChoice from '$lib/components/BallotChoice.svelte';
+	import VisibilityPill from '$lib/components/VisibilityPill.svelte';
 	import { formatRelativeTime } from '$lib/utils/format';
 	import { ballotLabel, ruleLabel } from '$lib/utils/method-labels';
 	import { resolve } from '$app/paths';
@@ -130,35 +131,7 @@
 				style="margin-top: 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px;"
 			>
 				<StatusBadge phase={data.proposal.phase} />
-				{#if data.proposal.visibility === 'public'}
-					<span class="meta-pill">
-						<svg
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="1.8"
-							aria-hidden="true"
-						>
-							<circle cx="12" cy="12" r="9" />
-							<path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" />
-						</svg>
-						Public
-					</span>
-				{:else}
-					<span class="meta-pill">
-						<svg
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="1.8"
-							aria-hidden="true"
-						>
-							<rect x="4" y="11" width="16" height="10" rx="2" />
-							<path d="M8 11V7a4 4 0 0 1 8 0v4" />
-						</svg>
-						Members only
-					</span>
-				{/if}
+				<VisibilityPill visibility={data.proposal.visibility} />
 				<span
 					style="color: var(--vc-muted); font-family: var(--vc-font-mono); font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em;"
 				>

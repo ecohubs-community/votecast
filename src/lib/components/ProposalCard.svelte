@@ -1,5 +1,6 @@
 <script lang="ts">
 	import StatusBadge from './StatusBadge.svelte';
+	import VisibilityPill from './VisibilityPill.svelte';
 	import { formatRelativeTime } from '$lib/utils/format';
 	import { markdownToPlainText } from '$lib/utils/markdown-text';
 	import { PHASE_VARIANT, type ProposalPhase } from '$lib/utils/phase';
@@ -67,33 +68,9 @@
 		</h3>
 		<div class="flex shrink-0 items-center gap-2">
 			{#if proposal.visibility === 'public'}
-				<span class="meta-pill" title="Public">
-					<svg
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="1.8"
-						aria-hidden="true"
-					>
-						<circle cx="12" cy="12" r="9" />
-						<path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" />
-					</svg>
-					Public
-				</span>
+				<VisibilityPill visibility="public" />
 			{:else if proposal.visibility === 'community' && !locked}
-				<span class="meta-pill" title="Members only">
-					<svg
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="1.8"
-						aria-hidden="true"
-					>
-						<rect x="4" y="11" width="16" height="10" rx="2" />
-						<path d="M8 11V7a4 4 0 0 1 8 0v4" />
-					</svg>
-					Internal
-				</span>
+				<VisibilityPill visibility="community" memberLabel="Internal" />
 			{/if}
 			<StatusBadge phase={proposal.phase} />
 		</div>
