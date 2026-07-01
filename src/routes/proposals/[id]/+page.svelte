@@ -4,6 +4,7 @@
 	import MethodFlow from '$lib/components/MethodFlow.svelte';
 	import Markdown from '$lib/components/Markdown.svelte';
 	import MultiQuestionBallot from '$lib/components/MultiQuestionBallot.svelte';
+	import BallotChoice from '$lib/components/BallotChoice.svelte';
 	import { formatRelativeTime } from '$lib/utils/format';
 	import { ballotLabel, ruleLabel } from '$lib/utils/method-labels';
 	import { resolve } from '$app/paths';
@@ -305,31 +306,27 @@
 							};
 						}}
 					>
-						<fieldset disabled={submitting} style="border: 0; padding: 0; margin: 0;">
+						<fieldset disabled={submitting} class="m-0 space-y-2.5 border-0 p-0">
 							{#each data.proposal.choices as choice (choice.id)}
 								{@const result = resultsByChoice.get(choice.id)}
 								{@const pct = result?.pct ?? 0}
 								{@const votes = result?.votes ?? 0}
-								{@const isSelected = selectedChoiceId === choice.id}
-								<label class="choice" class:selected={isSelected}>
-									{#if showResults}
-										<div class="choice-fill" style="width: {pct}%"></div>
-									{/if}
-									<div class="choice-content">
-										<input
-											type="radio"
-											name="choiceId"
-											value={choice.id}
-											bind:group={selectedChoiceId}
-											style="position: absolute; opacity: 0; width: 1px; height: 1px;"
-										/>
-										<span class="choice-radio"></span>
-										<span class="choice-label">{choice.label}</span>
-										{#if showResults}
-											<span class="choice-pct">{votes} · {pct}%</span>
-										{/if}
-									</div>
-								</label>
+								<BallotChoice
+									label={choice.label}
+									interactive
+									highlighted={selectedChoiceId === choice.id}
+									showFill={showResults}
+									{pct}
+									detail={showResults ? `${votes} · ${pct}%` : null}
+								>
+									<input
+										type="radio"
+										name="choiceId"
+										value={choice.id}
+										bind:group={selectedChoiceId}
+										class="absolute h-px w-px opacity-0"
+									/>
+								</BallotChoice>
 							{/each}
 						</fieldset>
 
@@ -348,63 +345,37 @@
 						</button>
 					</form>
 				{:else if votingState === 'already-voted'}
-					<div>
+					<div class="space-y-2.5">
 						{#each data.proposal.choices as choice (choice.id)}
 							{@const result = resultsByChoice.get(choice.id)}
 							{@const pct = result?.pct ?? 0}
 							{@const votes = result?.votes ?? 0}
 							{@const isUserChoice = data.userVote?.choiceId === choice.id}
-							<div class="choice" class:user-pick={isUserChoice} style="cursor: default;">
-								{#if showResults}
-									<div class="choice-fill" style="width: {pct}%"></div>
-								{/if}
-								<div class="choice-content">
-									{#if isUserChoice}
-										<svg
-											width="18"
-											height="18"
-											viewBox="0 0 20 20"
-											fill="currentColor"
-											style="flex-shrink: 0; color: var(--vc-accent);"
-										>
-											<path
-												fill-rule="evenodd"
-												d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-												clip-rule="evenodd"
-											/>
-										</svg>
-									{:else}
-										<span class="choice-radio"></span>
-									{/if}
-									<span class="choice-label">{choice.label}</span>
-									{#if showResults}
-										<span class="choice-pct">{votes} · {pct}%</span>
-									{/if}
-								</div>
-							</div>
+							<BallotChoice
+								label={choice.label}
+								highlighted={isUserChoice}
+								marker={isUserChoice ? 'check' : 'radio'}
+								showFill={showResults}
+								{pct}
+								detail={showResults ? `${votes} · ${pct}%` : null}
+							/>
 						{/each}
 					</div>
 					<p style="margin-top: 16px; font-size: 13px; color: var(--vc-accent-ink);">
 						You voted for "{userChoiceLabel}". Your vote is locked in.
 					</p>
 				{:else}
-					<div>
+					<div class="space-y-2.5">
 						{#each data.proposal.choices as choice (choice.id)}
 							{@const result = resultsByChoice.get(choice.id)}
 							{@const pct = result?.pct ?? 0}
 							{@const votes = result?.votes ?? 0}
-							<div class="choice" style="cursor: default;">
-								{#if showResults}
-									<div class="choice-fill" style="width: {pct}%"></div>
-								{/if}
-								<div class="choice-content">
-									<span class="choice-radio"></span>
-									<span class="choice-label">{choice.label}</span>
-									{#if showResults}
-										<span class="choice-pct">{votes} · {pct}%</span>
-									{/if}
-								</div>
-							</div>
+							<BallotChoice
+								label={choice.label}
+								showFill={showResults}
+								{pct}
+								detail={showResults ? `${votes} · ${pct}%` : null}
+							/>
 						{/each}
 					</div>
 
