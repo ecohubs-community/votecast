@@ -521,3 +521,20 @@
 		</div>
 	{/if}
 </div>
+
+<style>
+	/* Danger-zone card — used only on this settings page. */
+	.danger-zone {
+		border: 1px solid oklch(0.55 0.16 28 / 0.3);
+		border-radius: var(--vc-radius-xl);
+		padding: 24px;
+		background: oklch(0.55 0.16 28 / 0.03);
+	}
+	.danger-title {
+		font-family: var(--vc-font-display);
+		font-weight: var(--vc-weight-display);
+		font-size: var(--vc-text-xl);
+		color: oklch(0.4 0.16 28);
+		margin: 0;
+	}
+</style>
