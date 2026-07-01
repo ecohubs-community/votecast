@@ -3,6 +3,42 @@
 @plugin '@tailwindcss/forms';
 @plugin '@tailwindcss/typography';
 
+/* Design tokens registered as Tailwind theme values, so the palette + fonts are first-class utilities
+   (bg-surface, text-muted, border-line, font-display, …). Values reference the single source in
+   tokens.css so there's no duplicated hex to drift. Non-standard radii/shadows/sizes stay as token
+   references (e.g. rounded-[var(--vc-radius-xl)]) to avoid clobbering Tailwind's default scales. */
+@theme {
+	--color-bg: var(--vc-bg);
+	--color-bg-2: var(--vc-bg-2);
+	--color-surface: var(--vc-surface);
+	--color-ink: var(--vc-ink);
+	--color-ink-2: var(--vc-ink-2);
+	--color-muted: var(--vc-muted);
+	--color-disabled: var(--vc-disabled);
+	--color-line: var(--vc-line);
+	--color-line-2: var(--vc-line-2);
+	--color-accent: var(--vc-accent);
+	--color-accent-ink: var(--vc-accent-ink);
+	--color-accent-soft: var(--vc-accent-soft);
+	--color-accent-strong: var(--vc-accent-strong);
+	--color-success: var(--vc-success);
+	--color-success-soft: var(--vc-success-soft);
+	--color-warning: var(--vc-warning);
+	--color-warning-soft: var(--vc-warning-soft);
+	--color-danger: var(--vc-danger);
+	--color-danger-soft: var(--vc-danger-soft);
+	--color-info: var(--vc-info);
+	--color-info-soft: var(--vc-info-soft);
+	/* danger-zone tints (settings) */
+	--color-danger-line: oklch(0.55 0.16 28 / 0.3);
+	--color-danger-bg: oklch(0.55 0.16 28 / 0.03);
+	--color-danger-strong: oklch(0.4 0.16 28);
+
+	--font-display: var(--vc-font-display);
+	--font-body: var(--vc-font-body);
+	--font-mono: var(--vc-font-mono);
+}
+
 html,
 body {
 	margin: 0;
