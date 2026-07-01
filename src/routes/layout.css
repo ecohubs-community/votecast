@@ -380,61 +380,6 @@ select.input,
 /* ─────────────────────────────────────────────────────────────
    Member list rows
    ───────────────────────────────────────────────────────────── */
-.member-row {
-	display: flex;
-	align-items: center;
-	gap: 14px;
-	padding: 14px 0;
-	border-bottom: 1px solid var(--vc-line);
-}
-.member-row:last-child {
-	border-bottom: 0;
-}
-.member-avatar {
-	width: 40px;
-	height: 40px;
-	border-radius: 50%;
-	background: var(--vc-bg-2);
-	color: var(--vc-ink);
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	font-family: var(--vc-font-display);
-	font-size: 15px;
-	letter-spacing: 0.02em;
-	flex-shrink: 0;
-}
-.member-avatar.admin {
-	background: var(--vc-accent-soft);
-	color: var(--vc-accent-ink);
-}
-.member-info {
-	flex: 1;
-	min-width: 0;
-}
-.member-name {
-	display: flex;
-	align-items: center;
-	gap: var(--vc-space-2);
-	font-size: 15px;
-	font-weight: var(--vc-weight-medium);
-	color: var(--vc-ink);
-}
-.member-meta {
-	margin-top: 3px;
-	display: flex;
-	flex-wrap: wrap;
-	gap: var(--vc-space-3);
-	font-family: var(--vc-font-mono);
-	font-size: var(--vc-text-xs);
-	letter-spacing: var(--vc-tracking-mono);
-	color: var(--vc-muted);
-}
-.member-actions {
-	display: flex;
-	gap: var(--vc-space-2);
-	flex-shrink: 0;
-}
 /* ─────────────────────────────────────────────────────────────
    Visibility/meta inline badges
    ───────────────────────────────────────────────────────────── */

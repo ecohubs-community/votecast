@@ -7,6 +7,7 @@
 	import Tabs from '$lib/components/Tabs.svelte';
 	import Tab from '$lib/components/Tab.svelte';
 	import VoteCard from '$lib/components/VoteCard.svelte';
+	import MemberRow from '$lib/components/MemberRow.svelte';
 	import { formatRelativeTime } from '$lib/utils/format';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
@@ -278,46 +279,41 @@
 		{#if data.members.items.length > 0}
 			<div>
 				{#each data.members.items as member (member.userId)}
-					{@const name = memberDisplayName(member)}
+					{@const memberName = memberDisplayName(member)}
 					{@const wallet = shortenWallet(member.walletAddress)}
-					<div class="member-row">
-						<div class="member-avatar" class:admin={member.role === 'admin'}>
-							{memberInitials(member)}
-						</div>
-
-						<div class="member-info">
-							<div class="member-name">
-								<span style="overflow: hidden; text-overflow: ellipsis;">{name}</span>
-								{#if member.role === 'admin'}
-									<span
-										class="meta-pill"
-										style="background: var(--vc-accent-soft); color: var(--vc-accent-ink);"
-									>
-										Admin
-									</span>
-								{/if}
+					<MemberRow avatarLabel={memberInitials(member)} avatarAdmin={member.role === 'admin'}>
+						{#snippet name()}
+							<span style="overflow: hidden; text-overflow: ellipsis;">{memberName}</span>
+							{#if member.role === 'admin'}
+								<span
+									class="meta-pill"
+									style="background: var(--vc-accent-soft); color: var(--vc-accent-ink);"
+								>
+									Admin
+								</span>
+							{/if}
+						{/snippet}
+						{#snippet meta()}
+							{#if wallet}
+								<span>{wallet}</span>
+							{/if}
+							<span>Joined {formatRelativeTime(member.joinedAt)}</span>
+						{/snippet}
+						{#snippet trailing()}
+							<div style="text-align: right; flex-shrink: 0;">
+								<div
+									style="font-size: 18px; font-weight: 500; color: var(--vc-ink); font-family: var(--vc-font-display);"
+								>
+									{member.voteCount}
+								</div>
+								<div
+									style="font-family: var(--vc-font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--vc-muted);"
+								>
+									{member.voteCount === 1 ? 'vote' : 'votes'}
+								</div>
 							</div>
-							<div class="member-meta">
-								{#if wallet}
-									<span>{wallet}</span>
-								{/if}
-								<span>Joined {formatRelativeTime(member.joinedAt)}</span>
-							</div>
-						</div>
-
-						<div style="text-align: right; flex-shrink: 0;">
-							<div
-								style="font-size: 18px; font-weight: 500; color: var(--vc-ink); font-family: var(--vc-font-display);"
-							>
-								{member.voteCount}
-							</div>
-							<div
-								style="font-family: var(--vc-font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--vc-muted);"
-							>
-								{member.voteCount === 1 ? 'vote' : 'votes'}
-							</div>
-						</div>
-					</div>
+						{/snippet}
+					</MemberRow>
 				{/each}
 			</div>
 

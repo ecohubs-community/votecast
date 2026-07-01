@@ -11,6 +11,7 @@
 	import Tabs from '$lib/components/Tabs.svelte';
 	import Tab from '$lib/components/Tab.svelte';
 	import VoteCard from '$lib/components/VoteCard.svelte';
+	import MemberRow from '$lib/components/MemberRow.svelte';
 	import VisibilityPill from '$lib/components/VisibilityPill.svelte';
 	import { formatRelativeTime } from '$lib/utils/format';
 	import { ballotLabel, ruleLabel } from '$lib/utils/method-labels';
@@ -195,21 +196,21 @@
 			{:else}
 				<div>
 					{#each data.voters as voter (voter.userId)}
-						<div class="member-row" style="padding: 12px 0;">
-							<div class="member-info">
-								<span class="member-name">
-									<span>{voter.displayName || voter.name}</span>
-								</span>
-								<div class="member-meta">
-									<span>{formatRelativeTime(voter.votedAt)}</span>
-								</div>
-							</div>
-							{#if voter.choiceLabel}
-								<span class="meta-pill" style="background: var(--vc-bg-2);"
-									>{voter.choiceLabel}</span
-								>
-							{/if}
-						</div>
+						<MemberRow class="!py-3">
+							{#snippet name()}
+								<span>{voter.displayName || voter.name}</span>
+							{/snippet}
+							{#snippet meta()}
+								<span>{formatRelativeTime(voter.votedAt)}</span>
+							{/snippet}
+							{#snippet trailing()}
+								{#if voter.choiceLabel}
+									<span class="meta-pill" style="background: var(--vc-bg-2);"
+										>{voter.choiceLabel}</span
+									>
+								{/if}
+							{/snippet}
+						</MemberRow>
 					{/each}
 				</div>
 			{/if}

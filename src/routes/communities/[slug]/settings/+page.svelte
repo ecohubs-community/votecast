@@ -11,6 +11,7 @@
 	import Tabs from '$lib/components/Tabs.svelte';
 	import Tab from '$lib/components/Tab.svelte';
 	import VoteCard from '$lib/components/VoteCard.svelte';
+	import MemberRow from '$lib/components/MemberRow.svelte';
 	import type { PageData, ActionData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -253,56 +254,50 @@
 
 		<div>
 			{#each data.members.items as member (member.userId)}
-				<div class="member-row">
-					<div class="member-avatar" class:admin={member.role === 'admin'}>
-						{memberInitials(member)}
-					</div>
-
-					<div class="member-info">
-						<div class="member-name">
-							<span>{memberDisplayName(member)}</span>
-							{#if member.role === 'admin'}
-								<span
-									class="meta-pill"
-									style="background: var(--vc-accent-soft); color: var(--vc-accent-ink);"
-								>
-									Admin
-								</span>
-							{/if}
-							{#if member.userId === data.user?.id}
-								<span style="color: var(--vc-muted); font-size: 12px; font-weight: 400;">(you)</span
-								>
-							{/if}
-						</div>
-						<div class="member-meta">
-							{#if member.walletAddress}
-								<span>{shortenWallet(member.walletAddress)}</span>
-							{/if}
-							<span>Joined {formatRelativeTime(member.joinedAt)}</span>
-							<span>{member.voteCount} {member.voteCount === 1 ? 'vote' : 'votes'}</span>
-						</div>
-					</div>
-
-					{#if member.userId !== data.user?.id}
-						<div class="member-actions">
-							<form method="POST" action="?/updateRole" use:enhance>
-								<input type="hidden" name="userId" value={member.userId} />
-								<input
-									type="hidden"
-									name="role"
-									value={member.role === 'admin' ? 'member' : 'admin'}
-								/>
-								<Button type="submit" variant="ghost" size="sm">
-									{member.role === 'admin' ? 'Demote' : 'Promote'}
-								</Button>
-							</form>
-							<form method="POST" action="?/removeMember" use:enhance>
-								<input type="hidden" name="userId" value={member.userId} />
-								<Button type="submit" variant="danger" size="sm">Remove</Button>
-							</form>
-						</div>
-					{/if}
-				</div>
+				<MemberRow avatarLabel={memberInitials(member)} avatarAdmin={member.role === 'admin'}>
+					{#snippet name()}
+						<span>{memberDisplayName(member)}</span>
+						{#if member.role === 'admin'}
+							<span
+								class="meta-pill"
+								style="background: var(--vc-accent-soft); color: var(--vc-accent-ink);"
+							>
+								Admin
+							</span>
+						{/if}
+						{#if member.userId === data.user?.id}
+							<span style="color: var(--vc-muted); font-size: 12px; font-weight: 400;">(you)</span>
+						{/if}
+					{/snippet}
+					{#snippet meta()}
+						{#if member.walletAddress}
+							<span>{shortenWallet(member.walletAddress)}</span>
+						{/if}
+						<span>Joined {formatRelativeTime(member.joinedAt)}</span>
+						<span>{member.voteCount} {member.voteCount === 1 ? 'vote' : 'votes'}</span>
+					{/snippet}
+					{#snippet trailing()}
+						{#if member.userId !== data.user?.id}
+							<div class="flex shrink-0 gap-2">
+								<form method="POST" action="?/updateRole" use:enhance>
+									<input type="hidden" name="userId" value={member.userId} />
+									<input
+										type="hidden"
+										name="role"
+										value={member.role === 'admin' ? 'member' : 'admin'}
+									/>
+									<Button type="submit" variant="ghost" size="sm">
+										{member.role === 'admin' ? 'Demote' : 'Promote'}
+									</Button>
+								</form>
+								<form method="POST" action="?/removeMember" use:enhance>
+									<input type="hidden" name="userId" value={member.userId} />
+									<Button type="submit" variant="danger" size="sm">Remove</Button>
+								</form>
+							</div>
+						{/if}
+					{/snippet}
+				</MemberRow>
 			{/each}
 		</div>
 	{:else if activeTab === 'webhooks'}
