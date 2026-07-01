@@ -67,14 +67,24 @@
 </svelte:head>
 
 <!-- Hero -->
-<section class="hero">
-	<div class="wrap hero-grid">
+<section class="relative pt-[clamp(56px,9vw,120px)] pb-[clamp(40px,6vw,80px)]">
+	<div
+		class="wrap grid grid-cols-[1.05fr_1fr] items-center gap-[clamp(40px,6vw,80px)] max-[1020px]:grid-cols-1"
+	>
 		<div>
-			<div class="eyebrow">Community governance · simplified</div>
-			<h1 class="h1">
-				Decisions, made <em>together.</em>
+			<div
+				class="mb-7 inline-flex items-center gap-2.5 font-mono text-xs tracking-[var(--vc-tracking-eyebrow)] text-muted uppercase before:inline-block before:size-1.5 before:rounded-full before:bg-accent before:content-['']"
+			>
+				Community governance · simplified
+			</div>
+			<h1
+				class="m-0 font-display text-[length:var(--vc-text-hero)] leading-[0.98] font-normal tracking-[var(--vc-tracking-tight)] text-balance break-words hyphens-none text-ink"
+			>
+				Decisions, made <em class="text-accent-ink">together.</em>
 			</h1>
-			<p class="lede">
+			<p
+				class="mt-7 max-w-[36ch] text-[clamp(17px,1.6vw,19px)] leading-[var(--vc-leading-body)] text-pretty text-ink-2"
+			>
 				{#if data.user}
 					Welcome back, {firstName}. {#if communityCount > 0}You're part of {communityCount}
 						{communityCount === 1 ? 'community' : 'communities'} — see what's open below.{:else}Find
@@ -84,7 +94,7 @@
 					the noise of governance dashboards.
 				{/if}
 			</p>
-			<div class="hero-cta">
+			<div class="mt-9 flex flex-wrap gap-3">
 				{#if data.user}
 					<a href="#mine" class="btn btn-accent btn-lg">Open my communities</a>
 					<a href={resolve('/communities/create')} class="btn btn-ghost btn-lg">
@@ -95,11 +105,13 @@
 					<a href="#communities" class="btn btn-ghost btn-lg">Browse communities</a>
 				{/if}
 			</div>
-			<div class="hero-meta">
+			<div
+				class="mt-6 flex flex-wrap gap-[18px] text-[13px] text-muted [&>span]:inline-flex [&>span]:items-center [&>span]:gap-2"
+			>
 				<span>One person, one vote</span>
-				<span class="dot"></span>
+				<span class="size-1 rounded-full bg-line-2"></span>
 				<span>Public &amp; private proposals</span>
-				<span class="dot"></span>
+				<span class="size-1 rounded-full bg-line-2"></span>
 				<span>Free for small groups</span>
 			</div>
 		</div>
@@ -110,20 +122,22 @@
 </section>
 
 <!-- How it works strip -->
-<section class="strip">
-	<div class="wrap strip-inner">
-		<div class="step">
-			<div class="step-num">01</div>
+<section class="border-y border-line py-[clamp(32px,5vw,56px)]">
+	<div
+		class="wrap grid grid-cols-3 gap-[clamp(24px,4vw,56px)] max-[720px]:grid-cols-1 max-[720px]:gap-6 [&_h3]:mt-0 [&_h3]:mb-2 [&_h3]:font-display [&_h3]:text-[24px] [&_h3]:leading-[1.15] [&_h3]:font-normal [&_h3]:tracking-[-0.01em] [&_h3]:text-ink [&_p]:m-0 [&_p]:max-w-[32ch] [&_p]:text-[14px] [&_p]:text-ink-2"
+	>
+		<div>
+			<div class="mb-3 font-mono text-xs text-muted">01</div>
 			<h3>Start a community</h3>
 			<p>Invite members with a link. No tokens, no jargon — just a roster and a name.</p>
 		</div>
-		<div class="step">
-			<div class="step-num">02</div>
+		<div>
+			<div class="mb-3 font-mono text-xs text-muted">02</div>
 			<h3>Open a proposal</h3>
 			<p>Write what's being decided. Add the options. Set when voting starts and ends.</p>
 		</div>
-		<div class="step">
-			<div class="step-num">03</div>
+		<div>
+			<div class="mb-3 font-mono text-xs text-muted">03</div>
 			<h3>Decide, together</h3>
 			<p>Members vote in a tap. Results are visible to everyone, the moment voting closes.</p>
 		</div>
@@ -132,14 +146,26 @@
 
 <!-- My Communities (logged in only) -->
 {#if data.user && data.myCommunities}
-	<section id="mine" class="section">
+	<section id="mine" class="py-[var(--vc-space-11)]">
 		<div class="wrap">
-			<div class="section-head">
+			<div class="mb-[clamp(28px,4vw,48px)] flex items-end justify-between gap-6">
 				<div>
-					<p class="section-kicker">Yours</p>
-					<h2 class="section-title">My communities</h2>
+					<p
+						class="mt-0 mb-2.5 font-mono text-xs tracking-[var(--vc-tracking-eyebrow)] text-muted uppercase"
+					>
+						Yours
+					</p>
+					<h2
+						class="m-0 font-display text-[length:var(--vc-text-3xl)] leading-[var(--vc-leading-tight)] font-normal tracking-[var(--vc-tracking-tight)] text-ink"
+					>
+						My communities
+					</h2>
 				</div>
-				<a href={resolve('/communities/create')} class="section-link">Create one →</a>
+				<a
+					href={resolve('/communities/create')}
+					class="border-b border-line-2 pb-0.5 text-[14px] text-ink-2 no-underline transition-colors duration-[var(--vc-duration-fast)] ease-[var(--vc-ease)] hover:border-accent hover:text-accent-ink"
+					>Create one →</a
+				>
 			</div>
 
 			<div
@@ -174,12 +200,20 @@
 {/if}
 
 <!-- New Communities -->
-<section id="communities" class="section">
+<section id="communities" class="py-[var(--vc-space-11)]">
 	<div class="wrap">
-		<div class="section-head">
+		<div class="mb-[clamp(28px,4vw,48px)] flex items-end justify-between gap-6">
 			<div>
-				<p class="section-kicker">Newest</p>
-				<h2 class="section-title">New communities</h2>
+				<p
+					class="mt-0 mb-2.5 font-mono text-xs tracking-[var(--vc-tracking-eyebrow)] text-muted uppercase"
+				>
+					Newest
+				</p>
+				<h2
+					class="m-0 font-display text-[length:var(--vc-text-3xl)] leading-[var(--vc-leading-tight)] font-normal tracking-[var(--vc-tracking-tight)] text-ink"
+				>
+					New communities
+				</h2>
 			</div>
 		</div>
 
@@ -204,12 +238,20 @@
 
 <!-- Most Active -->
 {#if data.mostActive.length > 0}
-	<section id="active" class="section">
+	<section id="active" class="py-[var(--vc-space-11)]">
 		<div class="wrap">
-			<div class="section-head">
+			<div class="mb-[clamp(28px,4vw,48px)] flex items-end justify-between gap-6">
 				<div>
-					<p class="section-kicker">Most active</p>
-					<h2 class="section-title">Where decisions are happening</h2>
+					<p
+						class="mt-0 mb-2.5 font-mono text-xs tracking-[var(--vc-tracking-eyebrow)] text-muted uppercase"
+					>
+						Most active
+					</p>
+					<h2
+						class="m-0 font-display text-[length:var(--vc-text-3xl)] leading-[var(--vc-leading-tight)] font-normal tracking-[var(--vc-tracking-tight)] text-ink"
+					>
+						Where decisions are happening
+					</h2>
 				</div>
 			</div>
 
