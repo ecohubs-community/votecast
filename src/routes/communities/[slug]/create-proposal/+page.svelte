@@ -145,7 +145,7 @@
 	{/if}
 
 	<form method="POST" use:enhance>
-		<div style="display: grid; gap: 32px; grid-template-columns: 1fr;" class="proposal-grid">
+		<div class="proposal-grid grid grid-cols-1 gap-8">
 			<div class="form-stack">
 				<div class="field">
 					<label for="title" class="label">Title</label>
@@ -320,10 +320,10 @@
 						<p class="hint">
 							Each question is answered Agree / Disagree / Abstain and tallied on its own.
 						</p>
-						<div style="display: flex; flex-direction: column; gap: 8px;">
+						<div class="flex flex-col gap-2">
 							<!-- eslint-disable-next-line @typescript-eslint/no-unused-vars -- index-only loop; bound via questions[i] -->
 							{#each questions as _, i (i)}
-								<div style="display: flex; gap: 8px;">
+								<div class="flex gap-2">
 									<input
 										type="text"
 										name="questions"
@@ -376,12 +376,7 @@
 									<option value="deliberation">During the deliberation phase</option>
 								</select>
 								{#if qPhase === 'deliberation'}
-									<select
-										name="questionContributors"
-										bind:value={qWho}
-										class="input"
-										style="margin-top: 8px;"
-									>
+									<select name="questionContributors" bind:value={qWho} class="input mt-2">
 										<option value="proposer">Proposer only</option>
 										<option value="members">Any member</option>
 									</select>
@@ -397,10 +392,10 @@
 						</ul>
 						<p class="hint"><span class="locked-tag">set by method</span></p>
 					{:else}
-						<div style="display: flex; flex-direction: column; gap: 8px;">
+						<div class="flex flex-col gap-2">
 							<!-- eslint-disable-next-line @typescript-eslint/no-unused-vars -- index-only loop; the value is bound via choices[i] since each-block primitives aren't writable refs -->
 							{#each choices as _, i (i)}
-								<div style="display: flex; gap: 8px;">
+								<div class="flex gap-2">
 									<input
 										type="text"
 										name="choices"

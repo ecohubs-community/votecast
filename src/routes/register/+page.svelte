@@ -57,7 +57,7 @@
 		A name, an email, and a password — that's all you need to start.
 	</PageSub>
 
-	<div style="margin-top: 40px;">
+	<div class="mt-10">
 		{#if error}
 			<Alert variant="error" role="alert" class="mb-5">
 				{error}
@@ -115,12 +115,12 @@
 			</Button>
 		</form>
 
-		<p style="margin-top: 28px; text-align: center; font-size: 14px; color: var(--vc-muted);">
+		<p class="mt-7 text-center text-[14px] text-muted">
 			Already have an account?
 			<!-- eslint-disable svelte/no-navigation-without-resolve -- path is resolve()'d; only a query string is appended -->
 			<a
 				href={`${resolve('/login')}${redirectTo !== '/' ? `?redirect=${encodeURIComponent(redirectTo)}` : ''}`}
-				style="color: var(--vc-accent-ink); border-bottom: 1px solid var(--vc-line-2); padding-bottom: 1px;"
+				class="border-b border-line-2 pb-px text-accent-ink"
 			>
 				Sign in
 			</a>

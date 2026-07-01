@@ -271,7 +271,7 @@
 							</span>
 						{/if}
 						{#if member.userId === data.user?.id}
-							<span style="color: var(--vc-muted); font-size: 12px; font-weight: 400;">(you)</span>
+							<span class="text-[12px] font-normal text-muted">(you)</span>
 						{/if}
 					{/snippet}
 					{#snippet meta()}
@@ -308,12 +308,10 @@
 	{:else if activeTab === 'webhooks'}
 		{#if webhookSecret}
 			<Alert variant="warn" class="mb-5">
-				<p style="margin: 0 0 8px; font-weight: 500;">
+				<p class="m-0 mb-2 font-medium">
 					Webhook ready — copy the secret now. We won't show it again.
 				</p>
-				<code
-					style="display: block; padding: 10px 12px; background: rgba(0,0,0,0.05); border-radius: 8px; font-family: var(--vc-font-mono); font-size: 13px; user-select: all;"
-				>
+				<code class="block rounded-lg bg-black/5 px-3 py-2.5 font-mono text-[13px] select-all">
 					{webhookSecret}
 				</code>
 				<Button onclick={() => (webhookSecret = null)} variant="ghost" size="sm" class="mt-3">
@@ -323,16 +321,12 @@
 		{/if}
 
 		{#if webhooks.length > 0}
-			<div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px;">
+			<div class="mb-7 flex flex-col gap-2.5">
 				{#each webhooks as wh (wh.id)}
 					<VoteCard padded={false} class="px-5 py-[18px]">
-						<div
-							style="display: flex; gap: 16px; align-items: start; justify-content: space-between;"
-						>
-							<div style="min-width: 0; flex: 1;">
-								<p
-									style="margin: 0; font-family: var(--vc-font-mono); font-size: 13px; color: var(--vc-ink); word-break: break-all;"
-								>
+						<div class="flex items-start justify-between gap-4">
+							<div class="min-w-0 flex-1">
+								<p class="m-0 font-mono text-[13px] break-all text-ink">
 									{wh.url}
 								</p>
 								<p class="hint" style="margin-top: 6px;">Events: {wh.events.join(', ')}</p>
@@ -340,7 +334,7 @@
 									Created {formatRelativeTime(wh.createdAt)}
 								</p>
 							</div>
-							<div style="display: flex; gap: 8px; flex-shrink: 0;">
+							<div class="flex shrink-0 gap-2">
 								<Button
 									onclick={() => toggleWebhook(wh.id, !wh.active)}
 									variant="ghost"
@@ -359,7 +353,7 @@
 				{/each}
 			</div>
 		{:else}
-			<div class="empty" style="margin-bottom: 28px;">
+			<div class="empty mb-7">
 				<p>No webhooks yet. Add one below to forward events to your tools.</p>
 			</div>
 		{/if}
@@ -384,7 +378,7 @@
 
 				<div class="field">
 					<span class="label">Events</span>
-					<div style="display: flex; flex-wrap: wrap; gap: 8px;">
+					<div class="flex flex-wrap gap-2">
 						{#each availableEvents as evt (evt.value)}
 							<label
 								class="inline-flex cursor-pointer items-center rounded-full border bg-surface px-3 py-1.5 text-[12px] font-medium transition-[border-color,background,color] duration-[var(--vc-duration-fast)] ease-[var(--vc-ease)] {newWebhookEvents.includes(
@@ -425,7 +419,7 @@
 			<h3 class="m-0 font-display text-[length:var(--vc-text-xl)] font-normal text-danger-strong">
 				Delete this community
 			</h3>
-			<p style="margin-top: 8px; color: var(--vc-ink-2); font-size: 14px; line-height: 1.55;">
+			<p class="mt-2 text-[14px] leading-[1.55] text-ink-2">
 				This permanently removes <strong>{data.community.name}</strong> along with every proposal, vote,
 				member, webhook, and invite. There's no coming back from this.
 			</p>
@@ -436,9 +430,9 @@
 				</Button>
 			{:else}
 				<div
-					style="margin-top: 20px; padding: 16px; border: 1px solid oklch(0.55 0.16 28 / 0.4); border-radius: 12px; background: oklch(0.55 0.16 28 / 0.06);"
+					class="mt-5 rounded-xl border border-[oklch(0.55_0.16_28/0.4)] bg-[oklch(0.55_0.16_28/0.06)] p-4"
 				>
-					<p style="margin: 0 0 10px; font-size: 14px; color: oklch(0.4 0.16 28);">
+					<p class="m-0 mb-2.5 text-[14px] text-[oklch(0.4_0.16_28)]">
 						Type <strong>{data.community.name}</strong> to confirm.
 					</p>
 					<input
@@ -448,7 +442,7 @@
 						class="input"
 						style="border-color: oklch(0.55 0.16 28 / 0.3);"
 					/>
-					<div style="margin-top: 14px; display: flex; gap: 10px;">
+					<div class="mt-3.5 flex gap-2.5">
 						<form method="POST" action="?/deleteCommunity" use:enhance>
 							<Button
 								type="submit"

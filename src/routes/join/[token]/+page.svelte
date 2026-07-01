@@ -18,9 +18,7 @@
 
 <Page narrow>
 	<VoteCard padded={false} class="px-8 py-10 text-center">
-		<p
-			style="font-family: var(--vc-font-mono); font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--vc-muted); margin: 0 0 16px;"
-		>
+		<p class="m-0 mb-4 font-mono text-[12px] tracking-[0.06em] text-muted uppercase">
 			You're invited to
 		</p>
 		<PageTitle class="!text-[clamp(28px,4vw,40px)]">
@@ -28,9 +26,7 @@
 		</PageTitle>
 
 		{#if data.community.description}
-			<p
-				style="margin: 16px auto 0; font-size: 15px; color: var(--vc-ink-2); line-height: 1.55; max-width: 40ch;"
-			>
+			<p class="mx-auto mt-4 mb-0 max-w-[40ch] text-[15px] leading-[1.55] text-ink-2">
 				{data.community.description}
 			</p>
 		{/if}
@@ -40,17 +36,11 @@
 		{/if}
 
 		{#if data.expired}
-			<p style="margin-top: 28px; color: oklch(0.5 0.14 28); font-size: 14px;">
-				This invite link has expired.
-			</p>
+			<p class="mt-7 text-[14px] text-[oklch(0.5_0.14_28)]">This invite link has expired.</p>
 		{:else if data.exhausted}
-			<p style="margin-top: 28px; color: oklch(0.5 0.14 28); font-size: 14px;">
-				This invite link is all used up.
-			</p>
+			<p class="mt-7 text-[14px] text-[oklch(0.5_0.14_28)]">This invite link is all used up.</p>
 		{:else if data.alreadyMember}
-			<p style="margin-top: 28px; color: var(--vc-muted); font-size: 14px;">
-				You're already part of this community.
-			</p>
+			<p class="mt-7 text-[14px] text-muted">You're already part of this community.</p>
 			<Button
 				href={resolve(`/communities/${data.community.slug}`)}
 				variant="accent"
@@ -60,18 +50,14 @@
 				Open community
 			</Button>
 		{:else if data.user}
-			<form method="POST" use:enhance style="margin-top: 28px;">
+			<form method="POST" use:enhance class="mt-7">
 				<Button type="submit" variant="accent" size="lg">
 					Join {data.community.name}
 				</Button>
 			</form>
 		{:else}
-			<p style="margin-top: 28px; color: var(--vc-muted); font-size: 14px;">
-				Sign in or create an account to accept this invite.
-			</p>
-			<div
-				style="margin-top: 20px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;"
-			>
+			<p class="mt-7 text-[14px] text-muted">Sign in or create an account to accept this invite.</p>
+			<div class="mt-5 flex flex-wrap justify-center gap-3">
 				<Button
 					href={`${resolve('/login')}?redirect=${encodeURIComponent(`/join/${data.token}`)}`}
 					variant="accent"

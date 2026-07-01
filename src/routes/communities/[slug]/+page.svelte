@@ -169,11 +169,9 @@
 
 			{#if form?.inviteUrl}
 				<Alert variant="success" class="mb-4">
-					<p style="margin: 0 0 8px; font-weight: 500;">
-						Link ready — share it with whoever should join.
-					</p>
-					<div style="display: flex; gap: 8px; align-items: center;">
-						<input type="text" readonly value={form.inviteUrl} class="input" style="flex: 1;" />
+					<p class="m-0 mb-2 font-medium">Link ready — share it with whoever should join.</p>
+					<div class="flex items-center gap-2">
+						<input type="text" readonly value={form.inviteUrl} class="input flex-1" />
 						<Button onclick={copyInviteUrl} type="button" variant="ghost" size="sm">
 							{copied ? 'Copied' : 'Copy'}
 						</Button>
@@ -182,7 +180,7 @@
 			{/if}
 
 			<form method="POST" action="?/invite" use:enhance class="flex flex-wrap items-end gap-3">
-				<div class="field" style="flex: 0 0 140px;">
+				<div class="field flex-[0_0_140px]">
 					<label for="maxUses" class="label">
 						Max uses<span class="label-optional">optional</span>
 					</label>
@@ -196,7 +194,7 @@
 					/>
 				</div>
 
-				<div class="field" style="flex: 1; min-width: 220px;">
+				<div class="field min-w-[220px] flex-1">
 					<label for="expiresAt" class="label">Expires</label>
 					<input
 						type="datetime-local"
@@ -239,7 +237,7 @@
 		</div>
 
 		{#if data.proposals.items.length > 0}
-			<div style="display: flex; flex-direction: column; gap: 12px;">
+			<div class="flex flex-col gap-3">
 				{#each data.proposals.items as proposal (proposal.id)}
 					<ProposalCard
 						proposal={{
@@ -257,7 +255,7 @@
 			</div>
 
 			{#if data.proposals.nextCursor}
-				<div style="margin-top: 28px; text-align: center;">
+				<div class="mt-7 text-center">
 					<Button
 						href={resolve(
 							`/communities/${data.community.slug}?cursor=${data.proposals.nextCursor}${data.phaseFilter ? `&phase=${data.phaseFilter}` : ''}`
@@ -288,7 +286,7 @@
 					{@const wallet = shortenWallet(member.walletAddress)}
 					<MemberRow avatarLabel={memberInitials(member)} avatarAdmin={member.role === 'admin'}>
 						{#snippet name()}
-							<span style="overflow: hidden; text-overflow: ellipsis;">{memberName}</span>
+							<span class="overflow-hidden text-ellipsis">{memberName}</span>
 							{#if member.role === 'admin'}
 								<span
 									class="meta-pill"
@@ -305,15 +303,11 @@
 							<span>Joined {formatRelativeTime(member.joinedAt)}</span>
 						{/snippet}
 						{#snippet trailing()}
-							<div style="text-align: right; flex-shrink: 0;">
-								<div
-									style="font-size: 18px; font-weight: 500; color: var(--vc-ink); font-family: var(--vc-font-display);"
-								>
+							<div class="shrink-0 text-right">
+								<div class="font-display text-[18px] font-medium text-ink">
 									{member.voteCount}
 								</div>
-								<div
-									style="font-family: var(--vc-font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--vc-muted);"
-								>
+								<div class="font-mono text-[11px] tracking-[0.06em] text-muted uppercase">
 									{member.voteCount === 1 ? 'vote' : 'votes'}
 								</div>
 							</div>
@@ -323,7 +317,7 @@
 			</div>
 
 			{#if data.members.nextCursor}
-				<div style="margin-top: 28px; text-align: center;">
+				<div class="mt-7 text-center">
 					<Button variant="ghost" size="sm">Load more</Button>
 				</div>
 			{/if}

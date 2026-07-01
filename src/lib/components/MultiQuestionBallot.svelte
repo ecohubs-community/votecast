@@ -113,7 +113,7 @@
 				<Alert variant="success" class="mb-2">Question added.</Alert>
 			{/if}
 			<label for="mq-prompt" class="label">Add a question</label>
-			<div style="display: flex; gap: 8px;">
+			<div class="flex gap-2">
 				<input
 					type="text"
 					id="mq-prompt"

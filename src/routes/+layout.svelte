@@ -217,19 +217,17 @@
 			class="mx-auto flex max-w-[var(--vc-container)] flex-col gap-1 border-t border-line px-[var(--vc-pad-x)] pt-2 pb-[18px] [&_.nav-link]:w-full [&_.nav-link]:px-3.5 [&_.nav-link]:py-3 [&_.nav-link]:text-left"
 		>
 			{#if data.user}
-				<div style="display:flex; gap:12px; align-items:center; padding:8px 14px 14px;">
+				<div class="flex items-center gap-3 px-3.5 pt-2 pb-3.5">
 					<div class="avatar">{initials}</div>
-					<div style="min-width:0;">
-						<p style="margin:0; font-size:14px; font-weight:500; color:var(--vc-ink);">
+					<div class="min-w-0">
+						<p class="m-0 text-[14px] font-medium text-ink">
 							{displayName}
 						</p>
 						{#if displayEmail}
-							<p style="margin:2px 0 0; font-size:12px; color:var(--vc-muted);">{displayEmail}</p>
+							<p class="mt-0.5 mb-0 text-[12px] text-muted">{displayEmail}</p>
 						{/if}
 						{#if shortWallet}
-							<p
-								style="margin:2px 0 0; font-size:11px; color:var(--vc-muted); font-family:var(--vc-font-mono);"
-							>
+							<p class="mt-0.5 mb-0 font-mono text-[11px] text-muted">
 								{shortWallet}
 							</p>
 						{/if}
@@ -255,7 +253,7 @@
 
 <footer class="mt-[clamp(40px,6vw,80px)] border-t border-line pt-12 pb-14">
 	<div class="wrap flex flex-wrap items-center justify-between gap-6">
-		<div class="brand" style="font-size:18px;">
+		<div class="brand text-[18px]">
 			<img src={logo} alt="" class="brand-logo" />
 			VoteCast
 		</div>

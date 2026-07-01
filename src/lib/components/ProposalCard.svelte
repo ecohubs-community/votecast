@@ -54,7 +54,7 @@
 					fill="none"
 					stroke="currentColor"
 					stroke-width="2"
-					style="color: var(--vc-muted); flex-shrink: 0;"
+					class="shrink-0 text-muted"
 					aria-hidden="true"
 				>
 					<path
@@ -64,7 +64,7 @@
 					/>
 				</svg>
 			{/if}
-			<span style="overflow: hidden; text-overflow: ellipsis;">{proposal.title}</span>
+			<span class="overflow-hidden text-ellipsis">{proposal.title}</span>
 		</h3>
 		<div class="flex shrink-0 items-center gap-2">
 			{#if proposal.visibility === 'public'}

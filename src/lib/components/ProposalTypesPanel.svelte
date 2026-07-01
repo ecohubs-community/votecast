@@ -238,7 +238,7 @@
 				</select>
 
 				{#if questionPhase === 'deliberation'}
-					<label for="type-qwho" class="label" style="margin-top: 12px;">Who may add them</label>
+					<label for="type-qwho" class="label mt-3">Who may add them</label>
 					<select id="type-qwho" name="questionContributors" class="input">
 						<option value="proposer">Proposer only</option>
 						<option value="members">Any member</option>

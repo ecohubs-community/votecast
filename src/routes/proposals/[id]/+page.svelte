@@ -138,14 +138,10 @@
 	<PageHead>
 		<div>
 			<PageTitle>{data.proposal.title}</PageTitle>
-			<div
-				style="margin-top: 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px;"
-			>
+			<div class="mt-3.5 flex flex-wrap items-center gap-2.5">
 				<StatusBadge phase={data.proposal.phase} />
 				<VisibilityPill visibility={data.proposal.visibility} />
-				<span
-					style="color: var(--vc-muted); font-family: var(--vc-font-mono); font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em;"
-				>
+				<span class="font-mono text-[12px] tracking-[0.06em] text-muted uppercase">
 					{timeContext}
 				</span>
 			</div>
@@ -331,7 +327,7 @@
 							/>
 						{/each}
 					</div>
-					<p style="margin-top: 16px; font-size: 13px; color: var(--vc-accent-ink);">
+					<p class="mt-4 text-[13px] text-accent-ink">
 						You voted for "{userChoiceLabel}". Your vote is locked in.
 					</p>
 				{:else}
@@ -354,17 +350,14 @@
 							You'll need to join {data.community.name} to vote.
 							<a
 								href={resolve(`/communities/${data.community.slug}`)}
-								style="color: var(--vc-accent-ink); border-bottom: 1px solid var(--vc-line-2); margin-left: 4px;"
+								class="ml-1 border-b border-line-2 text-accent-ink"
 							>
 								Open community
 							</a>
 						</p>
 					{:else if votingState === 'not-logged-in'}
 						<p class="hint" style="margin-top: 16px;">
-							<a
-								href={resolve('/login')}
-								style="color: var(--vc-accent-ink); border-bottom: 1px solid var(--vc-line-2);"
-							>
+							<a href={resolve('/login')} class="border-b border-line-2 text-accent-ink">
 								Sign in
 							</a>
 							to weigh in on this one.

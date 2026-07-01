@@ -101,9 +101,7 @@
 			/>
 			<p class="hint">
 				Lowercase letters, numbers, and hyphens. Lives at
-				<span style="font-family: var(--vc-font-mono); color: var(--vc-ink-2);"
-					>/communities/{slug || '…'}</span
-				>
+				<span class="font-mono text-ink-2">/communities/{slug || '…'}</span>
 			</p>
 		</div>
 
