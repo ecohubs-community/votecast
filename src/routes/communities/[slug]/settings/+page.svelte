@@ -4,6 +4,7 @@
 	import { formatRelativeTime } from '$lib/utils/format';
 	import { resolve } from '$app/paths';
 	import ProposalTypesPanel from '$lib/components/ProposalTypesPanel.svelte';
+	import VisibilityToggle from '$lib/components/VisibilityToggle.svelte';
 	import type { PageData, ActionData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -227,45 +228,7 @@
 
 			<div class="field">
 				<span class="label">Who can see this community</span>
-				<div class="toggle-group">
-					<label class="toggle-opt" class:selected={communityVisibility === 'public'}>
-						<input type="radio" name="visibility" value="public" bind:group={communityVisibility} />
-						<svg
-							width="14"
-							height="14"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="1.8"
-							aria-hidden="true"
-						>
-							<circle cx="12" cy="12" r="9" />
-							<path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" />
-						</svg>
-						Public
-					</label>
-					<label class="toggle-opt" class:selected={communityVisibility === 'community'}>
-						<input
-							type="radio"
-							name="visibility"
-							value="community"
-							bind:group={communityVisibility}
-						/>
-						<svg
-							width="14"
-							height="14"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="1.8"
-							aria-hidden="true"
-						>
-							<rect x="4" y="11" width="16" height="10" rx="2" />
-							<path d="M8 11V7a4 4 0 0 1 8 0v4" />
-						</svg>
-						Members only
-					</label>
-				</div>
+				<VisibilityToggle bind:value={communityVisibility} memberLabel="Members only" />
 				<p class="hint">
 					{communityVisibility === 'public'
 						? 'Anyone can find and read this community.'

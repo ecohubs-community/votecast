@@ -362,47 +362,6 @@ select.input,
 	margin-top: var(--vc-space-3);
 }
 
-/* Segmented toggle (radio group as buttons) */
-.toggle-group {
-	display: flex;
-	gap: var(--vc-space-2);
-}
-.toggle-opt {
-	flex: 1;
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	gap: var(--vc-space-2);
-	padding: 11px 14px;
-	border: 1px solid var(--vc-line);
-	border-radius: var(--vc-radius-md);
-	background: var(--vc-surface);
-	color: var(--vc-ink-2);
-	font-size: 14px;
-	font-weight: var(--vc-weight-medium);
-	cursor: pointer;
-	transition:
-		border-color var(--vc-duration-fast) var(--vc-ease),
-		background var(--vc-duration-fast) var(--vc-ease),
-		color var(--vc-duration-fast) var(--vc-ease);
-}
-.toggle-opt:hover {
-	border-color: var(--vc-line-2);
-	background: var(--vc-bg-2);
-}
-.toggle-opt.selected {
-	border-color: var(--vc-accent);
-	background: var(--vc-accent-soft);
-	color: var(--vc-accent-ink);
-}
-.toggle-opt input {
-	position: absolute;
-	width: 1px;
-	height: 1px;
-	overflow: hidden;
-	clip: rect(0, 0, 0, 0);
-}
-
 /* Stacked radio (visibility radio in create-community) */
 .radio-row {
 	display: flex;
