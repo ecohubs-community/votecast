@@ -4,6 +4,8 @@
 	import Button from '$lib/components/Button.svelte';
 	import Alert from '$lib/components/Alert.svelte';
 	import VoteCard from '$lib/components/VoteCard.svelte';
+	import Page from '$lib/components/Page.svelte';
+	import PageTitle from '$lib/components/PageTitle.svelte';
 	import type { PageData, ActionData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -14,16 +16,16 @@
 	<meta name="robots" content="noindex, nofollow" />
 </svelte:head>
 
-<div class="page-narrow">
+<Page narrow>
 	<VoteCard padded={false} class="px-8 py-10 text-center">
 		<p
 			style="font-family: var(--vc-font-mono); font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--vc-muted); margin: 0 0 16px;"
 		>
 			You're invited to
 		</p>
-		<h1 class="page-title" style="font-size: clamp(28px, 4vw, 40px); margin: 0;">
+		<PageTitle class="!text-[clamp(28px,4vw,40px)]">
 			{data.community.name}
-		</h1>
+		</PageTitle>
 
 		{#if data.community.description}
 			<p
@@ -85,4 +87,4 @@
 			</div>
 		{/if}
 	</VoteCard>
-</div>
+</Page>

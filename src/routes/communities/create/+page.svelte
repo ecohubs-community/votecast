@@ -3,6 +3,11 @@
 	import { resolve } from '$app/paths';
 	import Button from '$lib/components/Button.svelte';
 	import Alert from '$lib/components/Alert.svelte';
+	import Page from '$lib/components/Page.svelte';
+	import PageHead from '$lib/components/PageHead.svelte';
+	import PageTitle from '$lib/components/PageTitle.svelte';
+	import PageSub from '$lib/components/PageSub.svelte';
+	import Breadcrumb from '$lib/components/Breadcrumb.svelte';
 	import type { ActionData } from './$types';
 
 	let { form }: { form: ActionData } = $props();
@@ -49,15 +54,15 @@
 	<meta name="robots" content="noindex" />
 </svelte:head>
 
-<div class="page" style="max-width: 720px;">
-	<a href={resolve('/')} class="breadcrumb">Home</a>
+<Page class="!max-w-[720px]">
+	<Breadcrumb href={resolve('/')}>Home</Breadcrumb>
 
-	<header class="page-head">
+	<PageHead>
 		<div>
-			<h1 class="page-title">Start <em>something.</em></h1>
-			<p class="page-sub">Give your group a place to propose, deliberate, and decide together.</p>
+			<PageTitle>Start <em>something.</em></PageTitle>
+			<PageSub>Give your group a place to propose, deliberate, and decide together.</PageSub>
 		</div>
-	</header>
+	</PageHead>
 
 	{#if form?.error}
 		<Alert variant="error" class="mb-6">{form.error}</Alert>
@@ -142,4 +147,4 @@
 			<Button href={resolve('/')} variant="ghost" size="lg">Cancel</Button>
 		</div>
 	</form>
-</div>
+</Page>

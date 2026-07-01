@@ -7,6 +7,11 @@
 	import VisibilityToggle from '$lib/components/VisibilityToggle.svelte';
 	import Button from '$lib/components/Button.svelte';
 	import Alert from '$lib/components/Alert.svelte';
+	import Page from '$lib/components/Page.svelte';
+	import PageHead from '$lib/components/PageHead.svelte';
+	import PageTitle from '$lib/components/PageTitle.svelte';
+	import PageSub from '$lib/components/PageSub.svelte';
+	import Breadcrumb from '$lib/components/Breadcrumb.svelte';
 	import type { PageData, ActionData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -121,19 +126,19 @@
 	<meta name="robots" content="noindex, nofollow" />
 </svelte:head>
 
-<div class="page">
-	<a href={resolve(`/communities/${data.community.slug}`)} class="breadcrumb"
-		>{data.community.name}</a
+<Page>
+	<Breadcrumb href={resolve(`/communities/${data.community.slug}`)}
+		>{data.community.name}</Breadcrumb
 	>
 
-	<header class="page-head">
+	<PageHead>
 		<div>
-			<h1 class="page-title">Open a <em>proposal.</em></h1>
-			<p class="page-sub">
+			<PageTitle>Open a <em>proposal.</em></PageTitle>
+			<PageSub>
 				Write what's being decided. Add the options. The method's defaults fill in the rest.
-			</p>
+			</PageSub>
 		</div>
-	</header>
+	</PageHead>
 
 	{#if form?.error}
 		<Alert variant="error" class="mb-6">{form.error}</Alert>
@@ -439,7 +444,7 @@
 			>
 		</div>
 	</form>
-</div>
+</Page>
 
 <style>
 	@media (min-width: 960px) {

@@ -12,6 +12,11 @@
 	import Tab from '$lib/components/Tab.svelte';
 	import VoteCard from '$lib/components/VoteCard.svelte';
 	import MemberRow from '$lib/components/MemberRow.svelte';
+	import Page from '$lib/components/Page.svelte';
+	import PageHead from '$lib/components/PageHead.svelte';
+	import PageTitle from '$lib/components/PageTitle.svelte';
+	import PageSub from '$lib/components/PageSub.svelte';
+	import Breadcrumb from '$lib/components/Breadcrumb.svelte';
 	import type { PageData, ActionData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -154,17 +159,17 @@
 	<meta name="robots" content="noindex, nofollow" />
 </svelte:head>
 
-<div class="page">
-	<a href={resolve(`/communities/${data.community.slug}`)} class="breadcrumb"
-		>{data.community.name}</a
+<Page>
+	<Breadcrumb href={resolve(`/communities/${data.community.slug}`)}
+		>{data.community.name}</Breadcrumb
 	>
 
-	<header class="page-head">
+	<PageHead>
 		<div>
-			<h1 class="page-title">Settings</h1>
-			<p class="page-sub">{data.community.name}</p>
+			<PageTitle>Settings</PageTitle>
+			<PageSub>{data.community.name}</PageSub>
 		</div>
-	</header>
+	</PageHead>
 
 	<Tabs>
 		<Tab active={activeTab === 'general'} onclick={() => (activeTab = 'general')}>General</Tab>
@@ -467,4 +472,4 @@
 			{/if}
 		</div>
 	{/if}
-</div>
+</Page>

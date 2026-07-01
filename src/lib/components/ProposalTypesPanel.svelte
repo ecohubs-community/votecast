@@ -5,6 +5,7 @@
 	import Button from '$lib/components/Button.svelte';
 	import Alert from '$lib/components/Alert.svelte';
 	import VoteCard from '$lib/components/VoteCard.svelte';
+	import PageSub from '$lib/components/PageSub.svelte';
 
 	type TypeSummary = {
 		ballotModuleId: string;
@@ -56,10 +57,10 @@
 	>
 		Proposal types
 	</h2>
-	<p class="page-sub" style="margin: 4px 0 0;">
+	<PageSub class="!mt-1">
 		Types bundle a voting method, timings, and defaults. Editing a method makes a new version;
 		existing proposals keep the version they were created with.
-	</p>
+	</PageSub>
 </div>
 
 {#if form?.typeError}
@@ -87,7 +88,7 @@
 					{#if t.retired}<span class="meta-pill">Retired</span>{/if}
 				</div>
 				{#if t.description}
-					<p class="page-sub" style="margin: 4px 0 0;">{t.description}</p>
+					<PageSub class="!mt-1">{t.description}</PageSub>
 				{/if}
 				{#if t.summary}
 					<MethodFlow
@@ -137,7 +138,7 @@
 		</div>
 	{/each}
 	{#if visibleTypes.length === 0}
-		<p class="page-sub">No {showRetired ? '' : 'active '}types.</p>
+		<PageSub>No {showRetired ? '' : 'active '}types.</PageSub>
 	{/if}
 </section>
 

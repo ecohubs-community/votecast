@@ -13,6 +13,10 @@
 	import VoteCard from '$lib/components/VoteCard.svelte';
 	import MemberRow from '$lib/components/MemberRow.svelte';
 	import VisibilityPill from '$lib/components/VisibilityPill.svelte';
+	import Page from '$lib/components/Page.svelte';
+	import PageHead from '$lib/components/PageHead.svelte';
+	import PageTitle from '$lib/components/PageTitle.svelte';
+	import Breadcrumb from '$lib/components/Breadcrumb.svelte';
 	import { formatRelativeTime } from '$lib/utils/format';
 	import { ballotLabel, ruleLabel } from '$lib/utils/method-labels';
 	import { resolve } from '$app/paths';
@@ -126,14 +130,14 @@
 	<meta name="twitter:image" content={ogImage} />
 </svelte:head>
 
-<div class="page">
-	<a href={resolve(`/communities/${data.community.slug}`)} class="breadcrumb">
+<Page>
+	<Breadcrumb href={resolve(`/communities/${data.community.slug}`)}>
 		{data.community.name}
-	</a>
+	</Breadcrumb>
 
-	<header class="page-head">
+	<PageHead>
 		<div>
-			<h1 class="page-title">{data.proposal.title}</h1>
+			<PageTitle>{data.proposal.title}</PageTitle>
 			<div
 				style="margin-top: 14px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px;"
 			>
@@ -146,7 +150,7 @@
 				</span>
 			</div>
 		</div>
-	</header>
+	</PageHead>
 
 	{#if data.method}
 		<section class="method-summary">
@@ -370,7 +374,7 @@
 			</VoteCard>
 		</aside>
 	</div>
-</div>
+</Page>
 
 <style>
 	.method-summary {

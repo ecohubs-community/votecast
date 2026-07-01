@@ -3,6 +3,9 @@
 	import Spinner from '$lib/components/Spinner.svelte';
 	import Button from '$lib/components/Button.svelte';
 	import Alert from '$lib/components/Alert.svelte';
+	import Page from '$lib/components/Page.svelte';
+	import PageTitle from '$lib/components/PageTitle.svelte';
+	import PageSub from '$lib/components/PageSub.svelte';
 	import { resolve } from '$app/paths';
 
 	let { data } = $props();
@@ -46,13 +49,13 @@
 	<meta name="robots" content="noindex" />
 </svelte:head>
 
-<div class="page-narrow">
-	<h1 class="page-title" style="text-align: center;">
+<Page narrow>
+	<PageTitle class="text-center">
 		Make space for <em>your people.</em>
-	</h1>
-	<p class="page-sub" style="text-align: center; margin-inline: auto;">
+	</PageTitle>
+	<PageSub class="mx-auto text-center">
 		A name, an email, and a password — that's all you need to start.
-	</p>
+	</PageSub>
 
 	<div style="margin-top: 40px;">
 		{#if error}
@@ -124,4 +127,4 @@
 			<!-- eslint-enable svelte/no-navigation-without-resolve -->
 		</p>
 	</div>
-</div>
+</Page>

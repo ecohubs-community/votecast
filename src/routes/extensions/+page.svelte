@@ -1,5 +1,9 @@
 <script lang="ts">
 	import VoteCard from '$lib/components/VoteCard.svelte';
+	import Page from '$lib/components/Page.svelte';
+	import PageHead from '$lib/components/PageHead.svelte';
+	import PageTitle from '$lib/components/PageTitle.svelte';
+	import PageSub from '$lib/components/PageSub.svelte';
 	import type { PageData } from './$types';
 	let { data }: { data: PageData } = $props();
 </script>
@@ -9,17 +13,17 @@
 	<meta name="robots" content="noindex, nofollow" />
 </svelte:head>
 
-<div class="page">
-	<header class="page-head">
+<Page>
+	<PageHead>
 		<div>
-			<h1 class="page-title">Extensions</h1>
-			<p class="page-sub">
+			<PageTitle>Extensions</PageTitle>
+			<PageSub>
 				What the voting engine ships with. <strong>Method modules</strong> define how votes are cast
 				and decided (core governance). <strong>Event plugins</strong> react to lifecycle events without
 				changing the rules.
-			</p>
+			</PageSub>
 		</div>
-	</header>
+	</PageHead>
 
 	<VoteCard as="section" title="Method modules" class="mb-6">
 		<h3 class="ext-subhead">Ballots</h3>
@@ -47,7 +51,7 @@
 			{/each}
 		</ul>
 	</VoteCard>
-</div>
+</Page>
 
 <style>
 	.ext-subhead {

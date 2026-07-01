@@ -8,6 +8,11 @@
 	import Tab from '$lib/components/Tab.svelte';
 	import VoteCard from '$lib/components/VoteCard.svelte';
 	import MemberRow from '$lib/components/MemberRow.svelte';
+	import Page from '$lib/components/Page.svelte';
+	import PageHead from '$lib/components/PageHead.svelte';
+	import PageTitle from '$lib/components/PageTitle.svelte';
+	import PageSub from '$lib/components/PageSub.svelte';
+	import Breadcrumb from '$lib/components/Breadcrumb.svelte';
 	import { formatRelativeTime } from '$lib/utils/format';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
@@ -102,14 +107,14 @@
 	<meta name="twitter:image" content={ogImage} />
 </svelte:head>
 
-<div class="page">
-	<a href={resolve('/')} class="breadcrumb">All communities</a>
+<Page>
+	<Breadcrumb href={resolve('/')}>All communities</Breadcrumb>
 
-	<header class="page-head">
+	<PageHead>
 		<div>
-			<h1 class="page-title">{data.community.name}</h1>
+			<PageTitle>{data.community.name}</PageTitle>
 			{#if data.community.description}
-				<p class="page-sub">{data.community.description}</p>
+				<PageSub>{data.community.description}</PageSub>
 			{/if}
 		</div>
 
@@ -154,7 +159,7 @@
 				</Button>
 			</div>
 		{/if}
-	</header>
+	</PageHead>
 
 	{#if showInviteForm && data.membership?.role === 'admin'}
 		<VoteCard as="section" title="Generate an invite link" titleAs="h3" class="mb-8">
@@ -326,4 +331,4 @@
 			<EmptyState message="No members yet — be the first." />
 		{/if}
 	{/if}
-</div>
+</Page>
