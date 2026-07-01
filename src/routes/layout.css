@@ -239,11 +239,6 @@ body {
 	line-height: var(--vc-leading-body);
 	max-width: 60ch;
 }
-.page-actions {
-	display: flex;
-	flex-wrap: wrap;
-	gap: var(--vc-space-3);
-}
 
 .breadcrumb {
 	display: inline-flex;
@@ -363,12 +358,6 @@ select.input,
 	flex-direction: column;
 	gap: var(--vc-space-6);
 }
-.form-row {
-	display: flex;
-	gap: var(--vc-space-3);
-	align-items: end;
-	flex-wrap: wrap;
-}
 .form-actions {
 	display: flex;
 	gap: var(--vc-space-3);
@@ -420,11 +409,6 @@ select.input,
 }
 
 /* Stacked radio (visibility radio in create-community) */
-.radio-stack {
-	display: flex;
-	flex-direction: column;
-	gap: 6px;
-}
 .radio-row {
 	display: flex;
 	align-items: start;

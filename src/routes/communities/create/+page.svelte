@@ -117,7 +117,7 @@
 
 		<div class="field">
 			<span class="label">Who can see it</span>
-			<div class="radio-stack">
+			<div class="flex flex-col gap-1.5">
 				<label class="radio-row" class:selected={visibility === 'public'}>
 					<input type="radio" name="visibility" value="public" bind:group={visibility} />
 					<span>

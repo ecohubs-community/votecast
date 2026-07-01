@@ -108,7 +108,7 @@
 		</div>
 
 		{#if data.membership}
-			<div class="page-actions">
+			<div class="flex flex-wrap gap-3">
 				<span class="vc-badge vc-badge--active" style="text-transform: none; letter-spacing: 0;">
 					{data.membership.role === 'admin' ? 'Admin' : 'Member'}
 				</span>
@@ -174,7 +174,7 @@
 				</div>
 			{/if}
 
-			<form method="POST" action="?/invite" use:enhance class="form-row">
+			<form method="POST" action="?/invite" use:enhance class="flex flex-wrap items-end gap-3">
 				<div class="field" style="flex: 0 0 140px;">
 					<label for="maxUses" class="label">
 						Max uses<span class="label-optional">optional</span>
