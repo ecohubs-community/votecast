@@ -205,9 +205,7 @@
 							{/snippet}
 							{#snippet trailing()}
 								{#if voter.choiceLabel}
-									<span class="meta-pill" style="background: var(--vc-bg-2);"
-										>{voter.choiceLabel}</span
-									>
+									<span class="meta-pill">{voter.choiceLabel}</span>
 								{/if}
 							{/snippet}
 						</MemberRow>
@@ -346,7 +344,7 @@
 					</div>
 
 					{#if votingState === 'not-member'}
-						<p class="hint" style="margin-top: 16px;">
+						<p class="hint mt-4">
 							You'll need to join {data.community.name} to vote.
 							<a
 								href={resolve(`/communities/${data.community.slug}`)}
@@ -356,7 +354,7 @@
 							</a>
 						</p>
 					{:else if votingState === 'not-logged-in'}
-						<p class="hint" style="margin-top: 16px;">
+						<p class="hint mt-4">
 							<a href={resolve('/login')} class="border-b border-line-2 text-accent-ink">
 								Sign in
 							</a>

@@ -185,11 +185,7 @@
 			Webhooks <span class="text-muted">·</span>
 			{webhooks.length}
 		</Tab>
-		<Tab
-			active={activeTab === 'danger'}
-			onclick={() => (activeTab = 'danger')}
-			style="color: oklch(0.5 0.14 28);"
-		>
+		<Tab danger active={activeTab === 'danger'} onclick={() => (activeTab = 'danger')}>
 			Danger zone
 		</Tab>
 	</Tabs>
@@ -253,7 +249,7 @@
 			<Alert variant="error" class="mb-5">{form.memberError}</Alert>
 		{/if}
 
-		<p class="hint" style="margin-bottom: 16px;">
+		<p class="hint mb-4">
 			{data.members.items.length} member{data.members.items.length === 1 ? '' : 's'} in this community.
 		</p>
 
@@ -263,12 +259,7 @@
 					{#snippet name()}
 						<span>{memberDisplayName(member)}</span>
 						{#if member.role === 'admin'}
-							<span
-								class="meta-pill"
-								style="background: var(--vc-accent-soft); color: var(--vc-accent-ink);"
-							>
-								Admin
-							</span>
+							<span class="meta-pill bg-accent-soft text-accent-ink">Admin</span>
 						{/if}
 						{#if member.userId === data.user?.id}
 							<span class="text-[12px] font-normal text-muted">(you)</span>
@@ -329,8 +320,8 @@
 								<p class="m-0 font-mono text-[13px] break-all text-ink">
 									{wh.url}
 								</p>
-								<p class="hint" style="margin-top: 6px;">Events: {wh.events.join(', ')}</p>
-								<p class="hint" style="margin-top: 2px;">
+								<p class="hint mt-1.5">Events: {wh.events.join(', ')}</p>
+								<p class="hint mt-0.5">
 									Created {formatRelativeTime(wh.createdAt)}
 								</p>
 							</div>
@@ -439,8 +430,7 @@
 						type="text"
 						bind:value={confirmName}
 						placeholder={data.community.name}
-						class="input"
-						style="border-color: oklch(0.55 0.16 28 / 0.3);"
+						class="input border-[oklch(0.55_0.16_28/0.3)]"
 					/>
 					<div class="mt-3.5 flex gap-2.5">
 						<form method="POST" action="?/deleteCommunity" use:enhance>

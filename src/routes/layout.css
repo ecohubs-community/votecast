@@ -56,84 +56,88 @@ body {
 	text-rendering: optimizeLegibility;
 }
 
-/* ---------- Nav ---------- */
-.brand {
-	display: inline-flex;
-	align-items: center;
-	gap: 10px;
-	font-family: var(--vc-font-display);
-	font-size: 22px;
-	letter-spacing: -0.01em;
-	color: var(--vc-ink);
-}
-.brand-logo {
-	width: 24px;
-	height: 24px;
-	display: inline-block;
-	object-fit: contain;
-}
-.nav-link {
-	padding: var(--vc-space-2) var(--vc-space-3);
-	font-size: 14px;
-	color: var(--vc-ink-2);
-	border-radius: var(--vc-radius-pill);
-	transition:
-		background var(--vc-duration-fast) var(--vc-ease),
-		color var(--vc-duration-fast) var(--vc-ease);
-	background: none;
-	border: 0;
-	cursor: pointer;
-	font: inherit;
-	text-decoration: none;
-}
-.nav-link:hover {
-	color: var(--vc-ink);
-	background: var(--vc-bg-2);
-}
+/* Design-system primitives live in the `components` layer so Tailwind utility classes used in markup
+   override them without !important (the utilities layer always wins over components). Keep new
+   primitives inside this block. */
+@layer components {
+	/* ---------- Nav ---------- */
+	.brand {
+		display: inline-flex;
+		align-items: center;
+		gap: 10px;
+		font-family: var(--vc-font-display);
+		font-size: 22px;
+		letter-spacing: -0.01em;
+		color: var(--vc-ink);
+	}
+	.brand-logo {
+		width: 24px;
+		height: 24px;
+		display: inline-block;
+		object-fit: contain;
+	}
+	.nav-link {
+		padding: var(--vc-space-2) var(--vc-space-3);
+		font-size: 14px;
+		color: var(--vc-ink-2);
+		border-radius: var(--vc-radius-pill);
+		transition:
+			background var(--vc-duration-fast) var(--vc-ease),
+			color var(--vc-duration-fast) var(--vc-ease);
+		background: none;
+		border: 0;
+		cursor: pointer;
+		font: inherit;
+		text-decoration: none;
+	}
+	.nav-link:hover {
+		color: var(--vc-ink);
+		background: var(--vc-bg-2);
+	}
 
-/* ---------- Avatar ---------- */
-.avatar {
-	width: 36px;
-	height: 36px;
-	border-radius: 50%;
-	background: var(--vc-ink);
-	color: var(--vc-bg);
-	font-family: var(--vc-font-body);
-	font-size: 12px;
-	font-weight: var(--vc-weight-medium);
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	letter-spacing: 0.04em;
-	border: 0;
-	cursor: pointer;
-	transition: box-shadow var(--vc-duration-fast) var(--vc-ease);
-}
-.avatar:hover {
-	box-shadow: 0 0 0 3px var(--vc-bg-2);
-}
+	/* ---------- Avatar ---------- */
+	.avatar {
+		width: 36px;
+		height: 36px;
+		border-radius: 50%;
+		background: var(--vc-ink);
+		color: var(--vc-bg);
+		font-family: var(--vc-font-body);
+		font-size: 12px;
+		font-weight: var(--vc-weight-medium);
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		letter-spacing: 0.04em;
+		border: 0;
+		cursor: pointer;
+		transition: box-shadow var(--vc-duration-fast) var(--vc-ease);
+	}
+	.avatar:hover {
+		box-shadow: 0 0 0 3px var(--vc-bg-2);
+	}
 
-/* ---------- Container ---------- */
-.wrap {
-	max-width: var(--vc-container);
-	margin: 0 auto;
-	padding: 0 var(--vc-pad-x);
-}
+	/* ---------- Container ---------- */
+	.wrap {
+		max-width: var(--vc-container);
+		margin: 0 auto;
+		padding: 0 var(--vc-pad-x);
+	}
 
-/* ---------- Empty state ---------- */
-.empty {
-	border: 1px dashed var(--vc-line-2);
-	border-radius: var(--vc-radius-xl);
-	padding: 40px;
-	text-align: center;
-	color: var(--vc-muted);
-	background: color-mix(in oklab, var(--vc-bg) 60%, transparent);
-}
-.empty p {
-	margin: 0 0 14px;
-}
+	/* ---------- Empty state ---------- */
+	.empty {
+		border: 1px dashed var(--vc-line-2);
+		border-radius: var(--vc-radius-xl);
+		padding: 40px;
+		text-align: center;
+		color: var(--vc-muted);
+		background: color-mix(in oklab, var(--vc-bg) 60%, transparent);
+	}
+	.empty p {
+		margin: 0 0 14px;
+	}
 
-/* ─────────────────────────────────────────────────────────────
+	/* ─────────────────────────────────────────────────────────────
    Page chrome — wrappers, headers, breadcrumbs
 
    Content width is owned HERE, not per page. Every page wraps its content in `.page` (full container
@@ -141,198 +145,199 @@ body {
    drifts from the shared width and is why detail/create pages used to look narrower.
    ───────────────────────────────────────────────────────────── */
 
-/* ─────────────────────────────────────────────────────────────
+	/* ─────────────────────────────────────────────────────────────
    Forms — labels, inputs, hints, errors
    ───────────────────────────────────────────────────────────── */
-.field {
-	display: flex;
-	flex-direction: column;
-	gap: var(--vc-space-2);
-}
-.label {
-	font-size: 13px;
-	font-weight: var(--vc-weight-medium);
-	color: var(--vc-ink);
-	letter-spacing: -0.005em;
-}
-.label-optional {
-	font-weight: var(--vc-weight-body);
-	color: var(--vc-muted);
-	font-size: 12px;
-	margin-left: 6px;
-}
-.hint {
-	font-size: 12px;
-	color: var(--vc-muted);
-	line-height: 1.5;
-	margin: 0;
-}
-.input,
-.textarea,
-.select {
-	font: inherit;
-	font-size: 15px;
-	color: var(--vc-ink);
-	background: var(--vc-surface);
-	border: 1px solid var(--vc-line);
-	border-radius: var(--vc-radius-md);
-	padding: 11px 14px;
-	width: 100%;
-	transition:
-		border-color var(--vc-duration-fast) var(--vc-ease),
-		box-shadow var(--vc-duration-fast) var(--vc-ease),
-		background var(--vc-duration-fast) var(--vc-ease);
-	font-family: var(--vc-font-body);
-}
-.input::placeholder,
-.textarea::placeholder {
-	color: var(--vc-muted);
-}
-.input:hover,
-.textarea:hover,
-.select:hover {
-	border-color: var(--vc-line-2);
-}
-.input:focus,
-.textarea:focus,
-.select:focus {
-	outline: none;
-	border-color: var(--vc-accent);
-	box-shadow: 0 0 0 3px var(--vc-accent-soft);
-}
-/* App-wide custom dropdown arrow for styled selects (native arrow is suppressed once restyled). */
-select.input,
-.select {
-	appearance: none;
-	-webkit-appearance: none;
-	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23889099' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
-	background-repeat: no-repeat;
-	background-position: right 12px center;
-	padding-right: 38px;
-}
-.textarea {
-	resize: vertical;
-	min-height: 96px;
-	line-height: 1.5;
-}
-.input[readonly],
-.input-readonly {
-	background: var(--vc-bg-2);
-	color: var(--vc-ink-2);
-	cursor: default;
-}
-.input-readonly {
-	display: block;
-	font-family: var(--vc-font-mono);
-	font-size: 13px;
-	padding: 11px 14px;
-	border-radius: var(--vc-radius-md);
-	border: 1px solid var(--vc-line);
-}
+	.field {
+		display: flex;
+		flex-direction: column;
+		gap: var(--vc-space-2);
+	}
+	.label {
+		font-size: 13px;
+		font-weight: var(--vc-weight-medium);
+		color: var(--vc-ink);
+		letter-spacing: -0.005em;
+	}
+	.label-optional {
+		font-weight: var(--vc-weight-body);
+		color: var(--vc-muted);
+		font-size: 12px;
+		margin-left: 6px;
+	}
+	.hint {
+		font-size: 12px;
+		color: var(--vc-muted);
+		line-height: 1.5;
+		margin: 0;
+	}
+	.input,
+	.textarea,
+	.select {
+		font: inherit;
+		font-size: 15px;
+		color: var(--vc-ink);
+		background: var(--vc-surface);
+		border: 1px solid var(--vc-line);
+		border-radius: var(--vc-radius-md);
+		padding: 11px 14px;
+		width: 100%;
+		transition:
+			border-color var(--vc-duration-fast) var(--vc-ease),
+			box-shadow var(--vc-duration-fast) var(--vc-ease),
+			background var(--vc-duration-fast) var(--vc-ease);
+		font-family: var(--vc-font-body);
+	}
+	.input::placeholder,
+	.textarea::placeholder {
+		color: var(--vc-muted);
+	}
+	.input:hover,
+	.textarea:hover,
+	.select:hover {
+		border-color: var(--vc-line-2);
+	}
+	.input:focus,
+	.textarea:focus,
+	.select:focus {
+		outline: none;
+		border-color: var(--vc-accent);
+		box-shadow: 0 0 0 3px var(--vc-accent-soft);
+	}
+	/* App-wide custom dropdown arrow for styled selects (native arrow is suppressed once restyled). */
+	select.input,
+	.select {
+		appearance: none;
+		-webkit-appearance: none;
+		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23889099' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+		background-repeat: no-repeat;
+		background-position: right 12px center;
+		padding-right: 38px;
+	}
+	.textarea {
+		resize: vertical;
+		min-height: 96px;
+		line-height: 1.5;
+	}
+	.input[readonly],
+	.input-readonly {
+		background: var(--vc-bg-2);
+		color: var(--vc-ink-2);
+		cursor: default;
+	}
+	.input-readonly {
+		display: block;
+		font-family: var(--vc-font-mono);
+		font-size: 13px;
+		padding: 11px 14px;
+		border-radius: var(--vc-radius-md);
+		border: 1px solid var(--vc-line);
+	}
 
-/* Form layouts */
-.form-stack {
-	display: flex;
-	flex-direction: column;
-	gap: var(--vc-space-6);
-}
-.form-actions {
-	display: flex;
-	gap: var(--vc-space-3);
-	flex-wrap: wrap;
-	padding-top: var(--vc-space-3);
-	border-top: 1px solid var(--vc-line);
-	margin-top: var(--vc-space-3);
-}
+	/* Form layouts */
+	.form-stack {
+		display: flex;
+		flex-direction: column;
+		gap: var(--vc-space-6);
+	}
+	.form-actions {
+		display: flex;
+		gap: var(--vc-space-3);
+		flex-wrap: wrap;
+		padding-top: var(--vc-space-3);
+		border-top: 1px solid var(--vc-line);
+		margin-top: var(--vc-space-3);
+	}
 
-/* Stacked radio (visibility radio in create-community) */
-.radio-row {
-	display: flex;
-	align-items: start;
-	gap: var(--vc-space-3);
-	padding: var(--vc-space-3) 14px;
-	border: 1px solid var(--vc-line);
-	border-radius: var(--vc-radius-md);
-	cursor: pointer;
-	transition:
-		border-color var(--vc-duration-fast) var(--vc-ease),
-		background var(--vc-duration-fast) var(--vc-ease);
-}
-.radio-row:hover {
-	border-color: var(--vc-line-2);
-	background: var(--vc-bg-2);
-}
-.radio-row.selected {
-	border-color: var(--vc-accent);
-	background: var(--vc-accent-soft);
-}
-.radio-row input {
-	margin-top: 2px;
-	accent-color: var(--vc-accent);
-}
-.radio-row .radio-label {
-	font-size: 14px;
-	font-weight: var(--vc-weight-medium);
-	color: var(--vc-ink);
-	display: block;
-	margin-bottom: 2px;
-}
-.radio-row .radio-desc {
-	font-size: 13px;
-	color: var(--vc-muted);
-}
+	/* Stacked radio (visibility radio in create-community) */
+	.radio-row {
+		display: flex;
+		align-items: start;
+		gap: var(--vc-space-3);
+		padding: var(--vc-space-3) 14px;
+		border: 1px solid var(--vc-line);
+		border-radius: var(--vc-radius-md);
+		cursor: pointer;
+		transition:
+			border-color var(--vc-duration-fast) var(--vc-ease),
+			background var(--vc-duration-fast) var(--vc-ease);
+	}
+	.radio-row:hover {
+		border-color: var(--vc-line-2);
+		background: var(--vc-bg-2);
+	}
+	.radio-row.selected {
+		border-color: var(--vc-accent);
+		background: var(--vc-accent-soft);
+	}
+	.radio-row input {
+		margin-top: 2px;
+		accent-color: var(--vc-accent);
+	}
+	.radio-row .radio-label {
+		font-size: 14px;
+		font-weight: var(--vc-weight-medium);
+		color: var(--vc-ink);
+		display: block;
+		margin-bottom: 2px;
+	}
+	.radio-row .radio-desc {
+		font-size: 13px;
+		color: var(--vc-muted);
+	}
 
-/* Filter chips (status filter on community page) */
-.chips {
-	display: flex;
-	gap: var(--vc-space-2);
-	flex-wrap: wrap;
-	margin-bottom: var(--vc-space-5);
-}
-.chip {
-	display: inline-flex;
-	align-items: center;
-	padding: 6px 14px;
-	border-radius: var(--vc-radius-pill);
-	font-size: 13px;
-	font-weight: var(--vc-weight-medium);
-	color: var(--vc-ink-2);
-	background: var(--vc-bg-2);
-	border: 1px solid transparent;
-	text-decoration: none;
-	transition:
-		background var(--vc-duration-fast) var(--vc-ease),
-		color var(--vc-duration-fast) var(--vc-ease);
-}
-.chip:hover {
-	background: var(--vc-line);
-	color: var(--vc-ink);
-}
-.chip.active {
-	background: var(--vc-ink);
-	color: var(--vc-bg);
-}
+	/* Filter chips (status filter on community page) */
+	.chips {
+		display: flex;
+		gap: var(--vc-space-2);
+		flex-wrap: wrap;
+		margin-bottom: var(--vc-space-5);
+	}
+	.chip {
+		display: inline-flex;
+		align-items: center;
+		padding: 6px 14px;
+		border-radius: var(--vc-radius-pill);
+		font-size: 13px;
+		font-weight: var(--vc-weight-medium);
+		color: var(--vc-ink-2);
+		background: var(--vc-bg-2);
+		border: 1px solid transparent;
+		text-decoration: none;
+		transition:
+			background var(--vc-duration-fast) var(--vc-ease),
+			color var(--vc-duration-fast) var(--vc-ease);
+	}
+	.chip:hover {
+		background: var(--vc-line);
+		color: var(--vc-ink);
+	}
+	.chip.active {
+		background: var(--vc-ink);
+		color: var(--vc-bg);
+	}
 
-/* ─────────────────────────────────────────────────────────────
+	/* ─────────────────────────────────────────────────────────────
    Member list rows
    ───────────────────────────────────────────────────────────── */
-/* ─────────────────────────────────────────────────────────────
+	/* ─────────────────────────────────────────────────────────────
    Visibility/meta inline badges
    ───────────────────────────────────────────────────────────── */
-.meta-pill {
-	display: inline-flex;
-	align-items: center;
-	gap: 6px;
-	padding: 3px 10px;
-	border-radius: var(--vc-radius-pill);
-	font-size: 12px;
-	font-family: var(--vc-font-body);
-	background: var(--vc-bg-2);
-	color: var(--vc-ink-2);
-}
-.meta-pill svg {
-	width: 12px;
-	height: 12px;
+	.meta-pill {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		padding: 3px 10px;
+		border-radius: var(--vc-radius-pill);
+		font-size: 12px;
+		font-family: var(--vc-font-body);
+		background: var(--vc-bg-2);
+		color: var(--vc-ink-2);
+	}
+	.meta-pill svg {
+		width: 12px;
+		height: 12px;
+	}
 }
 
 @keyframes vc-spin {
@@ -340,5 +345,3 @@ select.input,
 		transform: rotate(360deg);
 	}
 }
-
-/* Divider for "or" rule */

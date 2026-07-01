@@ -55,6 +55,8 @@ Style with Tailwind utility classes in markup — NOT by adding plain CSS rules.
 
 When markup would repeat the same utility strings, extract a Svelte component (see `Button`, `Alert`, `Tabs`/`Tab`, `VoteCard`, `MemberRow`, `Page`/`PageHead`/`PageTitle`/`PageSub`/`Breadcrumb` in `src/lib/components/`) rather than adding a CSS class. Reference design tokens via the `@theme` utilities (`bg-accent`, `text-ink`) or arbitrary token refs (`rounded-[var(--vc-radius-xl)]`) — never hard-code hex/oklch values that duplicate a token, and never guess a value where a token exists.
 
+Avoid inline `style="…"` attributes — prefer Tailwind utility classes. Reserve inline styles for genuinely dynamic values (e.g. `style="width: {pct}%"`) or the rare override that would otherwise require `!important`.
+
 
 ## Voice and Tone
 

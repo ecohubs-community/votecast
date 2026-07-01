@@ -120,7 +120,7 @@
 
 		{#if data.membership}
 			<div class="flex flex-wrap gap-3">
-				<span class="vc-badge vc-badge--active" style="text-transform: none; letter-spacing: 0;">
+				<span class="vc-badge vc-badge--active">
 					{data.membership.role === 'admin' ? 'Admin' : 'Member'}
 				</span>
 				{#if data.membership.role === 'admin'}
@@ -288,12 +288,7 @@
 						{#snippet name()}
 							<span class="overflow-hidden text-ellipsis">{memberName}</span>
 							{#if member.role === 'admin'}
-								<span
-									class="meta-pill"
-									style="background: var(--vc-accent-soft); color: var(--vc-accent-ink);"
-								>
-									Admin
-								</span>
+								<span class="meta-pill bg-accent-soft text-accent-ink">Admin</span>
 							{/if}
 						{/snippet}
 						{#snippet meta()}
