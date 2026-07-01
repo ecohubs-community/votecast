@@ -8,6 +8,8 @@
 	import BallotChoice from '$lib/components/BallotChoice.svelte';
 	import Button from '$lib/components/Button.svelte';
 	import Alert from '$lib/components/Alert.svelte';
+	import Tabs from '$lib/components/Tabs.svelte';
+	import Tab from '$lib/components/Tab.svelte';
 	import VisibilityPill from '$lib/components/VisibilityPill.svelte';
 	import { formatRelativeTime } from '$lib/utils/format';
 	import { ballotLabel, ruleLabel } from '$lib/utils/method-labels';
@@ -166,32 +168,20 @@
 
 	<div class="proposal-detail-grid">
 		<div>
-			<nav class="tabs">
-				<button
-					class="tab"
-					class:active={activeTab === 'description'}
-					onclick={() => (activeTab = 'description')}
-				>
+			<Tabs>
+				<Tab active={activeTab === 'description'} onclick={() => (activeTab = 'description')}>
 					Proposal
-				</button>
+				</Tab>
 				{#if data.rationaleHtml}
-					<button
-						class="tab"
-						class:active={activeTab === 'rationale'}
-						onclick={() => (activeTab = 'rationale')}
-					>
+					<Tab active={activeTab === 'rationale'} onclick={() => (activeTab = 'rationale')}>
 						Rationale
-					</button>
+					</Tab>
 				{/if}
-				<button
-					class="tab"
-					class:active={activeTab === 'voters'}
-					onclick={() => (activeTab = 'voters')}
-				>
-					Voters <span style="color: var(--vc-muted);">·</span>
+				<Tab active={activeTab === 'voters'} onclick={() => (activeTab = 'voters')}>
+					Voters <span class="text-muted">·</span>
 					{data.results.totalVotes}
-				</button>
-			</nav>
+				</Tab>
+			</Tabs>
 
 			{#if activeTab === 'description'}
 				<Markdown html={data.bodyHtml} />

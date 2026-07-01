@@ -346,41 +346,6 @@ select.input,
 	color: var(--vc-muted);
 }
 
-/* ─────────────────────────────────────────────────────────────
-   Tabs
-   ───────────────────────────────────────────────────────────── */
-.tabs {
-	display: flex;
-	gap: 4px;
-	border-bottom: 1px solid var(--vc-line);
-	overflow-x: auto;
-	overflow-y: hidden;
-	margin-bottom: var(--vc-space-6);
-}
-.tab {
-	background: none;
-	border: 0;
-	font: inherit;
-	font-size: 14px;
-	font-weight: var(--vc-weight-medium);
-	color: var(--vc-muted);
-	padding: var(--vc-space-3) var(--vc-space-4);
-	border-bottom: 2px solid transparent;
-	margin-bottom: -1px;
-	cursor: pointer;
-	white-space: nowrap;
-	transition:
-		color var(--vc-duration-fast) var(--vc-ease),
-		border-color var(--vc-duration-fast) var(--vc-ease);
-}
-.tab:hover {
-	color: var(--vc-ink-2);
-}
-.tab.active {
-	color: var(--vc-ink);
-	border-bottom-color: var(--vc-accent);
-}
-
 /* Filter chips (status filter on community page) */
 .chips {
 	display: flex;

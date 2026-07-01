@@ -4,6 +4,8 @@
 	import EmptyState from '$lib/components/EmptyState.svelte';
 	import Button from '$lib/components/Button.svelte';
 	import Alert from '$lib/components/Alert.svelte';
+	import Tabs from '$lib/components/Tabs.svelte';
+	import Tab from '$lib/components/Tab.svelte';
 	import { formatRelativeTime } from '$lib/utils/format';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
@@ -208,25 +210,16 @@
 		</section>
 	{/if}
 
-	<nav class="tabs">
-		<button
-			class="tab"
-			class:active={activeTab === 'proposals'}
-			onclick={() => (activeTab = 'proposals')}
+	<Tabs>
+		<Tab active={activeTab === 'proposals'} onclick={() => (activeTab = 'proposals')}>Proposals</Tab
 		>
-			Proposals
-		</button>
 		{#if data.membership && data.members}
-			<button
-				class="tab"
-				class:active={activeTab === 'members'}
-				onclick={() => (activeTab = 'members')}
-			>
-				Members <span style="color: var(--vc-muted);">·</span>
+			<Tab active={activeTab === 'members'} onclick={() => (activeTab = 'members')}>
+				Members <span class="text-muted">·</span>
 				{data.members.items.length}{data.members.nextCursor ? '+' : ''}
-			</button>
+			</Tab>
 		{/if}
-	</nav>
+	</Tabs>
 
 	{#if activeTab === 'proposals'}
 		<div class="chips">

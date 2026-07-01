@@ -8,6 +8,8 @@
 	import VisibilityToggle from '$lib/components/VisibilityToggle.svelte';
 	import Button from '$lib/components/Button.svelte';
 	import Alert from '$lib/components/Alert.svelte';
+	import Tabs from '$lib/components/Tabs.svelte';
+	import Tab from '$lib/components/Tab.svelte';
 	import type { PageData, ActionData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -162,43 +164,28 @@
 		</div>
 	</header>
 
-	<nav class="tabs">
-		<button
-			class="tab"
-			class:active={activeTab === 'general'}
-			onclick={() => (activeTab = 'general')}
-		>
-			General
-		</button>
-		<button class="tab" class:active={activeTab === 'types'} onclick={() => (activeTab = 'types')}>
-			Proposal types <span style="color: var(--vc-muted);">·</span>
+	<Tabs>
+		<Tab active={activeTab === 'general'} onclick={() => (activeTab = 'general')}>General</Tab>
+		<Tab active={activeTab === 'types'} onclick={() => (activeTab = 'types')}>
+			Proposal types <span class="text-muted">·</span>
 			{data.types.length}
-		</button>
-		<button
-			class="tab"
-			class:active={activeTab === 'members'}
-			onclick={() => (activeTab = 'members')}
-		>
-			Members <span style="color: var(--vc-muted);">·</span>
+		</Tab>
+		<Tab active={activeTab === 'members'} onclick={() => (activeTab = 'members')}>
+			Members <span class="text-muted">·</span>
 			{data.members.items.length}
-		</button>
-		<button
-			class="tab"
-			class:active={activeTab === 'webhooks'}
-			onclick={() => (activeTab = 'webhooks')}
-		>
-			Webhooks <span style="color: var(--vc-muted);">·</span>
+		</Tab>
+		<Tab active={activeTab === 'webhooks'} onclick={() => (activeTab = 'webhooks')}>
+			Webhooks <span class="text-muted">·</span>
 			{webhooks.length}
-		</button>
-		<button
-			class="tab"
-			class:active={activeTab === 'danger'}
+		</Tab>
+		<Tab
+			active={activeTab === 'danger'}
 			onclick={() => (activeTab = 'danger')}
 			style="color: oklch(0.5 0.14 28);"
 		>
 			Danger zone
-		</button>
-	</nav>
+		</Tab>
+	</Tabs>
 
 	{#if activeTab === 'general'}
 		{#if form?.generalSuccess}
