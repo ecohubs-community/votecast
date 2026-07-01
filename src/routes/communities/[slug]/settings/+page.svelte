@@ -107,26 +107,30 @@
 	}
 
 	async function deleteWebhook(webhookId: string) {
+		webhookError = '';
 		try {
-			await fetch(`/api/communities/${data.community.id}/webhooks/${webhookId}`, {
+			const res = await fetch(`/api/communities/${data.community.id}/webhooks/${webhookId}`, {
 				method: 'DELETE'
 			});
+			if (!res.ok) throw new Error('request failed');
 			webhooks = webhooks.filter((w) => w.id !== webhookId);
 		} catch {
-			// silently fail
+			webhookError = 'Could not delete that webhook — try again.';
 		}
 	}
 
 	async function toggleWebhook(webhookId: string, active: boolean) {
+		webhookError = '';
 		try {
-			await fetch(`/api/communities/${data.community.id}/webhooks/${webhookId}`, {
+			const res = await fetch(`/api/communities/${data.community.id}/webhooks/${webhookId}`, {
 				method: 'PATCH',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ active })
 			});
+			if (!res.ok) throw new Error('request failed');
 			webhooks = webhooks.map((w) => (w.id === webhookId ? { ...w, active } : w));
 		} catch {
-			// silently fail
+			webhookError = 'Could not update that webhook — try again.';
 		}
 	}
 
@@ -390,6 +394,8 @@
 								<button
 									onclick={() => toggleWebhook(wh.id, !wh.active)}
 									class="btn btn-ghost btn-sm"
+									aria-pressed={wh.active}
+									aria-label="Toggle webhook {wh.active ? 'off' : 'on'}"
 								>
 									{wh.active ? 'Active' : 'Paused'}
 								</button>

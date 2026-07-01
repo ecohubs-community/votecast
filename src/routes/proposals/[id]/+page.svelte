@@ -56,9 +56,9 @@
 		return map;
 	});
 
-	const showResults = $derived(
-		data.proposal.phase !== 'draft' && data.proposal.phase !== 'deliberation'
-	);
+	// Gate the tally on the method's reveal policy (live / on-close / hidden-forever) + the viewer's
+	// role, not just phase — `getProposalOutcome` already resolved exactly that into `outcome.revealed`.
+	const showResults = $derived(data.outcome?.revealed ?? false);
 
 	const OUTCOME_LABELS: Record<string, string> = {
 		passed: 'Passed',
@@ -216,7 +216,11 @@
 									<span>{formatRelativeTime(voter.votedAt)}</span>
 								</div>
 							</div>
-							<span class="meta-pill" style="background: var(--vc-bg-2);">{voter.choiceLabel}</span>
+							{#if voter.choiceLabel}
+								<span class="meta-pill" style="background: var(--vc-bg-2);"
+									>{voter.choiceLabel}</span
+								>
+							{/if}
 						</div>
 					{/each}
 				</div>
@@ -261,6 +265,11 @@
 						entries={data.outcome?.revealed ? (data.outcome.result?.entries ?? null) : null}
 						canAddQuestion={data.canAddQuestion}
 						questionNote={data.questionNote}
+						voteHint={votingState === 'not-member'
+							? `Join ${data.community.name} to weigh in.`
+							: votingState === 'not-logged-in'
+								? 'Sign in to weigh in on this one.'
+								: null}
 						{form}
 					/>
 				{:else if votingState === 'can-vote'}

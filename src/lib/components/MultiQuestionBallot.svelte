@@ -19,6 +19,7 @@
 		entries,
 		canAddQuestion,
 		questionNote,
+		voteHint,
 		form
 	}: {
 		questions: Question[];
@@ -29,6 +30,7 @@
 		entries: Entry[] | null;
 		canAddQuestion: boolean;
 		questionNote: string | null;
+		voteHint: string | null;
 		form: { questionError?: string; questionAdded?: boolean } | null;
 	} = $props();
 
@@ -74,6 +76,9 @@
 			</button>
 		</form>
 	{:else}
+		{#if !hasVoted && voteHint}
+			<p class="mq-hint">{voteHint}</p>
+		{/if}
 		{#each questions as q (q.id)}
 			{@const entry = entryByQuestion.get(q.id)}
 			<div class="mq-q">
@@ -179,6 +184,11 @@
 		padding-top: 16px;
 		border-top: 1px solid var(--vc-line);
 		font-size: 13px;
+		color: var(--vc-muted);
+	}
+	.mq-hint {
+		margin: 0 0 16px;
+		font-size: 14px;
 		color: var(--vc-muted);
 	}
 </style>

@@ -36,8 +36,12 @@ export const load: PageServerLoad = async ({ params, locals }) => {
 			getProposalOutcome(params.id, userId, undefined, role),
 			getCommunityById(proposal.communityId, userId),
 			userId ? getUserVote(userId, params.id) : Promise.resolve(null),
-			// Secret ballots hide the voter list from non-facilitators — degrade to an empty list.
-			getProposalVoters(params.id, undefined, role).catch(() => []),
+			// Secret ballots hide the voter list from non-facilitators — degrade to an empty list for
+			// that specific FORBIDDEN only; any other error must surface, not be swallowed.
+			getProposalVoters(params.id, undefined, role).catch((e) => {
+				if (e instanceof ServiceError && e.statusCode === 403) return [];
+				throw e;
+			}),
 			resolveMethodSummary(proposal)
 		]);
 

@@ -216,29 +216,35 @@ export async function deleteProposalType(
 		throw new ServiceError(ErrorCode.INVALID_REQUEST, 'Retire the type before deleting it');
 	}
 
-	const versions = await db
-		.select({ id: proposalTypeVersion.id })
-		.from(proposalTypeVersion)
-		.where(eq(proposalTypeVersion.typeId, typeId));
-	const versionIds = versions.map((v) => v.id);
+	// Re-check "no proposals" and delete atomically so a proposal can't be pinned to a version between
+	// the check and the delete (better-sqlite3 transactions are synchronous — no async/await inside).
+	db.transaction((tx) => {
+		const versionIds = tx
+			.select({ id: proposalTypeVersion.id })
+			.from(proposalTypeVersion)
+			.where(eq(proposalTypeVersion.typeId, typeId))
+			.all()
+			.map((v: { id: string }) => v.id);
 
-	if (versionIds.length > 0) {
-		const [used] = await db
-			.select({ id: proposal.id })
-			.from(proposal)
-			.where(inArray(proposal.typeVersionId, versionIds))
-			.limit(1);
-		if (used) {
-			throw new ServiceError(
-				ErrorCode.INVALID_REQUEST,
-				'Cannot delete a type that still has proposals; it can stay retired instead'
-			);
+		if (versionIds.length > 0) {
+			const used = tx
+				.select({ id: proposal.id })
+				.from(proposal)
+				.where(inArray(proposal.typeVersionId, versionIds))
+				.limit(1)
+				.get();
+			if (used) {
+				throw new ServiceError(
+					ErrorCode.INVALID_REQUEST,
+					'Cannot delete a type that still has proposals; it can stay retired instead'
+				);
+			}
 		}
-	}
 
-	// Versions cascade via the FK; remove the type (and its now-orphan versions explicitly first).
-	await db.delete(proposalTypeVersion).where(eq(proposalTypeVersion.typeId, typeId));
-	await db.delete(proposalType).where(eq(proposalType.id, typeId));
+		// Versions cascade via the FK; remove them explicitly first, then the type.
+		tx.delete(proposalTypeVersion).where(eq(proposalTypeVersion.typeId, typeId)).run();
+		tx.delete(proposalType).where(eq(proposalType.id, typeId)).run();
+	});
 }
 
 /** Retire (or restore) a type. Retired types accept no new proposals; pinned proposals keep running. */

@@ -54,7 +54,18 @@ function parseSnapshot(json: string, source: string): MethodSnapshot | null {
 	try {
 		const parsed = JSON.parse(json) as Partial<MethodSnapshot>;
 		if (typeof parsed?.ballotModuleId === 'string' && typeof parsed?.decisionRuleId === 'string') {
-			return parsed as MethodSnapshot;
+			// Normalize the axis shape: an ad-hoc override may only carry ballot+rule (a MethodBinding),
+			// so backfill the axes callers read directly (visibility.tallyReveal, process, …) with the
+			// legacy defaults rather than letting `undefined` change reveal/quorum behaviour silently.
+			return {
+				...LEGACY_SNAPSHOT,
+				...parsed,
+				eligibility: parsed.eligibility ?? LEGACY_SNAPSHOT.eligibility,
+				weight: parsed.weight ?? LEGACY_SNAPSHOT.weight,
+				visibility: { ...LEGACY_SNAPSHOT.visibility, ...(parsed.visibility ?? {}) },
+				process: { ...LEGACY_SNAPSHOT.process, ...(parsed.process ?? {}) },
+				config: { ...LEGACY_SNAPSHOT.config, ...(parsed.config ?? {}) }
+			} as MethodSnapshot;
 		}
 		console.warn(
 			`[voting] method snapshot from ${source} is missing required fields; using legacy`

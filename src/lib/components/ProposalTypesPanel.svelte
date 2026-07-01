@@ -183,9 +183,7 @@
 					value="0"
 					class="input"
 				/>
-				<label class="check-inline">
-					<input type="checkbox" name="lockDeliberation" /> Lock — proposers can't change
-				</label>
+				<p class="hint">Set by the type; proposers don't edit deliberation length.</p>
 			</div>
 			<div class="field">
 				<label for="type-voting" class="label">Voting (days)</label>

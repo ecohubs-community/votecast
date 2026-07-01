@@ -41,6 +41,9 @@ import {
 export { transitionProposalStatus };
 export type { ProposalResults };
 
+// Common Ground upper bound, mirroring the 2–20 flat-choice cap in `validateChoices`.
+const MAX_QUESTIONS = 20;
+
 // ─── Input / output types ────────────────────────────────────────────────────
 
 export interface CreateProposalInput {
@@ -165,6 +168,12 @@ export async function createProposal(
 			throw new ServiceError(
 				ErrorCode.INVALID_CHOICES,
 				'Add at least one question for a Common Ground proposal'
+			);
+		}
+		if (questions.length > MAX_QUESTIONS) {
+			throw new ServiceError(
+				ErrorCode.INVALID_CHOICES,
+				`A Common Ground proposal can have at most ${MAX_QUESTIONS} questions`
 			);
 		}
 	} else {
@@ -311,8 +320,15 @@ export async function updateProposal(
 		}
 	}
 
-	// Handle choices replacement
+	// Handle choices replacement — never on a multi-question ballot (that would orphan its questions).
 	if (input.choices !== undefined) {
+		const { snapshot } = await resolveMethodContext(current, db);
+		if (snapshot.ballotModuleId === 'multi-question') {
+			throw new ServiceError(
+				ErrorCode.INVALID_REQUEST,
+				'Common Ground proposals manage questions, not choices'
+			);
+		}
 		validateChoices(input.choices);
 	}
 

@@ -356,6 +356,7 @@
 										maxlength="280"
 										bind:value={questions[i]}
 										class="input"
+										aria-label="Question {i + 1}"
 										placeholder="Question {i + 1}"
 									/>
 									{#if questions.length > 1}
@@ -430,6 +431,7 @@
 										maxlength="200"
 										bind:value={choices[i]}
 										class="input"
+										aria-label="Option {i + 1}"
 										placeholder="Option {i + 1}"
 									/>
 									{#if choices.length > 2}

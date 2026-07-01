@@ -59,7 +59,12 @@ export async function aggregateResults(
 		.groupBy(proposalChoice.id)
 		.orderBy(asc(proposalChoice.position));
 
-	const totalVotes = results.reduce((sum, r) => sum + r.votes, 0);
+	// Ballots cast = distinct voters. Summing per-choice selection counts over-counts multi-question
+	// ballots (one voter writes a selection per question), so read the vote envelopes directly.
+	const [{ value: totalVotes }] = await db
+		.select({ value: count() })
+		.from(vote)
+		.where(eq(vote.proposalId, proposalId));
 
 	return {
 		proposalId,

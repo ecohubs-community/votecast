@@ -1,4 +1,4 @@
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, and, desc, isNull } from 'drizzle-orm';
 import { db as defaultDb } from '$lib/server/db';
 import { proposal, proposalChoice, vote, voteSelection, user } from '$lib/server/db/schema';
 import { ServiceError, ErrorCode } from './errors';
@@ -233,8 +233,9 @@ export interface VoterRecord {
 	userId: string;
 	displayName: string | null;
 	name: string;
-	choiceId: string;
-	choiceLabel: string;
+	// Null for ballots without a single flat choice (consent, multi-question).
+	choiceId: string | null;
+	choiceLabel: string | null;
 	votedAt: Date;
 }
 
@@ -266,29 +267,32 @@ export async function getProposalVoters(
 		}
 	}
 
+	// Base on the vote envelope (one row per voter, guaranteed by the unique index) so consent and
+	// multi-question ballots aren't dropped or multiplied. Attach the flat single-choice label when
+	// there is one (the selection with no questionId); null otherwise.
 	const rows = await db
 		.select({
 			voteId: vote.id,
-			userId: voteSelection.userId,
+			userId: vote.userId,
 			displayName: user.displayName,
 			name: user.name,
 			choiceId: voteSelection.choiceId,
 			choiceLabel: proposalChoice.label,
 			votedAt: vote.createdAt
 		})
-		.from(voteSelection)
-		.innerJoin(
-			vote,
-			and(eq(vote.proposalId, voteSelection.proposalId), eq(vote.userId, voteSelection.userId))
+		.from(vote)
+		.innerJoin(user, eq(user.id, vote.userId))
+		.leftJoin(
+			voteSelection,
+			and(
+				eq(voteSelection.proposalId, vote.proposalId),
+				eq(voteSelection.userId, vote.userId),
+				isNull(voteSelection.questionId)
+			)
 		)
-		.innerJoin(user, eq(user.id, voteSelection.userId))
-		.innerJoin(proposalChoice, eq(proposalChoice.id, voteSelection.choiceId))
-		.where(eq(voteSelection.proposalId, proposalId))
+		.leftJoin(proposalChoice, eq(proposalChoice.id, voteSelection.choiceId))
+		.where(eq(vote.proposalId, proposalId))
 		.orderBy(desc(vote.createdAt));
 
-	return rows.map((r) => ({
-		...r,
-		choiceId: r.choiceId as string, // innerJoin on proposalChoice guarantees non-null (choice ballots)
-		votedAt: r.votedAt ?? new Date()
-	}));
+	return rows.map((r) => ({ ...r, votedAt: r.votedAt ?? new Date() }));
 }
