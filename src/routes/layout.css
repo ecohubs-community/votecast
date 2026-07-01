@@ -60,65 +60,7 @@ body {
    override them without !important (the utilities layer always wins over components). Keep new
    primitives inside this block. */
 @layer components {
-	/* ---------- Nav ---------- */
-	.brand {
-		display: inline-flex;
-		align-items: center;
-		gap: 10px;
-		font-family: var(--vc-font-display);
-		font-size: 22px;
-		letter-spacing: -0.01em;
-		color: var(--vc-ink);
-	}
-	.brand-logo {
-		width: 24px;
-		height: 24px;
-		display: inline-block;
-		object-fit: contain;
-	}
-	.nav-link {
-		padding: var(--vc-space-2) var(--vc-space-3);
-		font-size: 14px;
-		color: var(--vc-ink-2);
-		border-radius: var(--vc-radius-pill);
-		transition:
-			background var(--vc-duration-fast) var(--vc-ease),
-			color var(--vc-duration-fast) var(--vc-ease);
-		background: none;
-		border: 0;
-		cursor: pointer;
-		font: inherit;
-		text-decoration: none;
-	}
-	.nav-link:hover {
-		color: var(--vc-ink);
-		background: var(--vc-bg-2);
-	}
-
-	/* ---------- Empty state ---------- */
-	.empty {
-		border: 1px dashed var(--vc-line-2);
-		border-radius: var(--vc-radius-xl);
-		padding: 40px;
-		text-align: center;
-		color: var(--vc-muted);
-		background: color-mix(in oklab, var(--vc-bg) 60%, transparent);
-	}
-	.empty p {
-		margin: 0 0 14px;
-	}
-
-	/* ─────────────────────────────────────────────────────────────
-   Page chrome — wrappers, headers, breadcrumbs
-
-   Content width is owned HERE, not per page. Every page wraps its content in `.page` (full container
-   width) or `.page-narrow` (forms). Do NOT set an inline `max-width` on a page wrapper — that silently
-   drifts from the shared width and is why detail/create pages used to look narrower.
-   ───────────────────────────────────────────────────────────── */
-
-	/* ─────────────────────────────────────────────────────────────
-   Forms — labels, inputs, hints, errors
-   ───────────────────────────────────────────────────────────── */
+	/* Form primitives — labels, inputs, hints, radios. */
 	.field {
 		display: flex;
 		flex-direction: column;

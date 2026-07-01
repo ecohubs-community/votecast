@@ -13,6 +13,7 @@
 	import VoteCard from '$lib/components/VoteCard.svelte';
 	import MemberRow from '$lib/components/MemberRow.svelte';
 	import MetaPill from '$lib/components/MetaPill.svelte';
+	import EmptyState from '$lib/components/EmptyState.svelte';
 	import Page from '$lib/components/Page.svelte';
 	import PageHead from '$lib/components/PageHead.svelte';
 	import PageTitle from '$lib/components/PageTitle.svelte';
@@ -345,9 +346,10 @@
 				{/each}
 			</div>
 		{:else}
-			<div class="empty mb-7">
-				<p>No webhooks yet. Add one below to forward events to your tools.</p>
-			</div>
+			<EmptyState
+				message="No webhooks yet. Add one below to forward events to your tools."
+				class="mb-7"
+			/>
 		{/if}
 
 		<VoteCard title="Add a webhook" titleAs="h3">

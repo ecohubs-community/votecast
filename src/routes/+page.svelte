@@ -2,6 +2,7 @@
 	import CommunityCard from '$lib/components/CommunityCard.svelte';
 	import BallotPreview from '$lib/components/BallotPreview.svelte';
 	import Button from '$lib/components/Button.svelte';
+	import EmptyState from '$lib/components/EmptyState.svelte';
 	import Wrap from '$lib/components/Wrap.svelte';
 	import type { PageData } from './$types';
 	import { resolve } from '$app/paths';
@@ -228,12 +229,11 @@
 				{/each}
 			</div>
 		{:else}
-			<div class="empty">
-				<p>No communities have been created yet. Be the first!</p>
+			<EmptyState message="No communities have been created yet. Be the first!">
 				{#if data.user}
 					<Button href={resolve('/communities/create')} variant="ghost">Create a community</Button>
 				{/if}
-			</div>
+			</EmptyState>
 		{/if}
 	</Wrap>
 </section>

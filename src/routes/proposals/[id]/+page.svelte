@@ -14,6 +14,7 @@
 	import MemberRow from '$lib/components/MemberRow.svelte';
 	import VisibilityPill from '$lib/components/VisibilityPill.svelte';
 	import MetaPill from '$lib/components/MetaPill.svelte';
+	import EmptyState from '$lib/components/EmptyState.svelte';
 	import Page from '$lib/components/Page.svelte';
 	import PageHead from '$lib/components/PageHead.svelte';
 	import PageTitle from '$lib/components/PageTitle.svelte';
@@ -191,9 +192,7 @@
 			{:else if activeTab === 'rationale'}
 				<Markdown html={data.rationaleHtml ?? ''} />
 			{:else if data.voters.length === 0}
-				<div class="empty">
-					<p>No votes yet — be the first to weigh in.</p>
-				</div>
+				<EmptyState message="No votes yet — be the first to weigh in." />
 			{:else}
 				<div>
 					{#each data.voters as voter (voter.userId)}

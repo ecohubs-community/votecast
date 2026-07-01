@@ -74,6 +74,13 @@
 			avatarMenuOpen = false;
 		}
 	}
+
+	const brand = 'inline-flex items-center gap-2.5 font-display tracking-[-0.01em] text-ink';
+	const brandLogo = 'inline-block size-6 object-contain';
+	const navLinkBase =
+		'cursor-pointer rounded-full border-0 bg-transparent text-[14px] text-ink-2 no-underline transition-[background,color] duration-[var(--vc-duration-fast)] ease-[var(--vc-ease)] hover:bg-bg-2 hover:text-ink';
+	const navLink = `${navLinkBase} px-3 py-2`;
+	const navLinkMobile = `${navLinkBase} w-full px-3.5 py-3 text-left`;
 </script>
 
 <svelte:window onclick={handleClickOutside} />
@@ -94,15 +101,15 @@
 	<div
 		class="mx-auto flex max-w-[var(--vc-container)] items-center justify-between gap-6 px-[var(--vc-pad-x)] py-[18px]"
 	>
-		<a href={resolve('/')} class="brand">
-			<img src={logo} alt="" class="brand-logo" />
+		<a href={resolve('/')} class="{brand} text-[22px]">
+			<img src={logo} alt="" class={brandLogo} />
 			VoteCast
 		</a>
 
 		<div class="flex items-center gap-2 max-[720px]:hidden">
 			{#if data.user}
-				<a href="#communities" class="nav-link">Communities</a>
-				<a href={resolve('/')} class="nav-link">Activity</a>
+				<a href="#communities" class={navLink}>Communities</a>
+				<a href={resolve('/')} class={navLink}>Activity</a>
 
 				<div class="relative" data-avatar-menu>
 					<Avatar
@@ -174,8 +181,8 @@
 					{/if}
 				</div>
 			{:else}
-				<a href="#communities" class="nav-link">Browse</a>
-				<a href={resolve('/login')} class="nav-link">Sign in</a>
+				<a href="#communities" class={navLink}>Browse</a>
+				<a href={resolve('/login')} class={navLink}>Sign in</a>
 				<Button href={resolve('/register')} variant="primary">Get started</Button>
 			{/if}
 		</div>
@@ -217,7 +224,7 @@
 
 	{#if mobileMenuOpen}
 		<div
-			class="mx-auto flex max-w-[var(--vc-container)] flex-col gap-1 border-t border-line px-[var(--vc-pad-x)] pt-2 pb-[18px] [&_.nav-link]:w-full [&_.nav-link]:px-3.5 [&_.nav-link]:py-3 [&_.nav-link]:text-left"
+			class="mx-auto flex max-w-[var(--vc-container)] flex-col gap-1 border-t border-line px-[var(--vc-pad-x)] pt-2 pb-[18px]"
 		>
 			{#if data.user}
 				<div class="flex items-center gap-3 px-3.5 pt-2 pb-3.5">
@@ -236,12 +243,12 @@
 						{/if}
 					</div>
 				</div>
-				<a href="#communities" class="nav-link">Communities</a>
-				<a href={resolve('/')} class="nav-link">Activity</a>
-				<button onclick={handleSignOut} class="nav-link">Sign out</button>
+				<a href="#communities" class={navLinkMobile}>Communities</a>
+				<a href={resolve('/')} class={navLinkMobile}>Activity</a>
+				<button onclick={handleSignOut} class={navLinkMobile}>Sign out</button>
 			{:else}
-				<a href="#communities" class="nav-link">Browse</a>
-				<a href={resolve('/login')} class="nav-link">Sign in</a>
+				<a href="#communities" class={navLinkMobile}>Browse</a>
+				<a href={resolve('/login')} class={navLinkMobile}>Sign in</a>
 				<Button href={resolve('/register')} variant="primary" class="mx-3.5 my-2"
 					>Get started</Button
 				>
@@ -256,8 +263,8 @@
 
 <footer class="mt-[clamp(40px,6vw,80px)] border-t border-line pt-12 pb-14">
 	<Wrap class="flex flex-wrap items-center justify-between gap-6">
-		<div class="brand text-[18px]">
-			<img src={logo} alt="" class="brand-logo" />
+		<div class="{brand} text-[18px]">
+			<img src={logo} alt="" class={brandLogo} />
 			VoteCast
 		</div>
 		<div
