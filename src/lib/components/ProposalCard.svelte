@@ -28,13 +28,23 @@
 		return `Opens ${formatRelativeTime(proposal.startTime)}`;
 	});
 
-	const statusClass = $derived(`status-${PHASE_VARIANT[proposal.phase]}`);
 	const bodyExcerpt = $derived(markdownToPlainText(proposal.body));
+
+	// The card shell + the phase-driven left accent, as utilities (shared design-system colors).
+	const ROW =
+		'block rounded-[var(--vc-radius-lg)] border border-l-[3px] border-line bg-surface px-5 py-[18px] text-inherit no-underline transition-[border-color,transform,box-shadow] duration-[var(--vc-duration-base)] ease-[var(--vc-ease)] hover:border-line-2 hover:-translate-y-px hover:shadow-[var(--vc-shadow-md)]';
+	const borderLeftClass = $derived(
+		{ active: 'border-l-accent', draft: 'border-l-warning', closed: 'border-l-line-2' }[
+			PHASE_VARIANT[proposal.phase]
+		] ?? 'border-l-line'
+	);
 </script>
 
 {#snippet cardBody()}
-	<div class="proposal-row-head">
-		<h3 class="proposal-row-title">
+	<div class="flex items-start justify-between gap-3">
+		<h3
+			class="m-0 flex min-w-0 items-center gap-2 font-display text-[length:var(--vc-text-lg)] leading-[1.2] font-normal tracking-[-0.01em] text-ink"
+		>
 			{#if locked}
 				<svg
 					width="14"
@@ -55,7 +65,7 @@
 			{/if}
 			<span style="overflow: hidden; text-overflow: ellipsis;">{proposal.title}</span>
 		</h3>
-		<div class="proposal-row-meta">
+		<div class="flex shrink-0 items-center gap-2">
 			{#if proposal.visibility === 'public'}
 				<span class="meta-pill" title="Public">
 					<svg
@@ -90,21 +100,23 @@
 	</div>
 
 	{#if bodyExcerpt}
-		<p class="proposal-row-body">{bodyExcerpt}</p>
+		<p class="mt-2 line-clamp-2 text-[14px] leading-[1.5] text-ink-2">{bodyExcerpt}</p>
 	{/if}
 
-	<p class="proposal-row-time">{timeContext}</p>
+	<p class="mt-3 font-mono text-xs tracking-[var(--vc-tracking-mono)] text-muted uppercase">
+		{timeContext}
+	</p>
 {/snippet}
 
 {#if locked}
 	<div
-		class="proposal-row locked {statusClass}"
+		class="{ROW} {borderLeftClass} cursor-not-allowed opacity-55"
 		title="You must be a member of this community to open this proposal"
 	>
 		{@render cardBody()}
 	</div>
 {:else}
-	<a href={resolve(`/proposals/${proposal.id}`)} class="proposal-row {statusClass}">
+	<a href={resolve(`/proposals/${proposal.id}`)} class="{ROW} {borderLeftClass}">
 		{@render cardBody()}
 	</a>
 {/if}
