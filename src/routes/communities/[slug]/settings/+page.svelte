@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import Spinner from '$lib/components/Spinner.svelte';
 	import { invalidateAll } from '$app/navigation';
 	import { formatRelativeTime } from '$lib/utils/format';
 	import { resolve } from '$app/paths';
@@ -424,7 +425,7 @@
 				<div>
 					<button type="submit" disabled={webhookLoading} class="btn btn-accent">
 						{#if webhookLoading}
-							<span class="spinner"></span> Adding…
+							<Spinner /> Adding…
 						{:else}
 							Add webhook
 						{/if}

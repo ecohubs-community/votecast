@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import Spinner from '$lib/components/Spinner.svelte';
 	import StatusBadge from '$lib/components/StatusBadge.svelte';
 	import MethodFlow from '$lib/components/MethodFlow.svelte';
 	import Markdown from '$lib/components/Markdown.svelte';
@@ -310,7 +311,7 @@
 							style="width: 100%; margin-top: 20px;"
 						>
 							{#if submitting}
-								<span class="spinner"></span>
+								<Spinner />
 								Casting…
 							{:else}
 								Cast vote

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { authClient } from '$lib/auth-client';
+	import Spinner from '$lib/components/Spinner.svelte';
 	import { resolve } from '$app/paths';
 
 	let { data } = $props();
@@ -101,7 +102,7 @@
 
 			<button type="submit" disabled={loading} class="btn btn-accent btn-lg" style="width: 100%;">
 				{#if loading}
-					<span class="spinner"></span>
+					<Spinner />
 					Creating your account…
 				{:else}
 					Create account

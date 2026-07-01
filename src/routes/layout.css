@@ -647,16 +647,6 @@ button.btn[disabled] {
 	opacity: 0.5;
 }
 
-/* Spinner */
-.spinner {
-	display: inline-block;
-	width: 14px;
-	height: 14px;
-	border: 2px solid currentColor;
-	border-top-color: transparent;
-	border-radius: 50%;
-	animation: vc-spin 0.7s linear infinite;
-}
 @keyframes vc-spin {
 	to {
 		transform: rotate(360deg);

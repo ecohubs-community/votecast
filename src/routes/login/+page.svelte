@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { authClient } from '$lib/auth-client';
+	import Spinner from '$lib/components/Spinner.svelte';
 	import { resolve } from '$app/paths';
 
 	let { data } = $props();
@@ -149,7 +150,7 @@
 				style="width: 100%;"
 			>
 				{#if walletLoading}
-					<span class="spinner"></span>
+					<Spinner />
 					Connecting your wallet…
 				{:else}
 					<svg
@@ -204,7 +205,7 @@
 
 			<button type="submit" disabled={loading} class="btn btn-accent btn-lg" style="width: 100%;">
 				{#if loading}
-					<span class="spinner"></span>
+					<Spinner />
 					Signing in…
 				{:else}
 					Sign in
