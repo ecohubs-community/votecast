@@ -2,6 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
 	import Button from '$lib/components/Button.svelte';
+	import Alert from '$lib/components/Alert.svelte';
 	import type { ActionData } from './$types';
 
 	let { form }: { form: ActionData } = $props();
@@ -59,7 +60,7 @@
 	</header>
 
 	{#if form?.error}
-		<div class="alert alert-error" style="margin-bottom: 24px;">{form.error}</div>
+		<Alert variant="error" class="mb-6">{form.error}</Alert>
 	{/if}
 
 	<form method="POST" use:enhance class="form-stack">

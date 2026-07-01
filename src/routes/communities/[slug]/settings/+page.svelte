@@ -7,6 +7,7 @@
 	import ProposalTypesPanel from '$lib/components/ProposalTypesPanel.svelte';
 	import VisibilityToggle from '$lib/components/VisibilityToggle.svelte';
 	import Button from '$lib/components/Button.svelte';
+	import Alert from '$lib/components/Alert.svelte';
 	import type { PageData, ActionData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -201,10 +202,10 @@
 
 	{#if activeTab === 'general'}
 		{#if form?.generalSuccess}
-			<div class="alert alert-success" style="margin-bottom: 20px;">Saved.</div>
+			<Alert variant="success" class="mb-5">Saved.</Alert>
 		{/if}
 		{#if form?.generalError}
-			<div class="alert alert-error" style="margin-bottom: 20px;">{form.generalError}</div>
+			<Alert variant="error" class="mb-5">{form.generalError}</Alert>
 		{/if}
 
 		<form method="POST" action="?/updateGeneral" use:enhance class="form-stack">
@@ -252,10 +253,10 @@
 		<ProposalTypesPanel types={data.types} methodOptions={data.methodOptions} {form} />
 	{:else if activeTab === 'members'}
 		{#if form?.memberSuccess}
-			<div class="alert alert-success" style="margin-bottom: 20px;">Updated.</div>
+			<Alert variant="success" class="mb-5">Updated.</Alert>
 		{/if}
 		{#if form?.memberError}
-			<div class="alert alert-error" style="margin-bottom: 20px;">{form.memberError}</div>
+			<Alert variant="error" class="mb-5">{form.memberError}</Alert>
 		{/if}
 
 		<p class="hint" style="margin-bottom: 16px;">
@@ -318,7 +319,7 @@
 		</div>
 	{:else if activeTab === 'webhooks'}
 		{#if webhookSecret}
-			<div class="alert alert-warn" style="margin-bottom: 20px;">
+			<Alert variant="warn" class="mb-5">
 				<p style="margin: 0 0 8px; font-weight: 500;">
 					Webhook ready — copy the secret now. We won't show it again.
 				</p>
@@ -330,7 +331,7 @@
 				<Button onclick={() => (webhookSecret = null)} variant="ghost" size="sm" class="mt-3">
 					Dismiss
 				</Button>
-			</div>
+			</Alert>
 		{/if}
 
 		{#if webhooks.length > 0}
@@ -381,7 +382,7 @@
 			</div>
 
 			{#if webhookError}
-				<div class="alert alert-error" style="margin-bottom: 16px;">{webhookError}</div>
+				<Alert variant="error" class="mb-4">{webhookError}</Alert>
 			{/if}
 
 			<form onsubmit={addWebhook} class="form-stack">
@@ -433,7 +434,7 @@
 		</div>
 	{:else if activeTab === 'danger'}
 		{#if form?.dangerError}
-			<div class="alert alert-error" style="margin-bottom: 20px;">{form.dangerError}</div>
+			<Alert variant="error" class="mb-5">{form.dangerError}</Alert>
 		{/if}
 
 		<div class="rounded-[var(--vc-radius-xl)] border border-danger-line bg-danger-bg p-6">

@@ -6,6 +6,7 @@
 	import MarkdownEditor from '$lib/components/MarkdownEditor.svelte';
 	import VisibilityToggle from '$lib/components/VisibilityToggle.svelte';
 	import Button from '$lib/components/Button.svelte';
+	import Alert from '$lib/components/Alert.svelte';
 	import type { PageData, ActionData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -135,7 +136,7 @@
 	</header>
 
 	{#if form?.error}
-		<div class="alert alert-error" style="margin-bottom: 24px;">{form.error}</div>
+		<Alert variant="error" class="mb-6">{form.error}</Alert>
 	{/if}
 
 	<form method="POST" use:enhance>

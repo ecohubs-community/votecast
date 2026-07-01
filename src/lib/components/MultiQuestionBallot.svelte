@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import Button from '$lib/components/Button.svelte';
+	import Alert from '$lib/components/Alert.svelte';
 
 	type Choice = { id: string; label: string; position: number };
 	type Question = { id: string; prompt: string; choices: Choice[] };
@@ -106,10 +107,10 @@
 	{#if canAddQuestion}
 		<form method="POST" action="?/addQuestion" use:enhance class="mq-add">
 			{#if form?.questionError}
-				<div class="alert alert-error" style="margin-bottom: 8px;">{form.questionError}</div>
+				<Alert variant="error" class="mb-2">{form.questionError}</Alert>
 			{/if}
 			{#if form?.questionAdded}
-				<div class="alert alert-success" style="margin-bottom: 8px;">Question added.</div>
+				<Alert variant="success" class="mb-2">Question added.</Alert>
 			{/if}
 			<label for="mq-prompt" class="label">Add a question</label>
 			<div style="display: flex; gap: 8px;">

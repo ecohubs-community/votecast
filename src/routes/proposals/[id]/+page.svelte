@@ -7,6 +7,7 @@
 	import MultiQuestionBallot from '$lib/components/MultiQuestionBallot.svelte';
 	import BallotChoice from '$lib/components/BallotChoice.svelte';
 	import Button from '$lib/components/Button.svelte';
+	import Alert from '$lib/components/Alert.svelte';
 	import VisibilityPill from '$lib/components/VisibilityPill.svelte';
 	import { formatRelativeTime } from '$lib/utils/format';
 	import { ballotLabel, ruleLabel } from '$lib/utils/method-labels';
@@ -245,11 +246,11 @@
 				{/if}
 
 				{#if form?.error}
-					<div class="alert alert-error" style="margin-bottom: 16px;">{form.error}</div>
+					<Alert variant="error" class="mb-4">{form.error}</Alert>
 				{/if}
 
 				{#if form?.success}
-					<div class="alert alert-success" style="margin-bottom: 16px;">Vote recorded.</div>
+					<Alert variant="success" class="mb-4">Vote recorded.</Alert>
 				{/if}
 
 				{#if data.isMultiQuestion}

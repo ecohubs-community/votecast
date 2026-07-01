@@ -3,6 +3,7 @@
 	import ProposalCard from '$lib/components/ProposalCard.svelte';
 	import EmptyState from '$lib/components/EmptyState.svelte';
 	import Button from '$lib/components/Button.svelte';
+	import Alert from '$lib/components/Alert.svelte';
 	import { formatRelativeTime } from '$lib/utils/format';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
@@ -158,11 +159,11 @@
 			</div>
 
 			{#if form?.inviteError}
-				<div class="alert alert-error" style="margin-bottom: 16px;">{form.inviteError}</div>
+				<Alert variant="error" class="mb-4">{form.inviteError}</Alert>
 			{/if}
 
 			{#if form?.inviteUrl}
-				<div class="alert alert-success" style="margin-bottom: 16px;">
+				<Alert variant="success" class="mb-4">
 					<p style="margin: 0 0 8px; font-weight: 500;">
 						Link ready — share it with whoever should join.
 					</p>
@@ -172,7 +173,7 @@
 							{copied ? 'Copied' : 'Copy'}
 						</Button>
 					</div>
-				</div>
+				</Alert>
 			{/if}
 
 			<form method="POST" action="?/invite" use:enhance class="flex flex-wrap items-end gap-3">

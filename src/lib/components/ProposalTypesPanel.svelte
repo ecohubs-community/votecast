@@ -3,6 +3,7 @@
 	import { enhance } from '$app/forms';
 	import MethodFlow from './MethodFlow.svelte';
 	import Button from '$lib/components/Button.svelte';
+	import Alert from '$lib/components/Alert.svelte';
 
 	type TypeSummary = {
 		ballotModuleId: string;
@@ -57,10 +58,10 @@
 </div>
 
 {#if form?.typeError}
-	<div class="alert alert-error" style="margin-bottom: 16px;">{form.typeError}</div>
+	<Alert variant="error" class="mb-4">{form.typeError}</Alert>
 {/if}
 {#if form?.typeSuccess}
-	<div class="alert alert-success" style="margin-bottom: 16px;">{form.typeSuccess}</div>
+	<Alert variant="success" class="mb-4">{form.typeSuccess}</Alert>
 {/if}
 
 <div class="types-filter">

@@ -2,6 +2,7 @@
 	import { authClient } from '$lib/auth-client';
 	import Spinner from '$lib/components/Spinner.svelte';
 	import Button from '$lib/components/Button.svelte';
+	import Alert from '$lib/components/Alert.svelte';
 	import { resolve } from '$app/paths';
 
 	let { data } = $props();
@@ -55,9 +56,9 @@
 
 	<div style="margin-top: 40px;">
 		{#if error}
-			<div class="alert alert-error" role="alert" style="margin-bottom: 20px;">
+			<Alert variant="error" role="alert" class="mb-5">
 				{error}
-			</div>
+			</Alert>
 		{/if}
 
 		<form onsubmit={handleRegister} class="form-stack">

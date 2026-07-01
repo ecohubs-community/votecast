@@ -347,34 +347,6 @@ select.input,
 }
 
 /* ─────────────────────────────────────────────────────────────
-   Alerts / banners
-   ───────────────────────────────────────────────────────────── */
-.alert {
-	border: 1px solid var(--vc-line);
-	border-radius: var(--vc-radius-md);
-	padding: var(--vc-space-3) 14px;
-	font-size: 14px;
-	line-height: 1.5;
-	background: var(--vc-bg-2);
-	color: var(--vc-ink-2);
-}
-.alert-error {
-	background: var(--vc-danger-soft);
-	color: oklch(0.38 0.14 28);
-	border-color: oklch(0.55 0.16 28 / 0.25);
-}
-.alert-success {
-	background: var(--vc-success-soft);
-	color: oklch(0.34 0.08 150);
-	border-color: oklch(0.55 0.09 150 / 0.25);
-}
-.alert-warn {
-	background: var(--vc-warning-soft);
-	color: oklch(0.4 0.1 75);
-	border-color: oklch(0.72 0.13 75 / 0.3);
-}
-
-/* ─────────────────────────────────────────────────────────────
    Tabs
    ───────────────────────────────────────────────────────────── */
 .tabs {

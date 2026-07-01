@@ -2,6 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
 	import Button from '$lib/components/Button.svelte';
+	import Alert from '$lib/components/Alert.svelte';
 	import type { PageData, ActionData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -32,7 +33,7 @@
 		{/if}
 
 		{#if form?.error}
-			<div class="alert alert-error" style="margin-top: 24px; text-align: left;">{form.error}</div>
+			<Alert variant="error" class="mt-6 text-left">{form.error}</Alert>
 		{/if}
 
 		{#if data.expired}
