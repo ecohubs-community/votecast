@@ -83,14 +83,20 @@
 	<meta name="twitter:card" content="summary_large_image" />
 </svelte:head>
 
-<nav class="nav" class:scrolled>
-	<div class="nav-inner">
+<nav
+	class="sticky top-0 z-40 border-b bg-[color-mix(in_oklab,var(--vc-bg)_78%,transparent)] backdrop-blur-[10px] transition-[border-color] duration-[var(--vc-duration-base)] ease-[var(--vc-ease)] {scrolled
+		? 'border-b-line'
+		: 'border-b-transparent'}"
+>
+	<div
+		class="mx-auto flex max-w-[var(--vc-container)] items-center justify-between gap-6 px-[var(--vc-pad-x)] py-[18px]"
+	>
 		<a href={resolve('/')} class="brand">
 			<img src={logo} alt="" class="brand-logo" />
 			VoteCast
 		</a>
 
-		<div class="nav-links">
+		<div class="flex items-center gap-2 max-[720px]:hidden">
 			{#if data.user}
 				<a href="#communities" class="nav-link">Communities</a>
 				<a href={resolve('/')} class="nav-link">Activity</a>
@@ -110,14 +116,18 @@
 					</button>
 
 					{#if avatarMenuOpen}
-						<div class="avatar-menu">
-							<div class="avatar-menu-header">
-								<p class="avatar-menu-name">{displayName}</p>
+						<div
+							class="absolute right-0 z-50 mt-2 w-64 rounded-[14px] border border-line bg-surface p-1.5 shadow-[var(--vc-shadow-lg)]"
+						>
+							<div class="border-b border-line px-3.5 pt-3 pb-3.5">
+								<p class="m-0 text-[14px] font-medium text-ink">{displayName}</p>
 								{#if displayEmail}
-									<p class="avatar-menu-email">{displayEmail}</p>
+									<p class="mt-1 mb-0 text-[12px] text-muted">{displayEmail}</p>
 								{/if}
 								{#if shortWallet}
-									<p class="avatar-menu-wallet">
+									<p
+										class="mt-1.5 inline-flex items-center gap-1.5 font-mono text-[11px] text-muted"
+									>
 										<svg
 											width="12"
 											height="12"
@@ -136,7 +146,10 @@
 									</p>
 								{/if}
 							</div>
-							<button onclick={handleSignOut} class="avatar-menu-item">
+							<button
+								onclick={handleSignOut}
+								class="flex w-full items-center gap-2.5 rounded-[10px] px-3.5 py-2.5 text-left text-[14px] text-ink-2 transition-[background] duration-[var(--vc-duration-fast)] ease-[var(--vc-ease)] hover:bg-bg-2 hover:text-ink"
+							>
 								<svg
 									width="16"
 									height="16"
@@ -165,7 +178,7 @@
 
 		<button
 			onclick={() => (mobileMenuOpen = !mobileMenuOpen)}
-			class="mobile-toggle"
+			class="hidden size-10 items-center justify-center rounded-full text-ink-2 hover:bg-bg-2 hover:text-ink max-[720px]:inline-flex"
 			aria-label="Toggle menu"
 		>
 			{#if mobileMenuOpen}
@@ -199,7 +212,9 @@
 	</div>
 
 	{#if mobileMenuOpen}
-		<div class="mobile-menu">
+		<div
+			class="mx-auto flex max-w-[var(--vc-container)] flex-col gap-1 border-t border-line px-[var(--vc-pad-x)] pt-2 pb-[18px] [&_.nav-link]:w-full [&_.nav-link]:px-3.5 [&_.nav-link]:py-3 [&_.nav-link]:text-left"
+		>
 			{#if data.user}
 				<div style="display:flex; gap:12px; align-items:center; padding:8px 14px 14px;">
 					<div class="avatar">{initials}</div>
