@@ -129,19 +129,36 @@ describe('castVote', () => {
 		}
 	});
 
-	it('rejects duplicate vote (one person one vote)', async () => {
+	it('allows re-voting by default — the later ballot replaces the earlier one', async () => {
 		const comm = await seedCommunity(db, admin.id);
-
 		const { proposal: prop, choices } = await seedProposal(db, comm.id, admin.id, {
 			phase: 'voting',
 			startTime: new Date(Date.now() - 60_000),
 			endTime: new Date(Date.now() + 3_600_000)
 		});
 
-		// First vote succeeds
 		await castVote(admin.id, { proposalId: prop.id, choiceId: choices[0].id }, db);
+		await castVote(admin.id, { proposalId: prop.id, choiceId: choices[1].id }, db);
 
-		// Second vote fails
+		// The recorded choice is the latest, and the tally counts one ballot, not two.
+		expect((await getUserVote(admin.id, prop.id, db))?.choiceId).toBe(choices[1].id);
+		expect((await getProposalResults(prop.id, admin.id, db)).totalVotes).toBe(1);
+	});
+
+	it('rejects re-voting when the method disables mutability', async () => {
+		const comm = await seedCommunity(db, admin.id);
+		const { proposal: prop, choices } = await seedProposal(db, comm.id, admin.id, {
+			phase: 'voting',
+			startTime: new Date(Date.now() - 60_000),
+			endTime: new Date(Date.now() + 3_600_000),
+			methodOverrideJson: JSON.stringify({
+				ballotModuleId: 'single-choice',
+				decisionRuleId: 'simple-majority',
+				config: { voteMutability: false }
+			})
+		});
+
+		await castVote(admin.id, { proposalId: prop.id, choiceId: choices[0].id }, db);
 		try {
 			await castVote(admin.id, { proposalId: prop.id, choiceId: choices[1].id }, db);
 			expect.unreachable('Should have thrown');

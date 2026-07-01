@@ -70,11 +70,28 @@
 		provisional: 'Pending',
 		recorded: 'Recorded'
 	};
-	const outcomeLabel = $derived(
-		data.outcome?.revealed && data.outcome.result
-			? (OUTCOME_LABELS[data.outcome.result.outcome] ?? data.outcome.result.outcome)
-			: null
-	);
+	// A single-choice (plurality) vote over arbitrary options has no global pass/fail — it has a
+	// *winner*. So name the winning option ("Result: No") instead of claiming "Passed". Consent/
+	// consensus ballots keep a true Passed/Failed/Blocked verdict, coloured accordingly.
+	const resultHeadline = $derived.by(() => {
+		const r = data.outcome?.revealed ? data.outcome.result : null;
+		if (!r) return null;
+		if (data.method?.ballotModuleId === 'single-choice') {
+			if (r.outcome === 'tie') return { prefix: '', value: 'Tie', dataOutcome: 'tie' };
+			const winner = r.entries.find((e) => e.outcome === 'passed');
+			if (winner) return { prefix: 'Result:', value: winner.label, dataOutcome: undefined };
+			return {
+				prefix: '',
+				value: OUTCOME_LABELS[r.outcome] ?? r.outcome,
+				dataOutcome: undefined
+			};
+		}
+		return {
+			prefix: 'Outcome:',
+			value: OUTCOME_LABELS[r.outcome] ?? r.outcome,
+			dataOutcome: r.outcome
+		};
+	});
 
 	const userChoiceLabel = $derived(
 		data.proposal.choices.find((c) => c.id === data.userVote?.choiceId)?.label
@@ -241,9 +258,10 @@
 					{/if}
 				</div>
 
-				{#if outcomeLabel && !data.isMultiQuestion}
-					<div class="outcome-badge" data-outcome={data.outcome?.result?.outcome}>
-						Outcome: <strong>{outcomeLabel}</strong>
+				{#if resultHeadline && !data.isMultiQuestion}
+					<div class="outcome-badge" data-outcome={resultHeadline.dataOutcome}>
+						{resultHeadline.prefix}
+						<strong>{resultHeadline.value}</strong>
 					</div>
 				{/if}
 

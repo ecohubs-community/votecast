@@ -11,7 +11,8 @@ import {
 	isEligible,
 	resolveVotingPower,
 	canSeeHiddenTally,
-	type CommunityRole
+	type CommunityRole,
+	type MethodSnapshot
 } from '$lib/server/voting';
 import type { Database } from './types';
 
@@ -60,16 +61,41 @@ async function assertCanVote(proposalId: string, userId: string, db: Database) {
 	return { current, snapshot, votingPower: resolveVotingPower(snapshot.weight, {}) };
 }
 
-/** Reject a second ballot from the same voter on the same proposal. */
-async function assertNotVoted(proposalId: string, userId: string, db: Database) {
+/**
+ * Determine whether the voter already has a ballot, honoring the method's `voteMutability` knob:
+ * when the method forbids changes, a second ballot is rejected; otherwise the caller recasts (the
+ * prior ballot is cleared inside the insert transaction). Default (unset) = mutable while voting is open.
+ */
+async function resolvePriorVote(
+	proposalId: string,
+	userId: string,
+	snapshot: MethodSnapshot,
+	db: Database
+): Promise<{ hasPrior: boolean }> {
 	const [existingVote] = await db
 		.select({ id: vote.id })
 		.from(vote)
 		.where(and(eq(vote.proposalId, proposalId), eq(vote.userId, userId)))
 		.limit(1);
-	if (existingVote) {
-		throw new ServiceError(ErrorCode.ALREADY_VOTED, 'You have already voted on this proposal');
+	if (!existingVote) return { hasPrior: false };
+	if (snapshot.config.voteMutability === false) {
+		throw new ServiceError(
+			ErrorCode.ALREADY_VOTED,
+			'You have already voted, and this proposal does not allow changing your vote'
+		);
 	}
+	return { hasPrior: true };
+}
+
+/** Clear a voter's prior ballot + selections inside an open transaction (for a recast). */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function clearPriorBallot(tx: any, proposalId: string, userId: string) {
+	tx.delete(voteSelection)
+		.where(and(eq(voteSelection.proposalId, proposalId), eq(voteSelection.userId, userId)))
+		.run();
+	tx.delete(vote)
+		.where(and(eq(vote.proposalId, proposalId), eq(vote.userId, userId)))
+		.run();
 }
 
 /**
@@ -81,7 +107,7 @@ export async function castMultiQuestionVote(
 	input: MultiQuestionVoteInput,
 	db: Database = defaultDb
 ) {
-	const { votingPower } = await assertCanVote(input.proposalId, userId, db);
+	const { snapshot, votingPower } = await assertCanVote(input.proposalId, userId, db);
 
 	const answers = input.answers ?? [];
 	if (answers.length === 0) {
@@ -110,9 +136,10 @@ export async function castMultiQuestionVote(
 		}
 	}
 
-	await assertNotVoted(input.proposalId, userId, db);
+	const { hasPrior } = await resolvePriorVote(input.proposalId, userId, snapshot, db);
 
 	const created = db.transaction((tx) => {
+		if (hasPrior) clearPriorBallot(tx, input.proposalId, userId);
 		const v = tx
 			.insert(vote)
 			.values({
@@ -156,7 +183,7 @@ export async function castMultiQuestionVote(
  * - user has not already voted
  */
 export async function castVote(userId: string, input: CastVoteInput, db: Database = defaultDb) {
-	const { votingPower } = await assertCanVote(input.proposalId, userId, db);
+	const { snapshot, votingPower } = await assertCanVote(input.proposalId, userId, db);
 
 	// Verify choice belongs to this proposal
 	const [choice] = await db
@@ -171,10 +198,11 @@ export async function castVote(userId: string, input: CastVoteInput, db: Databas
 		throw new ServiceError(ErrorCode.INVALID_REQUEST, 'Choice does not belong to this proposal');
 	}
 
-	await assertNotVoted(input.proposalId, userId, db);
+	const { hasPrior } = await resolvePriorVote(input.proposalId, userId, snapshot, db);
 
-	// Atomic: write the vote envelope + its selection (the choice lives on vote_selection).
+	// Atomic: replace any prior ballot (recast), then write the envelope + its selection.
 	const created = db.transaction((tx) => {
+		if (hasPrior) clearPriorBallot(tx, input.proposalId, userId);
 		const v = tx
 			.insert(vote)
 			.values({
