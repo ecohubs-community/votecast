@@ -30,38 +30,64 @@
 	);
 </script>
 
-<a href={resolve(`/communities/${community.slug}`)} class="card" class:mine>
-	<div class="card-head">
-		<span class="card-thumb" class:accent={mine}>{initials}</span>
-		<div class="card-head-body">
-			<h3 class="card-title">{community.name}</h3>
+<a
+	href={resolve(`/communities/${community.slug}`)}
+	class="relative flex min-h-[200px] flex-col gap-[18px] rounded-[var(--vc-radius-xl)] border border-line bg-surface p-[22px] text-inherit no-underline transition-[border-color,transform,box-shadow] duration-[var(--vc-duration-base)] ease-[var(--vc-ease)] hover:-translate-y-0.5 hover:border-line-2 hover:shadow-[var(--vc-shadow-md)] {mine
+		? 'border-line-2 bg-[linear-gradient(180deg,var(--vc-bg-2),var(--vc-surface))]'
+		: ''}"
+>
+	<div class="flex items-start gap-3.5">
+		<span
+			class="inline-flex size-11 shrink-0 items-center justify-center rounded-[var(--vc-radius-lg)] font-display text-[20px] {mine
+				? 'bg-accent-soft text-accent-ink'
+				: 'bg-bg-2 text-ink'}">{initials}</span
+		>
+		<div class="min-w-0 flex-1">
+			<h3
+				class="mt-0 mb-1.5 font-display text-[length:var(--vc-text-lg)] leading-[1.15] font-normal tracking-[-0.01em] text-ink"
+			>
+				{community.name}
+			</h3>
 			{#if community.description}
-				<p class="card-desc">{community.description}</p>
+				<p class="m-0 line-clamp-2 text-[14px] leading-[1.5] text-muted">{community.description}</p>
 			{/if}
 		</div>
 	</div>
 
 	{#if mine && activity != null}
-		<div class="card-active-bar">
-			<span style="width: {Math.round(activity * 100)}%"></span>
+		<div class="h-[3px] overflow-hidden rounded-full bg-line">
+			<span
+				class="block h-full rounded-[inherit] bg-accent"
+				style="width: {Math.round(activity * 100)}%"
+			></span>
 		</div>
 	{/if}
 
-	<div class="card-foot">
+	<div
+		class="mt-auto flex items-center gap-3.5 font-mono text-[11px] tracking-[var(--vc-tracking-mono)] text-muted uppercase [&_strong]:font-body [&_strong]:text-[13px] [&_strong]:font-medium [&_strong]:tracking-normal [&_strong]:text-ink [&_strong]:normal-case"
+	>
 		{#if mine}
 			{#if pending != null}
-				<span class="stat"><strong>{pending}</strong>open</span>
+				<span class="inline-flex items-center gap-1.5"><strong>{pending}</strong>open</span>
 			{/if}
-			<span class="stat"><strong>{community.memberCount}</strong>members</span>
+			<span class="inline-flex items-center gap-1.5"
+				><strong>{community.memberCount}</strong>members</span
+			>
 			{#if role}
-				<span class="meta-right">{role}</span>
+				<span class="ml-auto">{role}</span>
 			{/if}
 		{:else if showAge}
-			<span class="stat"><strong>{community.memberCount}</strong>members</span>
-			<span class="meta-right">{formatRelativeTime(community.createdAt)}</span>
+			<span class="inline-flex items-center gap-1.5"
+				><strong>{community.memberCount}</strong>members</span
+			>
+			<span class="ml-auto">{formatRelativeTime(community.createdAt)}</span>
 		{:else}
-			<span class="stat"><strong>{community.memberCount}</strong>members</span>
-			<span class="stat"><strong>{community.voteCount.toLocaleString()}</strong>votes</span>
+			<span class="inline-flex items-center gap-1.5"
+				><strong>{community.memberCount}</strong>members</span
+			>
+			<span class="inline-flex items-center gap-1.5"
+				><strong>{community.voteCount.toLocaleString()}</strong>votes</span
+			>
 		{/if}
 	</div>
 </a>

@@ -142,7 +142,9 @@
 				<a href={resolve('/communities/create')} class="section-link">Create one →</a>
 			</div>
 
-			<div class="cards">
+			<div
+				class="grid grid-cols-3 gap-[var(--vc-grid-gap)] max-[900px]:grid-cols-2 max-[600px]:grid-cols-1"
+			>
 				{#each data.myCommunities.items as item (item.community.id)}
 					<CommunityCard
 						community={{
@@ -157,10 +159,13 @@
 						role={item.role}
 					/>
 				{/each}
-				<a href={resolve('/communities/create')} class="card dashed">
+				<a
+					href={resolve('/communities/create')}
+					class="flex min-h-[200px] flex-col items-center justify-center gap-[18px] rounded-[var(--vc-radius-xl)] border border-dashed border-line bg-transparent p-[22px] text-center text-muted no-underline transition-[border-color,transform,box-shadow] duration-[var(--vc-duration-base)] ease-[var(--vc-ease)] hover:-translate-y-0.5 hover:border-line-2 hover:shadow-[var(--vc-shadow-md)]"
+				>
 					<div>
-						<div class="dashed-title">Start something</div>
-						<div class="dashed-sub">Create a new community →</div>
+						<div class="mb-1.5 font-display text-[24px] text-ink">Start something</div>
+						<div class="text-[13px]">Create a new community →</div>
 					</div>
 				</a>
 			</div>
@@ -179,7 +184,9 @@
 		</div>
 
 		{#if data.newest.length > 0}
-			<div class="cards">
+			<div
+				class="grid grid-cols-3 gap-[var(--vc-grid-gap)] max-[900px]:grid-cols-2 max-[600px]:grid-cols-1"
+			>
 				{#each data.newest as community (community.id)}
 					<CommunityCard {community} showAge />
 				{/each}
@@ -206,7 +213,9 @@
 				</div>
 			</div>
 
-			<div class="cards">
+			<div
+				class="grid grid-cols-3 gap-[var(--vc-grid-gap)] max-[900px]:grid-cols-2 max-[600px]:grid-cols-1"
+			>
 				{#each data.mostActive as community (community.id)}
 					<CommunityCard {community} />
 				{/each}
