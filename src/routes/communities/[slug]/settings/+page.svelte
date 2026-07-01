@@ -439,11 +439,18 @@
 					<span class="label">Events</span>
 					<div style="display: flex; flex-wrap: wrap; gap: 8px;">
 						{#each availableEvents as evt (evt.value)}
-							<label class="event-chip" class:selected={newWebhookEvents.includes(evt.value)}>
+							<label
+								class="inline-flex cursor-pointer items-center rounded-full border bg-surface px-3 py-1.5 text-[12px] font-medium transition-[border-color,background,color] duration-[var(--vc-duration-fast)] ease-[var(--vc-ease)] {newWebhookEvents.includes(
+									evt.value
+								)
+									? 'border-accent bg-accent-soft text-accent-ink'
+									: 'border-line text-ink-2 hover:border-line-2'}"
+							>
 								<input
 									type="checkbox"
 									checked={newWebhookEvents.includes(evt.value)}
 									onchange={() => toggleEvent(evt.value)}
+									class="sr-only"
 								/>
 								{evt.label}
 							</label>

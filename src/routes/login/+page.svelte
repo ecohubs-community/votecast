@@ -168,7 +168,11 @@
 				{/if}
 			</button>
 
-			<div class="divider">or sign in with email</div>
+			<div
+				class="my-5 flex items-center gap-3 font-mono text-xs tracking-[var(--vc-tracking-mono)] text-muted uppercase before:h-px before:flex-1 before:bg-line before:content-[''] after:h-px after:flex-1 after:bg-line after:content-['']"
+			>
+				or sign in with email
+			</div>
 		{/if}
 
 		<form onsubmit={handleEmailLogin} class="form-stack">
