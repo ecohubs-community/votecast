@@ -8,14 +8,28 @@
 	];
 </script>
 
-<div class="ballot" role="group" aria-label="Sample proposal">
-	<div class="ballot-head">
-		<span class="ballot-tag">Proposal · 014</span>
-		<span class="ballot-status">Open · 2 days left</span>
+<div
+	class="ballot relative overflow-hidden rounded-[var(--vc-radius-2xl)] border border-line bg-surface p-7 shadow-[var(--vc-shadow-xs),var(--vc-shadow-lg)] max-[1020px]:max-w-[520px]"
+	role="group"
+	aria-label="Sample proposal"
+>
+	<div class="relative mb-[22px] flex items-center justify-between">
+		<span class="font-mono text-[11px] tracking-[var(--vc-tracking-eyebrow)] text-muted uppercase">
+			Proposal · 014
+		</span>
+		<span
+			class="ballot-status inline-flex items-center gap-1.5 rounded-full bg-accent-soft px-2.5 py-1 text-xs text-accent-ink"
+		>
+			Open · 2 days left
+		</span>
 	</div>
-	<h3 class="ballot-title">Adopt rotating work-share schedule for the spring season</h3>
-	<p class="ballot-sub">41 members eligible · 28 votes cast</p>
-	<div class="ballot-options">
+	<h3
+		class="relative mb-1.5 font-display text-[length:var(--vc-text-xl)] leading-[1.1] font-normal tracking-[-0.01em]"
+	>
+		Adopt rotating work-share schedule for the spring season
+	</h3>
+	<p class="relative mb-[22px] text-[13px] text-muted">41 members eligible · 28 votes cast</p>
+	<div class="relative grid gap-2.5">
 		{#each options as option (option.id)}
 			<button
 				type="button"
@@ -32,46 +46,14 @@
 </div>
 
 <style>
-	/* Landing-page ballot demo — styles live with the only component that uses them. */
-	.ballot {
-		background: var(--vc-surface);
-		border: var(--vc-border);
-		border-radius: var(--vc-radius-2xl);
-		padding: 28px;
-		box-shadow: var(--vc-shadow-xs), var(--vc-shadow-lg);
-		position: relative;
-		overflow: hidden;
-	}
+	/* Only the bits utilities can't express cleanly: a radial-gradient sheen, the pulsing status dot,
+	   and the interactive option + radio (state-driven child + ::after fill). */
 	.ballot::before {
 		content: '';
 		position: absolute;
 		inset: 0;
 		background: radial-gradient(120% 50% at 100% 0%, var(--vc-accent-soft), transparent 60%);
 		pointer-events: none;
-	}
-	.ballot-head {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		margin-bottom: 22px;
-		position: relative;
-	}
-	.ballot-tag {
-		font-family: var(--vc-font-mono);
-		font-size: 11px;
-		letter-spacing: var(--vc-tracking-eyebrow);
-		color: var(--vc-muted);
-		text-transform: uppercase;
-	}
-	.ballot-status {
-		display: inline-flex;
-		align-items: center;
-		gap: 6px;
-		font-size: 12px;
-		color: var(--vc-accent-ink);
-		background: var(--vc-accent-soft);
-		padding: 4px 10px;
-		border-radius: var(--vc-radius-pill);
 	}
 	.ballot-status::before {
 		content: '';
@@ -80,26 +62,6 @@
 		border-radius: 50%;
 		background: var(--vc-accent);
 		animation: vc-pulse 1.8s infinite;
-	}
-	.ballot-title {
-		font-family: var(--vc-font-display);
-		font-size: var(--vc-text-xl);
-		line-height: 1.1;
-		font-weight: var(--vc-weight-display);
-		letter-spacing: -0.01em;
-		margin: 0 0 6px;
-		position: relative;
-	}
-	.ballot-sub {
-		font-size: 13px;
-		color: var(--vc-muted);
-		margin: 0 0 22px;
-		position: relative;
-	}
-	.ballot-options {
-		display: grid;
-		gap: 10px;
-		position: relative;
 	}
 	.ballot-opt {
 		display: flex;
@@ -156,10 +118,5 @@
 		font-family: var(--vc-font-mono);
 		font-size: 12px;
 		color: var(--vc-muted);
-	}
-	@media (max-width: 1020px) {
-		.ballot {
-			max-width: 520px;
-		}
 	}
 </style>
