@@ -1,6 +1,7 @@
 <script lang="ts">
 	import CommunityCard from '$lib/components/CommunityCard.svelte';
 	import BallotPreview from '$lib/components/BallotPreview.svelte';
+	import Button from '$lib/components/Button.svelte';
 	import type { PageData } from './$types';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
@@ -96,13 +97,13 @@
 			</p>
 			<div class="mt-9 flex flex-wrap gap-3">
 				{#if data.user}
-					<a href="#mine" class="btn btn-accent btn-lg">Open my communities</a>
-					<a href={resolve('/communities/create')} class="btn btn-ghost btn-lg">
+					<Button href="#mine" variant="accent" size="lg">Open my communities</Button>
+					<Button href={resolve('/communities/create')} variant="ghost" size="lg">
 						Create a community
-					</a>
+					</Button>
 				{:else}
-					<a href={resolve('/register')} class="btn btn-accent btn-lg">Get started</a>
-					<a href="#communities" class="btn btn-ghost btn-lg">Browse communities</a>
+					<Button href={resolve('/register')} variant="accent" size="lg">Get started</Button>
+					<Button href="#communities" variant="ghost" size="lg">Browse communities</Button>
 				{/if}
 			</div>
 			<div
@@ -229,7 +230,7 @@
 			<div class="empty">
 				<p>No communities have been created yet. Be the first!</p>
 				{#if data.user}
-					<a href={resolve('/communities/create')} class="btn btn-ghost">Create a community</a>
+					<Button href={resolve('/communities/create')} variant="ghost">Create a community</Button>
 				{/if}
 			</div>
 		{/if}

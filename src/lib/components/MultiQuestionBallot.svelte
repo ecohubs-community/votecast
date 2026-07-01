@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import Button from '$lib/components/Button.svelte';
 
 	type Choice = { id: string; label: string; position: number };
 	type Question = { id: string; prompt: string; choices: Choice[] };
@@ -71,9 +72,9 @@
 					</div>
 				</fieldset>
 			{/each}
-			<button type="submit" class="btn btn-accent" disabled={!allAnswered || submitting}>
+			<Button type="submit" variant="accent" disabled={!allAnswered || submitting}>
 				{submitting ? 'Submitting…' : 'Submit answers'}
-			</button>
+			</Button>
 		</form>
 	{:else}
 		{#if !hasVoted && voteHint}
@@ -121,7 +122,7 @@
 					class="input"
 					placeholder="Propose another question for the group"
 				/>
-				<button type="submit" class="btn btn-ghost btn-sm">Add</button>
+				<Button type="submit" variant="ghost" size="sm">Add</Button>
 			</div>
 		</form>
 	{:else if questionNote}

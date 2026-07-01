@@ -5,6 +5,7 @@
 	import type { LayoutData } from './$types';
 	import { resolve } from '$app/paths';
 	import logo from '$lib/assets/logo.svg';
+	import Button from '$lib/components/Button.svelte';
 	import { onMount, type Snippet } from 'svelte';
 
 	let { data, children }: { data: LayoutData; children: Snippet } = $props();
@@ -172,7 +173,7 @@
 			{:else}
 				<a href="#communities" class="nav-link">Browse</a>
 				<a href={resolve('/login')} class="nav-link">Sign in</a>
-				<a href={resolve('/register')} class="btn btn-primary">Get started</a>
+				<Button href={resolve('/register')} variant="primary">Get started</Button>
 			{/if}
 		</div>
 
@@ -240,8 +241,8 @@
 			{:else}
 				<a href="#communities" class="nav-link">Browse</a>
 				<a href={resolve('/login')} class="nav-link">Sign in</a>
-				<a href={resolve('/register')} class="btn btn-primary" style="margin:8px 14px;"
-					>Get started</a
+				<Button href={resolve('/register')} variant="primary" class="mx-3.5 my-2"
+					>Get started</Button
 				>
 			{/if}
 		</div>

@@ -5,6 +5,7 @@
 	import MethodFlow from '$lib/components/MethodFlow.svelte';
 	import MarkdownEditor from '$lib/components/MarkdownEditor.svelte';
 	import VisibilityToggle from '$lib/components/VisibilityToggle.svelte';
+	import Button from '$lib/components/Button.svelte';
 	import type { PageData, ActionData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -328,26 +329,28 @@
 										placeholder="Question {i + 1}"
 									/>
 									{#if questions.length > 1}
-										<button
+										<Button
 											type="button"
+											variant="ghost"
+											size="sm"
 											onclick={() => removeQuestion(i)}
-											class="btn btn-ghost btn-sm"
 										>
 											Remove
-										</button>
+										</Button>
 									{/if}
 								</div>
 							{/each}
 						</div>
 						{#if questions.length < 20}
-							<button
+							<Button
 								type="button"
+								variant="ghost"
+								size="sm"
 								onclick={addQuestion}
-								class="btn btn-ghost btn-sm"
-								style="align-self: start; margin-top: 8px;"
+								class="mt-2 self-start"
 							>
 								+ Add a question
-							</button>
+							</Button>
 						{/if}
 
 						<div class="mq-contrib">
@@ -403,26 +406,23 @@
 										placeholder="Option {i + 1}"
 									/>
 									{#if choices.length > 2}
-										<button
-											type="button"
-											onclick={() => removeChoice(i)}
-											class="btn btn-ghost btn-sm"
-										>
+										<Button type="button" variant="ghost" size="sm" onclick={() => removeChoice(i)}>
 											Remove
-										</button>
+										</Button>
 									{/if}
 								</div>
 							{/each}
 						</div>
 						{#if choices.length < 20}
-							<button
+							<Button
 								type="button"
+								variant="ghost"
+								size="sm"
 								onclick={addChoice}
-								class="btn btn-ghost btn-sm"
-								style="align-self: start; margin-top: 8px;"
+								class="mt-2 self-start"
 							>
 								+ Add a choice
-							</button>
+							</Button>
 						{/if}
 					{/if}
 				</div>
@@ -430,11 +430,11 @@
 		</div>
 
 		<div class="form-actions">
-			<button type="submit" class="btn btn-accent btn-lg" disabled={!!timelineError}>
+			<Button type="submit" variant="accent" size="lg" disabled={!!timelineError}>
 				Open proposal
-			</button>
-			<a href={resolve(`/communities/${data.community.slug}`)} class="btn btn-ghost btn-lg"
-				>Cancel</a
+			</Button>
+			<Button href={resolve(`/communities/${data.community.slug}`)} variant="ghost" size="lg"
+				>Cancel</Button
 			>
 		</div>
 	</form>

@@ -91,59 +91,6 @@ body {
 	background: var(--vc-bg-2);
 }
 
-/* ---------- Buttons (page-level shorthand on top of .vc-btn primitives) ---------- */
-.btn {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	gap: var(--vc-space-2);
-	font-size: 14px;
-	font-weight: var(--vc-weight-medium);
-	padding: 10px 18px;
-	border-radius: var(--vc-radius-pill);
-	transition:
-		transform var(--vc-duration-fast) var(--vc-ease),
-		background var(--vc-duration-fast) var(--vc-ease),
-		color var(--vc-duration-fast) var(--vc-ease),
-		border-color var(--vc-duration-fast) var(--vc-ease);
-	white-space: nowrap;
-	background: none;
-	border: 0;
-	cursor: pointer;
-	font-family: inherit;
-	text-decoration: none;
-}
-.btn:active {
-	transform: translateY(1px);
-}
-.btn-primary {
-	background: var(--vc-ink);
-	color: var(--vc-bg);
-}
-.btn-primary:hover {
-	background: color-mix(in oklab, var(--vc-ink) 88%, var(--vc-accent));
-}
-.btn-accent {
-	background: var(--vc-accent);
-	color: #fff;
-}
-.btn-accent:hover {
-	background: var(--vc-accent-strong);
-}
-.btn-ghost {
-	background: transparent;
-	color: var(--vc-ink);
-	border: 1px solid var(--vc-line-2);
-}
-.btn-ghost:hover {
-	background: var(--vc-bg-2);
-	border-color: var(--vc-ink-2);
-}
-.btn-lg {
-	padding: 14px 24px;
-	font-size: 15px;
-}
-
 /* ---------- Avatar ---------- */
 .avatar {
 	width: 36px;
@@ -551,20 +498,6 @@ select.input,
 	gap: var(--vc-space-2);
 	flex-shrink: 0;
 }
-.btn-sm {
-	padding: 7px 14px;
-	font-size: 13px;
-}
-.btn-danger {
-	background: transparent;
-	color: oklch(0.5 0.16 28);
-	border: 1px solid oklch(0.55 0.16 28 / 0.3);
-}
-.btn-danger:hover {
-	background: var(--vc-danger-soft);
-	border-color: oklch(0.55 0.16 28 / 0.5);
-}
-
 /* ─────────────────────────────────────────────────────────────
    Voting card (proposal detail)
    ───────────────────────────────────────────────────────────── */
@@ -593,22 +526,6 @@ select.input,
 }
 
 /* ─────────────────────────────────────────────────────────────
-   Danger zone
-   ───────────────────────────────────────────────────────────── */
-.btn-destructive {
-	background: oklch(0.5 0.16 28);
-	color: #fff;
-}
-.btn-destructive:hover {
-	background: oklch(0.42 0.16 28);
-}
-.btn-destructive:disabled {
-	background: var(--vc-line);
-	color: var(--vc-muted);
-	cursor: not-allowed;
-}
-
-/* ─────────────────────────────────────────────────────────────
    Visibility/meta inline badges
    ───────────────────────────────────────────────────────────── */
 .meta-pill {
@@ -625,26 +542,6 @@ select.input,
 .meta-pill svg {
 	width: 12px;
 	height: 12px;
-}
-
-/* ─────────────────────────────────────────────────────────────
-   Disabled state
-   ───────────────────────────────────────────────────────────── */
-.btn:disabled,
-button.btn[disabled] {
-	cursor: not-allowed;
-	opacity: 0.55;
-}
-.btn:disabled:hover {
-	background: inherit;
-}
-.btn-accent:disabled {
-	background: var(--vc-accent);
-	opacity: 0.5;
-}
-.btn-primary:disabled {
-	background: var(--vc-ink);
-	opacity: 0.5;
 }
 
 @keyframes vc-spin {

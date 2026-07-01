@@ -2,6 +2,7 @@
 	import { untrack } from 'svelte';
 	import { enhance } from '$app/forms';
 	import MethodFlow from './MethodFlow.svelte';
+	import Button from '$lib/components/Button.svelte';
 
 	type TypeSummary = {
 		ballotModuleId: string;
@@ -104,15 +105,16 @@
 				<form method="POST" action="?/retireType" use:enhance>
 					<input type="hidden" name="typeId" value={t.id} />
 					<input type="hidden" name="retired" value={t.retired ? 'false' : 'true'} />
-					<button type="submit" class="btn btn-ghost btn-sm">
+					<Button type="submit" variant="ghost" size="sm">
 						{t.retired ? 'Restore' : 'Retire'}
-					</button>
+					</Button>
 				</form>
 				<form method="POST" action="?/deleteType" use:enhance>
 					<input type="hidden" name="typeId" value={t.id} />
-					<button
+					<Button
 						type="submit"
-						class="btn btn-danger btn-sm"
+						variant="danger"
+						size="sm"
 						disabled={!t.retired || t.hasProposals}
 						title={!t.retired
 							? 'Retire the type before deleting it'
@@ -121,7 +123,7 @@
 								: 'Permanently delete this type'}
 					>
 						Delete
-					</button>
+					</Button>
 				</form>
 			</div>
 		</div>
@@ -269,7 +271,7 @@
 			</div>
 		{/if}
 
-		<button type="submit" class="btn btn-accent" style="align-self: start;">Create type</button>
+		<Button type="submit" variant="accent" class="self-start">Create type</Button>
 	</form>
 </section>
 
@@ -319,9 +321,5 @@
 		display: grid;
 		gap: 12px;
 		grid-template-columns: 1fr 1fr;
-	}
-	.btn[disabled] {
-		opacity: 0.5;
-		cursor: not-allowed;
 	}
 </style>

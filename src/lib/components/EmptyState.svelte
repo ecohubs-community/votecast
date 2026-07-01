@@ -1,4 +1,6 @@
 <script lang="ts">
+	import Button from '$lib/components/Button.svelte';
+
 	type Props = {
 		message: string;
 		actionText?: string;
@@ -13,7 +15,6 @@
 	<p>{message}</p>
 
 	{#if actionText && actionHref}
-		<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -- actionHref is supplied already-resolved by the caller -->
-		<a href={actionHref} class="btn btn-ghost btn-sm">{actionText}</a>
+		<Button href={actionHref} variant="ghost" size="sm">{actionText}</Button>
 	{/if}
 </div>

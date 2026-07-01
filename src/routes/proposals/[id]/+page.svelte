@@ -6,6 +6,7 @@
 	import Markdown from '$lib/components/Markdown.svelte';
 	import MultiQuestionBallot from '$lib/components/MultiQuestionBallot.svelte';
 	import BallotChoice from '$lib/components/BallotChoice.svelte';
+	import Button from '$lib/components/Button.svelte';
 	import VisibilityPill from '$lib/components/VisibilityPill.svelte';
 	import { formatRelativeTime } from '$lib/utils/format';
 	import { ballotLabel, ruleLabel } from '$lib/utils/method-labels';
@@ -304,11 +305,12 @@
 							{/each}
 						</fieldset>
 
-						<button
+						<Button
 							type="submit"
+							variant="accent"
+							size="lg"
 							disabled={!selectedChoiceId || submitting}
-							class="btn btn-accent btn-lg"
-							style="width: 100%; margin-top: 20px;"
+							class="mt-5 w-full"
 						>
 							{#if submitting}
 								<Spinner />
@@ -316,7 +318,7 @@
 							{:else}
 								Cast vote
 							{/if}
-						</button>
+						</Button>
 					</form>
 				{:else if votingState === 'already-voted'}
 					<div class="space-y-2.5">

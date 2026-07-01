@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { authClient } from '$lib/auth-client';
 	import Spinner from '$lib/components/Spinner.svelte';
+	import Button from '$lib/components/Button.svelte';
 	import { resolve } from '$app/paths';
 
 	let { data } = $props();
@@ -143,11 +144,12 @@
 		{/if}
 
 		{#if hasWallet}
-			<button
+			<Button
 				onclick={handleWalletConnect}
 				disabled={walletLoading}
-				class="btn btn-ghost btn-lg"
-				style="width: 100%;"
+				variant="ghost"
+				size="lg"
+				class="w-full"
 			>
 				{#if walletLoading}
 					<Spinner />
@@ -167,7 +169,7 @@
 					</svg>
 					Continue with wallet
 				{/if}
-			</button>
+			</Button>
 
 			<div
 				class="my-5 flex items-center gap-3 font-mono text-xs tracking-[var(--vc-tracking-mono)] text-muted uppercase before:h-px before:flex-1 before:bg-line before:content-[''] after:h-px after:flex-1 after:bg-line after:content-['']"
@@ -203,14 +205,14 @@
 				/>
 			</div>
 
-			<button type="submit" disabled={loading} class="btn btn-accent btn-lg" style="width: 100%;">
+			<Button type="submit" variant="accent" size="lg" disabled={loading} class="w-full">
 				{#if loading}
 					<Spinner />
 					Signing in…
 				{:else}
 					Sign in
 				{/if}
-			</button>
+			</Button>
 		</form>
 
 		<p style="margin-top: 28px; text-align: center; font-size: 14px; color: var(--vc-muted);">

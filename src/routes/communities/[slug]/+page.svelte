@@ -2,6 +2,7 @@
 	import { enhance } from '$app/forms';
 	import ProposalCard from '$lib/components/ProposalCard.svelte';
 	import EmptyState from '$lib/components/EmptyState.svelte';
+	import Button from '$lib/components/Button.svelte';
 	import { formatRelativeTime } from '$lib/utils/format';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
@@ -113,7 +114,7 @@
 					{data.membership.role === 'admin' ? 'Admin' : 'Member'}
 				</span>
 				{#if data.membership.role === 'admin'}
-					<a href={resolve(`/communities/${data.community.slug}/settings`)} class="btn btn-ghost">
+					<Button href={resolve(`/communities/${data.community.slug}/settings`)} variant="ghost">
 						<svg
 							width="16"
 							height="16"
@@ -135,17 +136,17 @@
 							/>
 						</svg>
 						Settings
-					</a>
-					<button onclick={() => (showInviteForm = !showInviteForm)} class="btn btn-ghost">
+					</Button>
+					<Button onclick={() => (showInviteForm = !showInviteForm)} variant="ghost">
 						Invite members
-					</button>
+					</Button>
 				{/if}
-				<a
+				<Button
 					href={resolve(`/communities/${data.community.slug}/create-proposal`)}
-					class="btn btn-accent"
+					variant="accent"
 				>
 					New proposal
-				</a>
+				</Button>
 			</div>
 		{/if}
 	</header>
@@ -167,9 +168,9 @@
 					</p>
 					<div style="display: flex; gap: 8px; align-items: center;">
 						<input type="text" readonly value={form.inviteUrl} class="input" style="flex: 1;" />
-						<button onclick={copyInviteUrl} type="button" class="btn btn-ghost btn-sm">
+						<Button onclick={copyInviteUrl} type="button" variant="ghost" size="sm">
 							{copied ? 'Copied' : 'Copy'}
-						</button>
+						</Button>
 					</div>
 				</div>
 			{/if}
@@ -201,7 +202,7 @@
 					/>
 				</div>
 
-				<button type="submit" class="btn btn-primary">Generate link</button>
+				<Button type="submit" variant="primary">Generate link</Button>
 			</form>
 		</section>
 	{/if}
@@ -260,14 +261,15 @@
 
 			{#if data.proposals.nextCursor}
 				<div style="margin-top: 28px; text-align: center;">
-					<a
+					<Button
 						href={resolve(
 							`/communities/${data.community.slug}?cursor=${data.proposals.nextCursor}${data.phaseFilter ? `&phase=${data.phaseFilter}` : ''}`
 						)}
-						class="btn btn-ghost btn-sm"
+						variant="ghost"
+						size="sm"
 					>
 						Load more
-					</a>
+					</Button>
 				</div>
 			{/if}
 		{:else}
@@ -330,7 +332,7 @@
 
 			{#if data.members.nextCursor}
 				<div style="margin-top: 28px; text-align: center;">
-					<button class="btn btn-ghost btn-sm">Load more</button>
+					<Button variant="ghost" size="sm">Load more</Button>
 				</div>
 			{/if}
 		{:else}

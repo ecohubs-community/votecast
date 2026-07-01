@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
+	import Button from '$lib/components/Button.svelte';
 	import type { ActionData } from './$types';
 
 	let { form }: { form: ActionData } = $props();
@@ -136,8 +137,8 @@
 		</div>
 
 		<div class="form-actions">
-			<button type="submit" class="btn btn-accent btn-lg">Create community</button>
-			<a href={resolve('/')} class="btn btn-ghost btn-lg">Cancel</a>
+			<Button type="submit" variant="accent" size="lg">Create community</Button>
+			<Button href={resolve('/')} variant="ghost" size="lg">Cancel</Button>
 		</div>
 	</form>
 </div>

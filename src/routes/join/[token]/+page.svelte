@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
+	import Button from '$lib/components/Button.svelte';
 	import type { PageData, ActionData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -46,18 +47,19 @@
 			<p style="margin-top: 28px; color: var(--vc-muted); font-size: 14px;">
 				You're already part of this community.
 			</p>
-			<a
+			<Button
 				href={resolve(`/communities/${data.community.slug}`)}
-				class="btn btn-accent btn-lg"
-				style="margin-top: 20px;"
+				variant="accent"
+				size="lg"
+				class="mt-5"
 			>
 				Open community
-			</a>
+			</Button>
 		{:else if data.user}
 			<form method="POST" use:enhance style="margin-top: 28px;">
-				<button type="submit" class="btn btn-accent btn-lg">
+				<Button type="submit" variant="accent" size="lg">
 					Join {data.community.name}
-				</button>
+				</Button>
 			</form>
 		{:else}
 			<p style="margin-top: 28px; color: var(--vc-muted); font-size: 14px;">
@@ -66,20 +68,18 @@
 			<div
 				style="margin-top: 20px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;"
 			>
-				<!-- eslint-disable svelte/no-navigation-without-resolve -- paths are resolve()'d; only a query string is appended -->
-				<a
+				<Button
 					href={`${resolve('/login')}?redirect=${encodeURIComponent(`/join/${data.token}`)}`}
-					class="btn btn-accent"
+					variant="accent"
 				>
 					Sign in
-				</a>
-				<a
+				</Button>
+				<Button
 					href={`${resolve('/register')}?redirect=${encodeURIComponent(`/join/${data.token}`)}`}
-					class="btn btn-ghost"
+					variant="ghost"
 				>
 					Create account
-				</a>
-				<!-- eslint-enable svelte/no-navigation-without-resolve -->
+				</Button>
 			</div>
 		{/if}
 	</div>

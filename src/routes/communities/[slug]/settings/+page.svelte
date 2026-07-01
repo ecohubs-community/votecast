@@ -6,6 +6,7 @@
 	import { resolve } from '$app/paths';
 	import ProposalTypesPanel from '$lib/components/ProposalTypesPanel.svelte';
 	import VisibilityToggle from '$lib/components/VisibilityToggle.svelte';
+	import Button from '$lib/components/Button.svelte';
 	import type { PageData, ActionData } from './$types';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -244,7 +245,7 @@
 			</div>
 
 			<div class="form-actions">
-				<button type="submit" class="btn btn-accent">Save changes</button>
+				<Button type="submit" variant="accent">Save changes</Button>
 			</div>
 		</form>
 	{:else if activeTab === 'types'}
@@ -302,13 +303,13 @@
 									name="role"
 									value={member.role === 'admin' ? 'member' : 'admin'}
 								/>
-								<button type="submit" class="btn btn-ghost btn-sm">
+								<Button type="submit" variant="ghost" size="sm">
 									{member.role === 'admin' ? 'Demote' : 'Promote'}
-								</button>
+								</Button>
 							</form>
 							<form method="POST" action="?/removeMember" use:enhance>
 								<input type="hidden" name="userId" value={member.userId} />
-								<button type="submit" class="btn btn-danger btn-sm">Remove</button>
+								<Button type="submit" variant="danger" size="sm">Remove</Button>
 							</form>
 						</div>
 					{/if}
@@ -326,13 +327,9 @@
 				>
 					{webhookSecret}
 				</code>
-				<button
-					onclick={() => (webhookSecret = null)}
-					class="btn btn-ghost btn-sm"
-					style="margin-top: 12px;"
-				>
+				<Button onclick={() => (webhookSecret = null)} variant="ghost" size="sm" class="mt-3">
 					Dismiss
-				</button>
+				</Button>
 			</div>
 		{/if}
 
@@ -355,16 +352,17 @@
 								</p>
 							</div>
 							<div style="display: flex; gap: 8px; flex-shrink: 0;">
-								<button
+								<Button
 									onclick={() => toggleWebhook(wh.id, !wh.active)}
-									class="btn btn-ghost btn-sm"
+									variant="ghost"
+									size="sm"
 									aria-pressed={wh.active}
 									aria-label="Toggle webhook {wh.active ? 'off' : 'on'}"
 								>
 									{wh.active ? 'Active' : 'Paused'}
-								</button>
-								<button onclick={() => deleteWebhook(wh.id)} class="btn btn-danger btn-sm"
-									>Delete</button
+								</Button>
+								<Button onclick={() => deleteWebhook(wh.id)} variant="danger" size="sm"
+									>Delete</Button
 								>
 							</div>
 						</div>
@@ -423,13 +421,13 @@
 				</div>
 
 				<div>
-					<button type="submit" disabled={webhookLoading} class="btn btn-accent">
+					<Button type="submit" variant="accent" disabled={webhookLoading}>
 						{#if webhookLoading}
 							<Spinner /> Adding…
 						{:else}
 							Add webhook
 						{/if}
-					</button>
+					</Button>
 				</div>
 			</form>
 		</div>
@@ -448,13 +446,9 @@
 			</p>
 
 			{#if !showDeleteConfirm}
-				<button
-					onclick={() => (showDeleteConfirm = true)}
-					class="btn btn-destructive"
-					style="margin-top: 20px;"
-				>
+				<Button onclick={() => (showDeleteConfirm = true)} variant="destructive" class="mt-5">
 					Delete community
-				</button>
+				</Button>
 			{:else}
 				<div
 					style="margin-top: 20px; padding: 16px; border: 1px solid oklch(0.55 0.16 28 / 0.4); border-radius: 12px; background: oklch(0.55 0.16 28 / 0.06);"
@@ -471,23 +465,23 @@
 					/>
 					<div style="margin-top: 14px; display: flex; gap: 10px;">
 						<form method="POST" action="?/deleteCommunity" use:enhance>
-							<button
+							<Button
 								type="submit"
+								variant="destructive"
 								disabled={confirmName !== data.community.name}
-								class="btn btn-destructive"
 							>
 								I understand — delete it
-							</button>
+							</Button>
 						</form>
-						<button
+						<Button
+							variant="ghost"
 							onclick={() => {
 								showDeleteConfirm = false;
 								confirmName = '';
 							}}
-							class="btn btn-ghost"
 						>
 							Cancel
-						</button>
+						</Button>
 					</div>
 				</div>
 			{/if}
